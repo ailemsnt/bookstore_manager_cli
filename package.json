@@ -1,0 +1,37 @@
+{
+  "name": "bookstore_manager_cli",
+  "version": "1.0.0",
+  "description": "Projeto final módulo 1 - curso Desenvolvimento Back-end SCTec T1",
+  "homepage": "https://github.com/ailemsnt/bookstore_manager_cli#readme",
+  "bugs": {
+    "url": "https://github.com/ailemsnt/bookstore_manager_cli/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ailemsnt/bookstore_manager_cli.git"
+  },
+  "keywords": [],
+  "author": "Ailem",
+  "license": "ISC",
+  "type": "commonjs",
+  "main": "main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "dev": "tsc && tsx --watch src/main.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "@typescript-eslint/eslint-plugin": "^8.59.4",
+    "@typescript-eslint/parser": "^8.59.4",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "^3.8.3",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.4"
+  }
+}
