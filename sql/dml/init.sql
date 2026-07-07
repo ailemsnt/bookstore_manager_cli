@@ -89,7 +89,6 @@ CREATE TABLE IF NOT EXISTS cliente(
     municipio_id INTEGER NOT NULL REFERENCES municipio(id) ON DELETE CASCADE,
     telefone VARCHAR(15) NOT NULL,
     email VARCHAR(100),
-    perfil_id INTEGER NOT NULL REFERENCES perfil(id) ON DELETE CASCADE,
     data_cadastro TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     ativo INTEGER NOT NULL DEFAULT 1
 );
@@ -102,7 +101,6 @@ COMMENT ON COLUMN cliente.bairro IS 'Bairro do cliente';
 COMMENT ON COLUMN cliente.municipio_id IS 'ID do município do cliente';
 COMMENT ON COLUMN cliente.telefone IS 'Telefone do cliente';
 COMMENT ON COLUMN cliente.email IS 'Email do cliente';
-COMMENT ON COLUMN cliente.perfil_id IS 'ID do perfil do cliente';
 COMMENT ON COLUMN cliente.data_cadastro IS 'Data de cadastro';
 COMMENT ON COLUMN cliente.ativo IS 'Indica se o cliente está ativo';
 ------------------------------------------------------------------

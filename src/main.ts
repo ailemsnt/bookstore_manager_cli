@@ -1,22 +1,26 @@
 import 'dotenv/config'
 import { initDatabase, pool } from './infra/database/database';
-import { defer } from './utils/defer';
+import { LoginUseCase } from './usecase/login.usecase';
+import { UsuarioPostgresRepository } from './infra/repositories/adapters/usuario-postgres.repository';
+import { exit } from 'node:process';
+import { MainView } from './view/main.view';
 
-async function getUfs() {
-  const poolConnection = await pool.connect();
+async function bootstrap() {
+  await initDatabase();
 
-  using _ = defer(() => {
-    console.log("Releasing connection");
-    poolConnection.release();
-  });
+  const loginUseCase = new LoginUseCase(new UsuarioPostgresRepository(pool));
 
-  return (await poolConnection.query("SELECT * FROM uf")).rows;
+  const mainView = new MainView(loginUseCase)
+
+  await mainView.start()
 }
 
-async function main() {
-  initDatabase();
-  const uf = await getUfs();
-  console.log(uf);
-}
-
-main();
+bootstrap()
+  .then(() => {
+    process.exit(0)
+  })
+  .catch((e: unknown) => {
+    console.log('UNHANDLED REJECTION')
+    console.error(e)
+    process.exit(1)
+  })
