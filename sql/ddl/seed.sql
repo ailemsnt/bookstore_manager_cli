@@ -3,17 +3,10 @@
 -- Dados iniciais para as tabelas do banco de dados
 -- usuário não pode alterar, alimentado via script SQL
 -- ==================================================
-TRUNCATE TABLE
-    perfil,
+TRUNCATE TABLE    
     uf,
-    cidade
+    municipio
 RESTART IDENTITY CASCADE;
--- ──────────────────────────────────────────────────
--- Pefil de acesso
--- ──────────────────────────────────────────────────
-INSERT INTO perfil (id, nome) OVERRIDING SYSTEM VALUE VALUES
-    (1,'Admin'),
-    (2,'Bibliotecário');
 -- ──────────────────────────────────────────────────
 -- UF (Unidades Federativas) - 27 Estados do Brasil
 -- ──────────────────────────────────────────────────
