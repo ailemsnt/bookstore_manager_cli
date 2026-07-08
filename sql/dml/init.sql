@@ -1,3 +1,7 @@
+-- ============================================================
+-- DDL — Gestão de Biblioteca  (v1 — alinhado ao diagrama ER)
+-- Compatível com: PostgreSQL 14+
+-- ============================================================
 -- Database: bookstore_manager
 
 -- CREATE DATABASE bookstore_manager

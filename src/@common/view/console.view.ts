@@ -11,6 +11,7 @@ interface InteractiveFormKey {
   default?: string | number | boolean
   hidden?: boolean
   minLength?: number
+  maxLenght?: number
 }
 
 export abstract class ConsoleView {

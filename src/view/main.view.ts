@@ -1,3 +1,4 @@
+import { BookView } from './livroview';
 import { AuthorView } from './author.view';
 import { ConsoleView } from "../@common/view/console.view"
 import { LoginUseCase } from "../usecase/login.usecase"
@@ -5,6 +6,8 @@ import { LoginUserDto } from "./dto/login-user-form.dto"
 import { AuthorUseCase } from '../usecase/author.usecase';
 import { AutorPostgresRepository } from '../infra/repositories/adapters/autor-postgres.repository';
 import { pool } from '../infra/database/database';
+import { LivroPostgresRepository } from '../infra/repositories/adapters/livro.postgres.repository';
+import { BookUseCase } from '../usecase/book.usecase';
 
 export class MainView extends ConsoleView {
   constructor(private readonly loginUc: LoginUseCase) {
@@ -72,6 +75,9 @@ export class MainView extends ConsoleView {
           break
         case '2':
           this.display('Acessando livros...');
+          const bookUseCase = new BookUseCase(new LivroPostgresRepository(pool));
+          const bookView = new BookView(bookUseCase);
+          await bookView.start();
           break;
         case '3':
           this.display('Acessando clientes...');

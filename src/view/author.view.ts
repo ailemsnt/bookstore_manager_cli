@@ -79,13 +79,6 @@ export class AuthorView extends ConsoleView {
           this.display(`Autor cadastrado com sucesso! ID: ${authorCreated.id}, Nome: ${authorCreated.nome}`);
           break;
 
-          /*
-          
-             
-          
-              //await this.prompt(
-              this.display(`Usuário ${JSON.stringify(userOrError)} logado com sucesso!`);*/ 
-          
         case '4':
           this.display('Atualizando autor...');
           
@@ -104,6 +97,7 @@ export class AuthorView extends ConsoleView {
           const idDelete = await this.prompt('Informe o ID do autor a ser excluído:');
           const authorUseCaseDelete = new AuthorUseCase(new AutorPostgresRepository(pool));
           await authorUseCaseDelete.findAuthorById(Number(idDelete)); 
+          //TODO: fazer validação se não foi cadastrado em livro
           await authorUseCaseDelete.deleteAuthor(Number(idDelete));
           this.display('Autor excluído com sucesso!');
           break;
