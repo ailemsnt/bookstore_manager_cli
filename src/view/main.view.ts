@@ -1,6 +1,10 @@
+import { AuthorView } from './author.view';
 import { ConsoleView } from "../@common/view/console.view"
 import { LoginUseCase } from "../usecase/login.usecase"
 import { LoginUserDto } from "./dto/login-user-form.dto"
+import { AuthorUseCase } from '../usecase/author.usecase';
+import { AutorPostgresRepository } from '../infra/repositories/adapters/autor-postgres.repository';
+import { pool } from '../infra/database/database';
 
 export class MainView extends ConsoleView {
   constructor(private readonly loginUc: LoginUseCase) {
@@ -30,10 +34,65 @@ export class MainView extends ConsoleView {
       return
     }
 
-    await this.prompt(
-      `Usuário ${JSON.stringify(userOrError)} logado com sucesso!`
-    )
-    await this.prompt('Pressione ENTER para sair...')
-    this.exit()
+    if (!userOrError) {
+      this.showError('Usuário ou senha inválidos. Tente novamente.')
+      await this.prompt('Pressione ENTER para sair...')
+      return
+    }
+
+    //await this.prompt(
+    this.display(`Usuário ${JSON.stringify(loginUserDto.login)} logado com sucesso!`);
+    ///)
+    while (true) {
+      this.display('')
+      this.display('========================================')
+      this.display('                  MENU                  ')   
+      this.display('========================================')
+      this.display('')
+      this.display(" INSTRUÇÕES DE USO:");
+      this.display(" Gerencie empréstimos de livros.\n");
+      this.display(" Informe o número da opção desejada:");
+      this.display(" 1. AUTORES ");
+      this.display(" 2. LIVROS");
+      this.display(" 3. CLIENTES");
+      this.display(" 4. EMPRÉSTIMOS");
+      this.display(" 5. DEVOLUÇÕES");
+      this.display(" 6. RELATÓRIOS");
+      this.display(" 7. Sair");
+      this.display("========================================\n");
+    
+      const optionSelected = await this.prompt('Opção:');
+
+      switch (optionSelected) {
+        case '1':
+          this.display('Acessando autores...');
+          const authorUseCase = new AuthorUseCase(new AutorPostgresRepository(pool));
+          const authorView = new AuthorView(authorUseCase);
+          await authorView.start();
+          break
+        case '2':
+          this.display('Acessando livros...');
+          break;
+        case '3':
+          this.display('Acessando clientes...');
+          break;
+        case '4':
+          this.display('Acessando empréstimos...');
+          break;
+        case '5':
+          this.display('Acessando devoluções...');
+          break;
+        case '6':
+          this.display('Acessando relatórios...');
+          break;
+        case '7':
+          this.display('Saindo do sistema...');
+          this.exit()
+          return
+        default:
+          this.display('Opção inválida. Por favor, selecione uma opção válida.');
+          break;
+      }
+    }
   }
 }
