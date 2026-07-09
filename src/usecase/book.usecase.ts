@@ -1,4 +1,5 @@
 import { Livro } from "../domain/livro";
+import { LivroUpdate } from "../domain/livroUpdate";
 import { LivroRepository } from "../infra/repositories/livro.repository";
 
 export class BookUseCase {
@@ -34,7 +35,7 @@ export class BookUseCase {
     return newBook;
   }
 
-  async updateBook(book: Livro): Promise<Livro> {
+  async updateBook(book: LivroUpdate): Promise<Livro> {
     const updatedBook = await this.repository.updateBook(book);
     if (!updatedBook) {
       throw new Error("Erro ao atualizar livro");

@@ -52,7 +52,7 @@ export class BookView extends ConsoleView {
 
         case '3':
           this.display('Cadastrando livro...');
-          const bookDto = await this.promptInteractiveForm('Informe o nome do livro',BookFormDto.schema(), BookFormDto);
+          const bookDto = await this.promptInteractiveForm('Informe os dados do livro',BookFormDto.schema(), BookFormDto);
 
           const bookOrError = await this.bookUc
           .search(bookDto.titulo)
@@ -81,7 +81,7 @@ export class BookView extends ConsoleView {
           const idUpdate = await this.prompt('Informe o ID do livro a ser atualizado:'); 
           await this.bookUc.findBookById(Number(idUpdate));  
 
-          const bookUpdateDto = await this.promptInteractiveForm('Informe o nome do livro',BookUpdateDto.schema(), BookUpdateDto);
+          const bookUpdateDto = await this.promptInteractiveForm('Informe os dados do livro',BookUpdateDto.schema(), BookUpdateDto);
 
           const bookUpdateOrError = await this.bookUc
           .search(bookUpdateDto.titulo)
@@ -92,11 +92,10 @@ export class BookView extends ConsoleView {
             await this.prompt('Pressione ENTER para sair...')
             return
           }
-          
-          // const bookUpdated = await this.bookUc.updateBook( {id: Number(idUpdate), titulo: bookUpdateDto.titulo, autor_id: Number(bookUpdateDto.autor_id), editora: bookUpdateDto.editora, edicao: bookUpdateDto.edicao, ano_publicacao: Number(bookUpdateDto.ano_publicacao), disponivel: formatInStock(bookUpdateDto.disponivel)});
-          // const bookUpdated = await this.bookUc.updateBook(Number(idUpdate), bookUpdateDto.titulo, Number(bookUpdateDto.autor_id), bookUpdateDto.editora, bookUpdateDto.edicao, Number(bookUpdateDto.ano_publicacao), bookUpdateDto.disponivel === "S" ? 1 : 0);
+        
+          const bookUpdated = await this.bookUc.updateBook( {id: Number(idUpdate), titulo: bookUpdateDto.titulo, autor_id: Number(bookUpdateDto.autor_id), editora: bookUpdateDto.editora, edicao: bookUpdateDto.edicao, ano_publicacao: Number(bookUpdateDto.ano_publicacao), disponivel: formatInStock(bookUpdateDto.disponivel)});
 
-          // this.display(`Livro atualizado com sucesso! ID: ${bookUpdated.id}, Título: ${bookUpdated.titulo}`);
+          this.display(`Livro atualizado com sucesso! ID: ${bookUpdated.id}, Título: ${bookUpdated.titulo}`);
           break;
 
         case '5':

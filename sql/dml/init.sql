@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS livro(
     editora VARCHAR(100) NOT NULL,
     edicao VARCHAR(20) NOT NULL,
     ano_publicacao INTEGER NOT NULL,
-    codigo VARCHAR(20) NOT NULL UNIQUE,
+    codigo VARCHAR(20) NOT NULL,
     disponivel INTEGER NOT NULL DEFAULT 1,
     data_cadastro TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

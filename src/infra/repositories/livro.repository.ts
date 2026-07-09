@@ -1,4 +1,5 @@
 import { Livro } from "../../domain/livro";
+import { LivroUpdate } from "../../domain/livroUpdate";
 
 export interface LivroRepository {
   findBookByTitle(title: string): Promise<Livro | null>;
@@ -9,7 +10,7 @@ export interface LivroRepository {
 
   createBook(book: Omit<Livro, "id">): Promise<Livro>;
 
-  updateBook(book: Livro): Promise<Livro>;
+  updateBook(book: LivroUpdate): Promise<Livro>;
 
   deleteBook(id: number): Promise<void>;
 }
