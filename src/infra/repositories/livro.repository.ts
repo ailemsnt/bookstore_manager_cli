@@ -1,5 +1,4 @@
-import { Livro } from "../../domain/livro";
-import { LivroUpdate } from "../../domain/livroUpdate";
+import { Livro, LivroUpdate } from "../../domain/livro";
 
 export interface LivroRepository {
   findBookByTitle(title: string): Promise<Livro | null>;

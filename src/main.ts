@@ -1,8 +1,6 @@
-import 'dotenv/config'
 import { initDatabase, pool } from './infra/database/database';
 import { LoginUseCase } from './usecase/login.usecase';
 import { UsuarioPostgresRepository } from './infra/repositories/adapters/usuario-postgres.repository';
-import { exit } from 'node:process';
 import { MainView } from './view/main.view';
 import { AuthorView } from './view/author.view';
 import { AuthorUseCase } from './usecase/author.usecase';
@@ -10,6 +8,9 @@ import { AutorPostgresRepository } from './infra/repositories/adapters/autor-pos
 import { BookUseCase } from './usecase/book.usecase';
 import { LivroPostgresRepository } from './infra/repositories/adapters/livro.postgres.repository';
 import { BookView } from './view/book.view';
+import { ClientePostgresRepository } from './infra/repositories/adapters/cliente-postgres.repository';
+import { CustomerView } from './view/customer.view';
+import { CustomerUseCase } from './usecase/customer.usecase';
 
 async function bootstrap() {
   await initDatabase();
@@ -21,8 +22,11 @@ async function bootstrap() {
 
   const bookUseCase = new BookUseCase(new LivroPostgresRepository(pool));
   const bookView = new BookView(bookUseCase);
+
+  const customerUseCase = new CustomerUseCase(new ClientePostgresRepository(pool));
+  const customerView = new CustomerView(customerUseCase);
   
-  const mainView = new MainView(loginUseCase, authorView, bookView)
+  const mainView = new MainView(loginUseCase, authorView, bookView, customerView)
 
   await mainView.start()
 }

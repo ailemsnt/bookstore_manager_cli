@@ -1,5 +1,4 @@
-import { Livro } from "../domain/livro";
-import { LivroUpdate } from "../domain/livroUpdate";
+import { Livro, LivroUpdate } from "../domain/livro";
 import { LivroRepository } from "../infra/repositories/livro.repository";
 
 export class BookUseCase {

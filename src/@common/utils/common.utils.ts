@@ -31,10 +31,10 @@ export function defer(fn: () => void) {
   };
 }
 
-export function formatOutStock(disponivel: number) : string {
+export function formatOutChar(disponivel: number) : string {
   return disponivel === 1 ? "Sim" : "Não";
 } 
 
-export function formatInStock(disponivel: string) : number {
+export function formatInChar(disponivel: string) : number {
   return disponivel === "S" ? 1 : 0;
 }

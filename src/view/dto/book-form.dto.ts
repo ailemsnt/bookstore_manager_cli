@@ -35,12 +35,12 @@ export class BookUpdateDto {
   ) {}
   static schema(): ConsoleFormSchema {
     return {
-      titulo: { type: 'string', required: true, minLength: 1 },
-      autor_id: { type: 'number', required: true },
-      editora: { type: 'string', required: true, minLength: 1 },
+      titulo: { type: 'string', required: false, minLength: 1 },
+      autor_id: { type: 'number', required: false },
+      editora: { type: 'string', required: false, minLength: 1 },
       edicao: { type: 'string', required: false, minLength: 3 },
-      ano_publicacao: { type: 'number', required: true },
-      disponivel: { type: 'string', required: true, minLength: 1, maxLenght: 1}      
+      ano_publicacao: { type: 'number', required: false },
+      disponivel: { type: 'string', required: false, minLength: 1, maxLenght: 1}      
     };
   }
 }
