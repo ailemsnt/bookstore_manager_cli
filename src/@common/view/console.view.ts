@@ -44,9 +44,7 @@ export abstract class ConsoleView {
           this.display('Campo obrigatório! Tente novamente...')
           return [false, null]
         }
-
         return [true, null]
-        
       }
       
       if (schema.minLength && response.length < schema.minLength) {
@@ -58,10 +56,13 @@ export abstract class ConsoleView {
         return [true, response]
       }
 
-      if (schema.type === 'number') {
-        this.display('Digite um número válido! Tente novamente...')
+      if (schema.type === 'number') {        
         const n = Number(response)
-        return [!Number.isNaN(n), n]
+        if (Number.isNaN(n)) {          
+          this.display('Digite um número válido! Tente novamente...')
+          return [false,n]
+        }
+        return [true, n]
       }
 
       if (

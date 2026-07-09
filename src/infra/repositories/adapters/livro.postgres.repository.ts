@@ -2,6 +2,7 @@ import { Pool } from "pg";
 import { Livro } from "../../../domain/livro";
 import { LivroRepository } from "../livro.repository";
 import { LargeNumberLike } from "node:crypto";
+import { BookUpdateDto } from "../../../view/dto/book-form.dto";
 
 export class LivroPostgresRepository implements LivroRepository {
   constructor(private readonly pool: Pool) {}
@@ -10,7 +11,7 @@ export class LivroPostgresRepository implements LivroRepository {
     const { rows } = await this.pool.query(
       ` SELECT l.*, a.nome AS autor_nome
           FROM livro l
-          INNER JOIN autor a ON a.autor_id = l.autor.id
+          INNER JOIN autor a ON a.id = l.autor_id
           WHERE lower(unaccent(l.titulo)) = lower(unaccent($1)) `,
       [title],
     );
@@ -26,7 +27,7 @@ export class LivroPostgresRepository implements LivroRepository {
     const { rows } = await this.pool.query(
         ` SELECT l.*, a.nome AS autor_nome
           FROM livro l
-          INNER JOIN autor a ON a.autor_id = l.autor.id
+          INNER JOIN autor a ON a.id = l.autor_id
           WHERE l.id = $1 `,
         [id],
     );
@@ -42,7 +43,7 @@ export class LivroPostgresRepository implements LivroRepository {
     const { rows } = await this.pool.query(
       ` SELECT l.*, a.nome AS autor_nome
         FROM livro l
-        INNER JOIN autor a ON a.autor_id = l.autor.id 
+        INNER JOIN autor a ON a.id = l.autor_id 
         ORDER BY l.titulo `,
     );
 
@@ -59,14 +60,13 @@ export class LivroPostgresRepository implements LivroRepository {
     return row;
   }
 
-  async updateBook(id: number, titulo: string, autor_id: number, editora: string, edicao: string, ano_publicacao: number, disponivel: number ): Promise<Livro>{
+  async updateBook(book: Livro): Promise<Livro>{
     const { rows: [row], } = await this.pool.query<Livro>(
-          `UPDATE livro SET titulo = $1, autor_id = $2, editora = $3, edicao = $4, ano_publicacao = $5, disponivel = $6
-           WHERE id = $7 RETURNING *`,
-          [titulo, autor_id, editora, edicao, ano_publicacao, disponivel, id],
+      `UPDATE livro SET titulo = $1, autor_id = $2, editora = $3, edicao = $4, ano_publicacao = $5, disponivel = $6
+        WHERE id = $7 RETURNING *`,
+      [book.titulo, book.autor_id, book.editora, book.edicao, book.ano_publicacao, book.disponivel, book.id],
         );
-    
-        return row;
+    return row;
   }
 
   async deleteBook(id: number): Promise<void> {

@@ -9,7 +9,7 @@ export interface LivroRepository {
 
   createBook(book: Omit<Livro, "id">): Promise<Livro>;
 
-  updateBook(id: number, titulo: string, autor_id: number, editora: string, edicao: string, ano_publicacao: number, disponivel: number ): Promise<Livro>;
+  updateBook(book: Livro): Promise<Livro>;
 
   deleteBook(id: number): Promise<void>;
 }

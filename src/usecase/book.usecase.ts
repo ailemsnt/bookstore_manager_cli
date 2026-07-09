@@ -34,8 +34,8 @@ export class BookUseCase {
     return newBook;
   }
 
-  async updateBook(id: number, titulo: string, autor_id: number, editora: string, edicao: string, ano_publicacao: number, disponivel: number): Promise<Livro> {
-    const updatedBook = await this.repository.updateBook(id, titulo, autor_id, editora, edicao, ano_publicacao, disponivel);
+  async updateBook(book: Livro): Promise<Livro> {
+    const updatedBook = await this.repository.updateBook(book);
     if (!updatedBook) {
       throw new Error("Erro ao atualizar livro");
     }

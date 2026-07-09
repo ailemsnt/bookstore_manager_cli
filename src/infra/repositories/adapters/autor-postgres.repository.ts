@@ -7,7 +7,7 @@ export class AutorPostgresRepository implements AutorRepository{
 
   async findAuthorByName(name: string): Promise<Autor | null> {
     const { rows } = await this.pool.query(
-      "SELECT * FROM autor WHERE lower(unaccent(nome)) = lower(unaccent($1))",
+      "SELECT * FROM autor WHERE lower(unaccent(nome)) = lower(unaccent($1)) AND deletedAt is null",
       [name],
     );
 
@@ -20,7 +20,7 @@ export class AutorPostgresRepository implements AutorRepository{
 
   async findAuthorById(id: number): Promise<Autor | null> {
     const { rows } = await this.pool.query(
-      "SELECT * FROM autor WHERE id = $1",
+      "SELECT * FROM autor WHERE id = $1 AND deletedAt is null",
       [id],
     );
 
@@ -32,7 +32,7 @@ export class AutorPostgresRepository implements AutorRepository{
   }
 
   async findAllAuthors(): Promise<Autor[]> {
-    const { rows } = await this.pool.query("SELECT * FROM autor ORDER BY id");
+    const { rows } = await this.pool.query("SELECT * FROM autor WHERE deletedAt is null ORDER BY id");
     
     return rows;      
   }
@@ -50,7 +50,7 @@ export class AutorPostgresRepository implements AutorRepository{
   
   async updateAuthor(id: number, nome: string): Promise<Autor> {
     const { rows: [row], } = await this.pool.query<Autor>(
-      "UPDATE autor SET nome = $1 WHERE id = $2 RETURNING *",
+      "UPDATE autor SET nome = $1 WHERE id = $2 AND deletedAt is null RETURNING *",
       [nome, id],
     );
 
@@ -58,11 +58,9 @@ export class AutorPostgresRepository implements AutorRepository{
   }
 
   async deleteAuthor(id: number): Promise<void> {
-    const result = await this.pool.query("DELETE FROM autor WHERE id = $1", [id]);
-    
+    await this.pool.query("UPDATE autor SET deletedAt = NOW() WHERE id = $1", [id]);    
     // if (result.rowCount === 0) {
     //   throw new Error(`Autor com id ${id} não encontrado`);
     // }
   }
-
 }
