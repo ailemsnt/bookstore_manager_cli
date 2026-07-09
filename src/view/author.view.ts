@@ -35,9 +35,8 @@ export class AuthorView extends ConsoleView {
       switch (optionSelected) {
         case '1':
           this.display('Listando autores...');
-
-          const authorUseCase = new AuthorUseCase(new AutorPostgresRepository(pool));
-          const list = await authorUseCase.findAllAuthors();
+          
+          const list = await this.authorUc.findAllAuthors();
 
           list.forEach((author) => {
             this.display(`ID: ${author.id}, Nome: ${author.nome}`);
@@ -47,9 +46,8 @@ export class AuthorView extends ConsoleView {
         case '2':
           this.display('Buscando autor por ID...');
 
-          const id = await this.prompt('Informe o ID do autor:');
-          const authorUseCaseById = new AuthorUseCase(new AutorPostgresRepository(pool));
-          const author = await authorUseCaseById.findAuthorById(Number(id));          
+          const id = await this.prompt('Informe o ID do autor:');          
+          const author = await this.authorUc.findAuthorById(Number(id));          
 
           this.display(`ID: ${author.id}, Nome: ${author.nome}`);
           break;
@@ -73,27 +71,19 @@ export class AuthorView extends ConsoleView {
             return
           }
 
-          const authorUseCaseCreate = new AuthorUseCase(new AutorPostgresRepository(pool));
-          const authorCreated = await authorUseCaseCreate.createAuthor({ nome: authorDto.nome});
+          const authorCreated = await this.authorUc.createAuthor({ nome: authorDto.nome});
 
           this.display(`Autor cadastrado com sucesso! ID: ${authorCreated.id}, Nome: ${authorCreated.nome}`);
           break;
 
-          /*
-          
-             
-          
-              //await this.prompt(
-              this.display(`Usuário ${JSON.stringify(userOrError)} logado com sucesso!`);*/ 
-          
         case '4':
           this.display('Atualizando autor...');
           
-          const idUpdate = await this.prompt('Informe o ID do autor a ser atualizado:');          
-          const authorUseCaseUpdate = new AuthorUseCase(new AutorPostgresRepository(pool));
-          await authorUseCaseUpdate.findAuthorById(Number(idUpdate));
+          const idUpdate = await this.prompt('Informe o ID do autor a ser atualizado:'); 
+          await this.authorUc.findAuthorById(Number(idUpdate));
+
           const nameUpdate = await this.prompt('Informe o novo nome do autor:');
-          const authorUpdated = await authorUseCaseUpdate.updateAuthor(Number(idUpdate), nameUpdate);
+          const authorUpdated = await this.authorUc.updateAuthor(Number(idUpdate), nameUpdate);
 
           this.display(`Autor atualizado com sucesso! ID: ${authorUpdated.id}, Nome: ${authorUpdated.nome}`);
           break;
@@ -102,9 +92,10 @@ export class AuthorView extends ConsoleView {
           this.display('Excluindo autor...');
 
           const idDelete = await this.prompt('Informe o ID do autor a ser excluído:');
-          const authorUseCaseDelete = new AuthorUseCase(new AutorPostgresRepository(pool));
-          await authorUseCaseDelete.findAuthorById(Number(idDelete)); 
-          await authorUseCaseDelete.deleteAuthor(Number(idDelete));
+          
+          await this.authorUc.findAuthorById(Number(idDelete)); 
+          //TODO: fazer validação se não foi cadastrado em livro
+          await this.authorUc.deleteAuthor(Number(idDelete));
           this.display('Autor excluído com sucesso!');
           break;
 

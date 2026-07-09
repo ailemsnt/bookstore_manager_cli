@@ -29,7 +29,7 @@ export class AuthorUseCase {
   async createAuthor(author: Omit<Autor, "id">): Promise<Autor> {
     const newAuthor = await this.repository.createAuthor(author);
     if (!newAuthor) {
-      throw new Error("Erro ao criar autor");
+      throw new Error("Erro ao cadastrar o autor");
     }
     return newAuthor;
   }

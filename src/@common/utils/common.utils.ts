@@ -30,3 +30,11 @@ export function defer(fn: () => void) {
     [Symbol.dispose]: fn,
   };
 }
+
+export function formatOutStock(disponivel: number) : string {
+  return disponivel === 1 ? "Sim" : "Não";
+} 
+
+export function formatInStock(disponivel: string) : number {
+  return disponivel === "S" ? 1 : 0;
+}

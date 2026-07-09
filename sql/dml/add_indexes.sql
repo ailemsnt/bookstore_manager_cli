@@ -1,3 +1,6 @@
+-- ============================================================
+-- DDL de índices — Gestão de Biblioteca
+-- ============================================================
 CREATE INDEX idx_municipio_uf_id ON municipio(uf_id);
 CREATE INDEX idx_usuario_perfil_id ON usuario(perfil_id);
 CREATE INDEX idx_livro_autor_id ON livro(autor_id);
