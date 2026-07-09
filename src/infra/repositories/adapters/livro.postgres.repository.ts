@@ -1,8 +1,6 @@
 import { Pool } from "pg";
 import { Livro } from "../../../domain/livro";
 import { LivroRepository } from "../livro.repository";
-import { LargeNumberLike } from "node:crypto";
-import { BookUpdateDto } from "../../../view/dto/book-form.dto";
 
 export class LivroPostgresRepository implements LivroRepository {
   constructor(private readonly pool: Pool) {}

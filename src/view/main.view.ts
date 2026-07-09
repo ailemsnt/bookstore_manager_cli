@@ -3,12 +3,10 @@ import { AuthorView } from './author.view';
 import { ConsoleView } from "../@common/view/console.view"
 import { LoginUseCase } from "../usecase/login.usecase"
 import { LoginUserDto } from "./dto/login-user-form.dto"
-import { pool } from '../infra/database/database';
-import { LivroPostgresRepository } from '../infra/repositories/adapters/livro.postgres.repository';
-import { BookUseCase } from '../usecase/book.usecase';
+import { CustomerView } from './customer.view';
 
 export class MainView extends ConsoleView {
-  constructor(private readonly loginUc: LoginUseCase, private readonly authorView: AuthorView, private readonly bookView: BookView) {
+  constructor(private readonly loginUc: LoginUseCase, private readonly authorView: AuthorView, private readonly bookView: BookView, private readonly costumerView: CustomerView) {
     super(true)
   }
 
@@ -75,6 +73,7 @@ export class MainView extends ConsoleView {
           break;
         case '3':
           this.display('Acessando clientes...');
+          await this.costumerView.start();
           break;
         case '4':
           this.display('Acessando empréstimos...');
