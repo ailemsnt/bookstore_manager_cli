@@ -4,9 +4,13 @@ import { ConsoleView } from "../@common/view/console.view"
 import { LoginUseCase } from "../usecase/login.usecase"
 import { LoginUserDto } from "./dto/login-user-form.dto"
 import { CustomerView } from './customer.view';
+import { Session } from "../infra/database/session";
+import { BorrowView } from './borrow.view';
 
 export class MainView extends ConsoleView {
-  constructor(private readonly loginUc: LoginUseCase, private readonly authorView: AuthorView, private readonly bookView: BookView, private readonly costumerView: CustomerView) {
+  constructor(private readonly loginUc: LoginUseCase, private readonly authorView: AuthorView, 
+              private readonly bookView: BookView, private readonly costumerView: CustomerView,
+              private readonly borrowView: BorrowView) {
     super(true)
   }
 
@@ -34,10 +38,12 @@ export class MainView extends ConsoleView {
     }
 
     if (!userOrError) {
-      this.showError('Usuário ou senha inválidos. Tente novamente.')
+      ///this.showError('Usuário ou senha inválidos. Tente novamente.')
       await this.prompt('Pressione ENTER para sair...')
       return
     }
+
+    Session.currentUser = userOrError;
 
     //await this.prompt(
     this.display(`Usuário ${JSON.stringify(loginUserDto.login)} logado com sucesso!`);
@@ -57,7 +63,7 @@ export class MainView extends ConsoleView {
       this.display(" 4. EMPRÉSTIMOS");
       this.display(" 5. DEVOLUÇÕES");
       this.display(" 6. RELATÓRIOS");
-      this.display(" 7. Sair");
+      this.display(" 0. Sair");
       this.display("========================================\n");
     
       const optionSelected = await this.prompt('Opção:');
@@ -77,6 +83,7 @@ export class MainView extends ConsoleView {
           break;
         case '4':
           this.display('Acessando empréstimos...');
+          await this.borrowView.start();
           break;
         case '5':
           this.display('Acessando devoluções...');
@@ -84,7 +91,7 @@ export class MainView extends ConsoleView {
         case '6':
           this.display('Acessando relatórios...');
           break;
-        case '7':
+        case '0':
           this.display('Saindo do sistema...');
           this.exit()
           return

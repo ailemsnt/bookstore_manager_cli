@@ -109,7 +109,7 @@ export class BookView extends ConsoleView {
           this.display('Livro excluído com sucesso!');
           break;
 
-        case '6': 
+        case '0': 
           this.display('Voltando ao menu principal...');              
           return
         default:

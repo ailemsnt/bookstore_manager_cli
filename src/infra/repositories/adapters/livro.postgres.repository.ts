@@ -11,7 +11,7 @@ export class LivroPostgresRepository implements LivroRepository {
           FROM livro l
           INNER JOIN autor a ON a.id = l.autor_id
           WHERE lower(unaccent(l.titulo)) = lower(unaccent($1)) 
-              AND l.deletedAt is null`,
+              AND l.deleted_at is null`,
       [title],
     );
 
@@ -27,7 +27,7 @@ export class LivroPostgresRepository implements LivroRepository {
         ` SELECT l.*, a.nome AS autor_nome
           FROM livro l
           INNER JOIN autor a ON a.id = l.autor_id
-          WHERE l.id = $1 AND l.deletedAt is null`,
+          WHERE l.id = $1 AND l.deleted_at is null`,
         [id],
     );
 
@@ -43,7 +43,7 @@ export class LivroPostgresRepository implements LivroRepository {
       ` SELECT l.*, a.nome AS autor_nome
         FROM livro l
         INNER JOIN autor a ON a.id = l.autor_id 
-        WHERE l.deletedAt is null
+        WHERE l.deleted_at is null
         ORDER BY l.titulo `,
     );
 
@@ -63,14 +63,14 @@ export class LivroPostgresRepository implements LivroRepository {
   async updateBook(book: Livro): Promise<Livro>{
     const { rows: [row], } = await this.pool.query<Livro>(
       `UPDATE livro SET titulo = $1, autor_id = $2, editora = $3, edicao = $4, ano_publicacao = $5, disponivel = $6
-        WHERE id = $7 AND deletedAt is null RETURNING *`,
+        WHERE id = $7 AND deleted_at is null RETURNING *`,
       [book.titulo, book.autor_id, book.editora, book.edicao, book.ano_publicacao, book.disponivel, book.id],
         );
     return row;
   }
 
   async deleteBook(id: number): Promise<void> {
-    const result = await this.pool.query("UPDATE livro SET deletedAt = NOW() WHERE id = $1", [id]);
+    const result = await this.pool.query("UPDATE livro SET deleted_at = NOW() WHERE id = $1", [id]);
   }
 
 }

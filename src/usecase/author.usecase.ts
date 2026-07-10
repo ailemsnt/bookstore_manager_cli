@@ -34,8 +34,8 @@ export class AuthorUseCase {
     return newAuthor;
   }
 
-  async updateAuthor(id: number, nome: string): Promise<Autor> {
-    const updatedAuthor = await this.repository.updateAuthor(id, nome);
+  async updateAuthor(id: number, name: string): Promise<Autor> {
+    const updatedAuthor = await this.repository.updateAuthor(id, name);
     if (!updatedAuthor) {
       throw new Error("Erro ao atualizar autor");
     }

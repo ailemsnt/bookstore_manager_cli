@@ -99,7 +99,7 @@ export class AuthorView extends ConsoleView {
           this.display('Autor excluído com sucesso!');
           break;
 
-        case '6': 
+        case '0': 
           this.display('Voltando ao menu principal...');              
           return
         default:

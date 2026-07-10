@@ -11,6 +11,9 @@ import { BookView } from './view/book.view';
 import { ClientePostgresRepository } from './infra/repositories/adapters/cliente-postgres.repository';
 import { CustomerView } from './view/customer.view';
 import { CustomerUseCase } from './usecase/customer.usecase';
+import { BorrowUseCase } from './usecase/borrow.usecase';
+import { EmprestimoPostgresRepository } from './infra/repositories/adapters/emprestimo-postgres.repository';
+import { BorrowView } from './view/borrow.view';
 
 async function bootstrap() {
   await initDatabase();
@@ -25,8 +28,11 @@ async function bootstrap() {
 
   const customerUseCase = new CustomerUseCase(new ClientePostgresRepository(pool));
   const customerView = new CustomerView(customerUseCase);
+
+  const borrowUseCase = new BorrowUseCase(new EmprestimoPostgresRepository(pool));
+  const borrowView = new BorrowView(borrowUseCase);
   
-  const mainView = new MainView(loginUseCase, authorView, bookView, customerView)
+  const mainView = new MainView(loginUseCase, authorView, bookView, customerView, borrowView)
 
   await mainView.start()
 }

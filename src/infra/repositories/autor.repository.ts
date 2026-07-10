@@ -9,7 +9,7 @@ export interface AutorRepository {
 
   createAuthor(author: Omit<Autor, "id">): Promise<Autor>;
 
-  updateAuthor(id: number, nome: string): Promise<Autor>;
+  updateAuthor(id: number, name: string): Promise<Autor>;
 
   deleteAuthor(id: number): Promise<void>;
 }
