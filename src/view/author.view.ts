@@ -3,7 +3,6 @@ import { pool } from "../infra/database/database";
 import { AutorPostgresRepository } from "../infra/repositories/adapters/autor-postgres.repository";
 import { AuthorUseCase } from "../usecase/author.usecase";
 import { AuthorFormDto } from "./dto/author-form.dto";
-
 export class AuthorView extends ConsoleView {
   constructor(private readonly authorUc: AuthorUseCase)
   { 
@@ -71,6 +70,11 @@ export class AuthorView extends ConsoleView {
             return
           }
 
+          const confirmationCreate = await this.confirmAction('gravar o autor');
+          if (!confirmationCreate) {
+            return;
+          }
+
           const authorCreated = await this.authorUc.createAuthor({ nome: authorDto.nome});
 
           this.display(`Autor cadastrado com sucesso! ID: ${authorCreated.id}, Nome: ${authorCreated.nome}`);
@@ -81,6 +85,11 @@ export class AuthorView extends ConsoleView {
           
           const idUpdate = await this.prompt('Informe o ID do autor a ser atualizado:'); 
           await this.authorUc.findAuthorById(Number(idUpdate));
+
+          const confirmationUpdate = await this.confirmAction('gravar o autor');
+          if (!confirmationUpdate) {
+            return;
+          }
 
           const nameUpdate = await this.prompt('Informe o novo nome do autor:');
           const authorUpdated = await this.authorUc.updateAuthor(Number(idUpdate), nameUpdate);
@@ -94,7 +103,16 @@ export class AuthorView extends ConsoleView {
           const idDelete = await this.prompt('Informe o ID do autor a ser excluído:');
           
           await this.authorUc.findAuthorById(Number(idDelete)); 
-          //TODO: fazer validação se não foi cadastrado em livro
+          
+          const canDelete = await this.authorUc.canDeleteAuthor(Number(idDelete));    
+          if (!canDelete) {
+            return;
+          }
+
+          const confirmationDelete = await this.confirmAction('excluir o autor');
+          if (!confirmationDelete) {
+            return;
+          }
           await this.authorUc.deleteAuthor(Number(idDelete));
           this.display('Autor excluído com sucesso!');
           break;

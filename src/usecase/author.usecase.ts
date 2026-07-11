@@ -42,7 +42,15 @@ export class AuthorUseCase {
     return updatedAuthor;
   }
 
-  deleteAuthor(id: number): Promise<void> {     
+  async canDeleteAuthor(id: number): Promise<boolean> { 
+    const canDelete = await this.repository.canDeleteAuthor(id);
+    if (!canDelete) {
+      throw new Error("Não é possível excluir este autor pois ele possui livros cadastrados em seu nome.");
+    } 
+    return canDelete;
+  }
+
+  async deleteAuthor(id: number): Promise<void> {     
     return this.repository.deleteAuthor(id);    
   }
 }

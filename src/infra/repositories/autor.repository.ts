@@ -12,4 +12,6 @@ export interface AutorRepository {
   updateAuthor(id: number, name: string): Promise<Autor>;
 
   deleteAuthor(id: number): Promise<void>;
+
+  canDeleteAuthor(id: number): Promise<boolean>;
 }

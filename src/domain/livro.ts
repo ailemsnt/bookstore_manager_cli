@@ -1,7 +1,6 @@
 export interface Livro {
   id: number;
   titulo: string;
-  autor_id: number; 
   editora: string;
   edicao: string;
   ano_publicacao: number;
@@ -11,8 +10,7 @@ export interface Livro {
 }
 export interface LivroUpdate {
   id: number;
-  titulo: string;
-  autor_id: number; 
+  titulo: string; 
   editora: string;
   edicao: string;
   ano_publicacao: number;

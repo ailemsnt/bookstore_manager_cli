@@ -64,7 +64,6 @@ COMMENT ON COLUMN autor.nome IS 'Nome do autor';
 CREATE TABLE IF NOT EXISTS livro(
     id INTEGER NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     titulo VARCHAR(255) NOT NULL,
-    autor_id INTEGER NOT NULL REFERENCES autor(id) ON DELETE CASCADE,
     editora VARCHAR(100) NOT NULL,
     edicao VARCHAR(20) NOT NULL,
     ano_publicacao INTEGER NOT NULL,
@@ -73,13 +72,19 @@ CREATE TABLE IF NOT EXISTS livro(
     data_cadastro TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 COMMENT ON COLUMN livro.titulo IS 'Título do livro';
-COMMENT ON COLUMN livro.autor_id IS 'ID do autor do livro';
 COMMENT ON COLUMN livro.editora IS 'Editora do livro';
 COMMENT ON COLUMN livro.edicao IS 'Edição do livro';
 COMMENT ON COLUMN livro.ano_publicacao IS 'Ano de publicação do livro';
 COMMENT ON COLUMN livro.codigo IS 'Código interno do livro';
 COMMENT ON COLUMN livro.disponivel IS 'Indica se o livro está disponível';
 COMMENT ON COLUMN livro.data_cadastro IS 'Data de cadastro do livro';
+CREATE TABLE IF NOT EXISTS livro_autor (
+    autor_id INTEGER NOT NULL REFERENCES autor(id) ON DELETE CASCADE, 
+    livro_id INTEGER NOT NULL REFERENCES livro(id) ON DELETE CASCADE,
+    PRIMARY KEY (autor_id, livro_id) 
+);
+COMMENT ON COLUMN livro_autor.autor_id IS 'ID do autor do livro';
+COMMENT ON COLUMN livro_autor.livro_id IS 'ID do livro';
 ------------------------------------------------------------------
 --DROP TABLE IF EXISTS cliente CASCADE;
 CREATE TABLE IF NOT EXISTS cliente(  
@@ -111,19 +116,26 @@ COMMENT ON COLUMN cliente.ativo IS 'Indica se o cliente está ativo';
 --DROP TABLE IF EXISTS emprestimo CASCADE;
 CREATE TABLE IF NOT EXISTS emprestimo(
     id INTEGER NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    livro_id INTEGER NOT NULL REFERENCES livro(id) ON DELETE CASCADE,
     cliente_id INTEGER NOT NULL REFERENCES cliente(id) ON DELETE CASCADE,
-    data_emprestimo TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    data_prevista_devolucao TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '10 days'),
-    data_devolucao TIMESTAMPTZ,
-    devolvido INTEGER NOT NULL DEFAULT 0,
+    data_emprestimo TIMESTAMPTZ NOT NULL DEFAULT NOW(),    
     usuario_id INTEGER NOT NULL REFERENCES usuario(id) ON DELETE CASCADE
 ); 
-COMMENT ON COLUMN emprestimo.livro_id IS 'ID do livro emprestado';
+COMMENT ON COLUMN emprestimo.id IS 'ID do empréstimo';
 COMMENT ON COLUMN emprestimo.cliente_id IS 'ID do cliente que realizou o empréstimo';
 COMMENT ON COLUMN emprestimo.data_emprestimo IS 'Data do empréstimo';
-COMMENT ON COLUMN emprestimo.data_prevista_devolucao IS 'Data prevista para devolução';
-COMMENT ON COLUMN emprestimo.data_devolucao IS 'Data de devolução do livro';
-COMMENT ON COLUMN emprestimo.devolvido IS 'Indica se o livro foi devolvido (0 = não, 1 = sim)';
 COMMENT ON COLUMN emprestimo.usuario_id IS 'ID do usuário que registrou o empréstimo';
 ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS emprestimo_item (
+    id INTEGER NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    emprestimo_id INTEGER NOT NULL REFERENCES emprestimo(id) ON DELETE CASCADE,
+    livro_id INTEGER NOT NULL REFERENCES livro(id) ON DELETE CASCADE,
+    data_prevista_devolucao TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '10 days'),  
+    data_devolucao TIMESTAMPTZ,
+    devolvido INTEGER NOT NULL DEFAULT 0
+);
+COMMENT ON COLUMN emprestimo_item.id IS 'ID do item do empréstimo';
+COMMENT ON COLUMN emprestimo_item.emprestimo_id IS 'ID do empréstimo';
+COMMENT ON COLUMN emprestimo_item.livro_id IS 'ID do livro emprestado';
+COMMENT ON COLUMN emprestimo_item.data_prevista_devolucao IS 'Data prevista para devolução';
+COMMENT ON COLUMN emprestimo_item.data_devolucao IS 'Data de devolução do livro';
+COMMENT ON COLUMN emprestimo_item.devolvido IS 'Indica se o livro foi devolvido (0 = não, 1 = sim)';

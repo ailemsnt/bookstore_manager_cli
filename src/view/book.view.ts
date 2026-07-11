@@ -36,9 +36,9 @@ export class BookView extends ConsoleView {
           
           const list = await this.bookUc.findAllBooks();
 
-          list.forEach((book) => {
-            this.display(`ID: ${book.id}, Título: ${book.titulo}, Autor: ${book.autor_id}, Editora: ${book.editora}, Edição: ${book.edicao}, Publicação: ${book.ano_publicacao}, Disponível empréstimo: ${formatOutChar(book.disponivel)}`);
-          });
+          // list.forEach((book) => {
+          //   this.display(`ID: ${book.id}, Título: ${book.titulo}, Autor: ${book.autor_id}, Editora: ${book.editora}, Edição: ${book.edicao}, Publicação: ${book.ano_publicacao}, Disponível empréstimo: ${formatOutChar(book.disponivel)}`);
+          // });
           break;          
 
         case '2':
@@ -47,7 +47,7 @@ export class BookView extends ConsoleView {
           const id = await this.prompt('Informe o ID do livro:');          
           const book = await this.bookUc.findBookById(Number(id));          
 
-          this.display(`ID: ${book.id}, Título: ${book.titulo}, Autor: ${book.autor_id}, Editora: ${book.editora}, Edição: ${book.edicao}, Publicação: ${book.ano_publicacao}, Disponível empréstimo: ${formatOutChar(book.disponivel)}`);
+          // this.display(`ID: ${book.id}, Título: ${book.titulo}, Autor: ${book.autor_id}, Editora: ${book.editora}, Edição: ${book.edicao}, Publicação: ${book.ano_publicacao}, Disponível empréstimo: ${formatOutChar(book.disponivel)}`);
           break;
 
         case '3':
@@ -69,9 +69,9 @@ export class BookView extends ConsoleView {
             return
           }
           
-          const bookCreated = await this.bookUc.createBook({ titulo: bookDto.titulo, autor_id: Number(bookDto.autor_id), editora: bookDto.editora, edicao: bookDto.edicao, ano_publicacao: Number(bookDto.ano_publicacao), disponivel: formatInChar(bookDto.disponivel), codigo: bookDto.codigo, isbn: bookDto.isbn});
+          // const bookCreated = await this.bookUc.createBook({ titulo: bookDto.titulo, autor_id: Number(bookDto.autor_id), editora: bookDto.editora, edicao: bookDto.edicao, ano_publicacao: Number(bookDto.ano_publicacao), disponivel: formatInChar(bookDto.disponivel), codigo: bookDto.codigo, isbn: bookDto.isbn});
 
-          this.display(`Livro cadastrado com sucesso! Título: ${bookCreated.titulo}, Autor: ${bookCreated.autor_id}`);
+          // this.display(`Livro cadastrado com sucesso! Título: ${bookCreated.titulo}, Autor: ${bookCreated.autor_id}`);
           break;
 
         case '4':
@@ -93,9 +93,9 @@ export class BookView extends ConsoleView {
             return
           }
         
-          const bookUpdated = await this.bookUc.updateBook( {id: Number(idUpdate), titulo: bookUpdateDto.titulo, autor_id: Number(bookUpdateDto.autor_id), editora: bookUpdateDto.editora, edicao: bookUpdateDto.edicao, ano_publicacao: Number(bookUpdateDto.ano_publicacao), disponivel: formatInChar(bookUpdateDto.disponivel)});
+          // const bookUpdated = await this.bookUc.updateBook( {id: Number(idUpdate), titulo: bookUpdateDto.titulo, autor_id: Number(bookUpdateDto.autor_id), editora: bookUpdateDto.editora, edicao: bookUpdateDto.edicao, ano_publicacao: Number(bookUpdateDto.ano_publicacao), disponivel: formatInChar(bookUpdateDto.disponivel)});
 
-          this.display(`Livro atualizado com sucesso! ID: ${bookUpdated.id}, Título: ${bookUpdated.titulo}`);
+          // this.display(`Livro atualizado com sucesso! ID: ${bookUpdated.id}, Título: ${bookUpdated.titulo}`);
           break;
 
         case '5':

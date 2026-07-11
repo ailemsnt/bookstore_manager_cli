@@ -38,9 +38,7 @@ export class AutorPostgresRepository implements AutorRepository{
   }
 
   async createAuthor(author: Omit<Autor, "id">): Promise<Autor> {
-    const {
-      rows: [row],
-    } = await this.pool.query<Autor>(
+    const { rows: [row] } = await this.pool.query<Autor>(
       "INSERT INTO autor (nome) VALUES ($1) RETURNING *",
       [author.nome],
     );
@@ -49,7 +47,7 @@ export class AutorPostgresRepository implements AutorRepository{
   }
   
   async updateAuthor(id: number, name: string): Promise<Autor> {
-    const { rows: [row], } = await this.pool.query<Autor>(
+    const { rows: [row] } = await this.pool.query<Autor>(
       "UPDATE autor SET nome = $1 WHERE id = $2 AND deleted_at is null RETURNING *",
       [name, id],
     );
@@ -63,4 +61,16 @@ export class AutorPostgresRepository implements AutorRepository{
     //   throw new Error(`Autor com id ${id} não encontrado`);
     // }
   }
+
+  async canDeleteAuthor(id: number): Promise<boolean> {
+    const { rows } = await this.pool.query(
+      `SELECT EXISTS(
+        SELECT 1 
+        FROM livro_autor la
+        WHERE la.autor_id = $1) as has_books`,[id]
+    );
+
+    return (rows.length === 0);
+  }
+  
 }
