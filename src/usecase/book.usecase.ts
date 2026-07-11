@@ -1,8 +1,11 @@
-import { Livro, LivroUpdate } from "../domain/livro";
+import { Autor } from "../domain/autor";
+import { Livro, LivroInput, LivroUpdate } from "../domain/livro";
 import { LivroRepository } from "../infra/repositories/livro.repository";
+import { AuthorUseCase } from "./author.usecase";
 
 export class BookUseCase {
-  constructor(private readonly repository: LivroRepository) {}
+  constructor(private readonly repository: LivroRepository, private readonly authorUc: AuthorUseCase    
+  ) {}
 
   async search(title: string): Promise<Livro | null> {
     const book = await this.repository.findBookByTitle(title);
@@ -15,6 +18,7 @@ export class BookUseCase {
     if (!book) {
       throw new Error("Livro não encontrado");
     }
+    
     return book;
   }
 
@@ -26,7 +30,20 @@ export class BookUseCase {
     return books;
   }
 
-  async createBook(book: Omit<Livro, "id">): Promise<Livro> {
+  async createBook(book: LivroInput): Promise<Livro> {
+    const authors: Autor[] = [];
+    for (const authorId of authors) {
+      const author = await this.authorUc.findAuthorById(Number(authorId));
+      if (!author) {
+        throw new Error(`Autor ${authorId.nome} não encontrado!`);
+      }
+      authors.push(author);
+    } 
+
+    if (authors.length === 0) {
+      throw new Error("O livro deve possuir ao menos um autor!");
+    }
+
     const newBook = await this.repository.createBook(book);
     if (!newBook) {
       throw new Error("Erro ao cadastrar o livro");

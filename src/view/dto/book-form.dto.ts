@@ -3,18 +3,16 @@ import { ConsoleFormSchema } from "../../@common/view/console.view";
 export class BookFormDto {
   constructor(
     public titulo: string,
-    public autor_id: number,
     public editora: string,
     public edicao: string,
     public ano_publicacao: number,
     public disponivel: string,
     public codigo: string,
-    public isbn: string
+    public isbn: string,
   ) {}
   static schema(): ConsoleFormSchema {
     return {
       titulo: { type: 'string', required: true, minLength: 1 },
-      autor_id: { type: 'number', required: true },
       editora: { type: 'string', required: true, minLength: 1 },
       edicao: { type: 'string', required: false, minLength: 3 },
       ano_publicacao: { type: 'number', required: true },
@@ -27,7 +25,6 @@ export class BookFormDto {
 export class BookUpdateDto {
   constructor (
     public titulo: string,
-    public autor_id: number,
     public editora: string,
     public edicao: string,
     public ano_publicacao: number,
@@ -35,8 +32,7 @@ export class BookUpdateDto {
   ) {}
   static schema(): ConsoleFormSchema {
     return {
-      titulo: { type: 'string', required: false, minLength: 1 },
-      autor_id: { type: 'number', required: false },
+      titulo: { type: 'string', required: false, minLength: 1 },     
       editora: { type: 'string', required: false, minLength: 1 },
       edicao: { type: 'string', required: false, minLength: 3 },
       ano_publicacao: { type: 'number', required: false },

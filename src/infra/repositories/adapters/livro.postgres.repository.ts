@@ -23,48 +23,168 @@ export class LivroPostgresRepository implements LivroRepository {
   }
 
   async findBookById(id: number): Promise<Livro | null> {
-    const { rows } = await this.pool.query(
-        ` SELECT l.*, a.nome AS autor_nome
+    const result  = await this.pool.query(        
+        `SELECT l.*, la.*, a.nome as nome_autor
           FROM livro l
-          INNER JOIN autor a ON a.id = l.autor_id
-          WHERE l.id = $1 AND l.deleted_at is null`,
-        [id],
+          INNER JOIN livro_autor la ON la.livro_id = l.id
+          INNER JOIN autor a ON a.id = la.autor_id
+          WHERE l.id = $1 AND (l.deleted_at is null AND a.deleted_at is null)
+          ORDER BY l.titulo asc`,
+          [id],   
     );
 
-    if (rows.length === 0) {
+    if (result.rowCount === 0) {
       return null;
     }
 
-    return rows[0];
+    const books = result.rows.reduce<Record<number, Livro>>(
+      (acc, row) => {
+        const book = acc[row.livro_id];
+
+        if(!book) {
+          acc[row.livro_id] = {
+            id: row.livro_id,
+            titulo: row.titulo,
+            editora: row.editora,
+            edicao: row.edicao,
+            ano_publicacao: row.ano_publicacao,
+            codigo: row.codigo,
+            disponivel: row.disponivel,
+            isbn: row.isbn,
+            autor: [
+              {
+                id: row.autor_id,
+                nome: row.nome_autor
+              }              
+            ],
+          };
+          return acc;
+        }
+
+        book.autor.push({        
+          id: row.autor_id,
+          nome: row.nome_autor                                        
+        });
+
+        return acc;
+
+      },
+      {} as Record<number, Livro>,
+    );
+
+    return Object.values(books)[0];
   }
 
   async findAllBooks(): Promise<Livro[]> {
-    const { rows } = await this.pool.query(
-      ` SELECT l.*, a.nome AS autor_nome
-        FROM livro l
-        INNER JOIN autor a ON a.id = l.autor_id 
-        WHERE l.deleted_at is null
-        ORDER BY l.titulo `,
+    const result  = await this.pool.query(        
+        `SELECT l.*, la.*, a.nome as nome_autor
+          FROM livro l
+          INNER JOIN livro_autor la ON la.livro_id = l.id
+          INNER JOIN autor a ON a.id = la.autor_id
+          WHERE l.deleted_at is null AND a.deleted_at is null
+          ORDER BY l.titulo asc`        
     );
 
-    return rows;
+    if (result.rowCount === 0) {
+      return [];
+    }
+
+    const books = result.rows.reduce<Record<number, Livro>>(
+      (acc, row) => {
+        const book = acc[row.livro_id];
+
+        if(!book) {
+          acc[row.livro_id] = {
+            id: row.livro_id,
+            titulo: row.titulo,
+            editora: row.editora,
+            edicao: row.edicao,
+            ano_publicacao: row.ano_publicacao,
+            codigo: row.codigo,
+            disponivel: row.disponivel,
+            isbn: row.isbn,
+            autor: [
+              {
+                id: row.autor_id,
+                nome: row.nome_autor
+              }              
+            ],
+          };
+          return acc;
+        }
+
+        book.autor.push({        
+          id: row.autor_id,
+          nome: row.nome_autor                                        
+        });
+
+        return acc;
+
+      },
+      {} as Record<number, Livro>,
+    );
+
+    return Object.values(books);
   }
 
-  async createBook(book: Omit<Livro, "id">): Promise<Livro> {
-    const { rows: [row] } = await this.pool.query<Livro>(
-      `INSERT INTO livro (titulo, autor_id, editora, edicao, ano_publicacao, codigo, disponivel, isbn) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
-      RETURNING titulo, autor_id, editora, edicao, ano_publicacao, codigo, disponivel, isbn::text`,
-      [book.titulo, book.autor_id, book.editora, book.edicao, book.ano_publicacao, book.codigo, book.disponivel, book.isbn]
-    );
-    return row;
+  async createBook(book: Omit<Livro, "id">): Promise<Livro | null> {
+    const queryInsert = await this.pool.connect();
+
+    try {
+      await queryInsert.query('BEGIN');
+      const bookResult = await queryInsert.query(
+        `INSERT INTO livro (titulo, editora, edicao, ano_publicacao, codigo, disponivel, isbn) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7) 
+        RETURNING titulo, autor_id, editora, edicao, ano_publicacao, codigo, disponivel, isbn::text`,
+        [book.titulo, book.editora, book.edicao, book.ano_publicacao, book.codigo, book.disponivel, book.isbn]
+      );
+
+      const bookRow = bookResult.rows[0];
+
+      for (const author of book.autor) {
+        await queryInsert.query(
+          `INSERT INTO livro_autor(autor_id, livro_id)
+          VALUES ($1, $2)`,
+        [bookRow.id, author.id]);
+      }
+
+      await queryInsert.query('COMMIT');
+
+      return {
+        id: bookRow.id,
+        titulo: bookRow.titulo,            
+        editora: bookRow.editora,
+        edicao: bookRow.edicao,
+        ano_publicacao: bookRow.ano_publicacao,
+        codigo: bookRow.codigo,
+        disponivel: bookRow.disponivel,
+        isbn: bookRow.isbn,
+        autor: book.autor
+      }
+
+    } catch(error) {
+      await queryInsert.query('ROLLBACK');
+      throw error;
+    } finally {
+      queryInsert.release();
+    }
   }
+
+  // async createBook(book: Omit<Livro, "id">): Promise<Livro> {
+  //   const { rows: [row] } = await this.pool.query<Livro>(
+  //     `INSERT INTO livro (titulo, editora, edicao, ano_publicacao, codigo, disponivel, isbn) 
+  //     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+  //     RETURNING titulo, autor_id, editora, edicao, ano_publicacao, codigo, disponivel, isbn::text`,
+  //     [book.titulo, book.editora, book.edicao, book.ano_publicacao, book.codigo, book.disponivel, book.isbn]
+  //   );
+  //   return row;
+  // }
 
   async updateBook(book: Livro): Promise<Livro>{
     const { rows: [row], } = await this.pool.query<Livro>(
       `UPDATE livro SET titulo = $1, autor_id = $2, editora = $3, edicao = $4, ano_publicacao = $5, disponivel = $6
         WHERE id = $7 AND deleted_at is null RETURNING *`,
-      [book.titulo, book.autor_id, book.editora, book.edicao, book.ano_publicacao, book.disponivel, book.id],
+      [book.titulo, book.editora, book.edicao, book.ano_publicacao, book.disponivel, book.id],
         );
     return row;
   }

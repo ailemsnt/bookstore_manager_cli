@@ -1,10 +1,11 @@
 import { formatInChar, formatOutChar } from "../@common/utils/common.utils";
 import { ConsoleView } from "../@common/view/console.view";
+import { AuthorUseCase } from "../usecase/author.usecase";
 import { BookUseCase } from "../usecase/book.usecase";
 import { BookFormDto, BookUpdateDto } from "./dto/book-form.dto";
 
 export class BookView extends ConsoleView {
-  constructor(private readonly bookUc: BookUseCase)
+  constructor(private readonly bookUc: BookUseCase, private readonly authorUc: AuthorUseCase)
   { 
     super(); 
   }
@@ -28,7 +29,7 @@ export class BookView extends ConsoleView {
       this.display(" 6. VOLTAR AO MENU PRINCIPAL");
       this.display("________________________________________\n");
     
-      const optionSelected = await this.prompt('Opção:');         
+      const optionSelected = await this.prompt('Opção: ');         
 
       switch (optionSelected) {
         case '1':
@@ -36,23 +37,44 @@ export class BookView extends ConsoleView {
           
           const list = await this.bookUc.findAllBooks();
 
-          // list.forEach((book) => {
-          //   this.display(`ID: ${book.id}, Título: ${book.titulo}, Autor: ${book.autor_id}, Editora: ${book.editora}, Edição: ${book.edicao}, Publicação: ${book.ano_publicacao}, Disponível empréstimo: ${formatOutChar(book.disponivel)}`);
-          // });
+          list.forEach((book) => {
+            const authors = book.autor.map((author) => author.nome).join(', ');
+          
+            this.display(
+              `${book.id} - #${book.codigo}: ${(book.titulo).toUpperCase()}
+              Autor(es): ${authors}
+              Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn} 
+              Disponível empréstimo: ${formatOutChar(book.disponivel)}\n`);
+          });
           break;          
 
         case '2':
           this.display('Buscando livro por ID...');
 
-          const id = await this.prompt('Informe o ID do livro:');          
-          const book = await this.bookUc.findBookById(Number(id));          
-
-          // this.display(`ID: ${book.id}, Título: ${book.titulo}, Autor: ${book.autor_id}, Editora: ${book.editora}, Edição: ${book.edicao}, Publicação: ${book.ano_publicacao}, Disponível empréstimo: ${formatOutChar(book.disponivel)}`);
+          const id = await this.prompt('Informe o ID do livro: ');          
+          const book = await this.bookUc.findBookById(Number(id));   
+          
+          const authors = book.autor.map((author) => author.nome).join(', ');
+          this.display(
+              `${book.id} - #${book.codigo}: ${(book.titulo).toUpperCase()}
+              Autor(es): ${authors}
+              Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn} 
+              Disponível empréstimo: ${formatOutChar(book.disponivel)}\n`);
           break;
 
         case '3':
           this.display('Cadastrando livro...');
           const bookDto = await this.promptInteractiveForm('Informe os dados do livro',BookFormDto.schema(), BookFormDto);
+
+          const authorsId: number[] = [];
+
+          while (true) {
+            const authorId = await this.prompt('Informe o ID do autor: ');
+            if (!authorId) {            
+              break;
+            }
+            authorsId.push(Number(authorId));
+          }
 
           const bookOrError = await this.bookUc
           .search(bookDto.titulo)
@@ -68,17 +90,25 @@ export class BookView extends ConsoleView {
             this.display(`Livro já cadastrado!`);
             return
           }
+                    
+          const confirmationCreate = await this.confirmAction('gravar o livro');
+          if (!confirmationCreate) {
+            return;
+          }
           
-          // const bookCreated = await this.bookUc.createBook({ titulo: bookDto.titulo, autor_id: Number(bookDto.autor_id), editora: bookDto.editora, edicao: bookDto.edicao, ano_publicacao: Number(bookDto.ano_publicacao), disponivel: formatInChar(bookDto.disponivel), codigo: bookDto.codigo, isbn: bookDto.isbn});
+          const bookCreated = await this.bookUc.createBook({ titulo: bookDto.titulo, editora: bookDto.editora, edicao: bookDto.edicao, ano_publicacao: Number(bookDto.ano_publicacao), disponivel: formatInChar(bookDto.disponivel), codigo: bookDto.codigo, isbn: bookDto.isbn, 
+          autores: authorsId
+          });
 
-          // this.display(`Livro cadastrado com sucesso! Título: ${bookCreated.titulo}, Autor: ${bookCreated.autor_id}`);
+          this.display(
+              `Livro cadastrado com sucesso! ID: ${bookCreated.id} - #${bookCreated.codigo}: ${(bookCreated.titulo).toUpperCase()}`);
           break;
 
         case '4':
           this.display('Atualizando livro...');
           
           
-          const idUpdate = await this.prompt('Informe o ID do livro a ser atualizado:'); 
+          const idUpdate = await this.prompt('Informe o ID do livro a ser atualizado: '); 
           await this.bookUc.findBookById(Number(idUpdate));  
 
           const bookUpdateDto = await this.promptInteractiveForm('Informe os dados do livro',BookUpdateDto.schema(), BookUpdateDto);
@@ -101,7 +131,7 @@ export class BookView extends ConsoleView {
         case '5':
           this.display('Excluindo livro...');
 
-          const idDelete = await this.prompt('Informe o ID do livro a ser excluído:');          
+          const idDelete = await this.prompt('Informe o ID do livro a ser excluído: ');          
           await this.bookUc.findBookById(Number(idDelete)); 
 
           //TODO: fazer validação se não foi emprestado ?

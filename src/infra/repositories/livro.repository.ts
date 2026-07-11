@@ -7,7 +7,7 @@ export interface LivroRepository {
 
   findAllBooks(): Promise<Livro[]>;
 
-  createBook(book: Omit<Livro, "id">): Promise<Livro>;
+  createBook(book: Omit<Livro, "id">): Promise<Livro | null> ;
 
   updateBook(book: LivroUpdate): Promise<Livro>;
 
