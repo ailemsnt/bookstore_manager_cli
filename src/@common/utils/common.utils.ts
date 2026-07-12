@@ -38,3 +38,9 @@ export function formatOutChar(disponivel: number) : string {
 export function formatInChar(disponivel: string) : number {
   return disponivel === "S" ? 1 : 0;
 }
+
+export function maskCpf(cpf: string): string {
+  const cpfClean = cpf.replace(/D/g,'');
+  
+  return cpf.replace(/d{3}(\d)/,`$1.$2`).replace(/d{3}(\d)/,`$1.$2`).replace(/d{3}(\d{1,2})$/,`$1-$2`);
+}

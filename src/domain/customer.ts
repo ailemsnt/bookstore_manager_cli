@@ -34,11 +34,15 @@ export interface ClienteInput {
   endereco: string;
   numero: string;
   bairro: string;
-  municipio_id: number;
-  cep: string;
   telefone: string;
   email: string;
   ativo: number;
+  cep: string;
+  municipio_id: number;
+}
+export interface ClienteDetalhe extends Cliente {
+  municipio: string;
+  uf: string;
 }
 
 export type ClienteCreate = Omit<Cliente, "id">;

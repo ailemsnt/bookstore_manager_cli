@@ -1,3 +1,4 @@
+import { ClienteDetalhe, ClienteInput } from './../../../domain/customer';
 import { Pool } from "pg";
 import { Cliente } from "../../../domain/customer";
 import { ClienteRepository } from "../cliente.repository";
@@ -23,7 +24,7 @@ export class ClientePostgresRepository implements ClienteRepository{
     return rows[0];
   }
 
-  async findCustomerById(id: number): Promise<Cliente | null> {
+  async findCustomerById(id: number): Promise<ClienteDetalhe | null> {
     const { rows } = await this.pool.query(
       `SELECT c.*, m.nome AS municipio_nome, u.sigla as uf_sigla
           FROM cliente c
@@ -40,19 +41,19 @@ export class ClientePostgresRepository implements ClienteRepository{
     return rows[0];
   }
 
-  async findAllCustomers(): Promise<Cliente[]> {
+  async findAllCustomers(): Promise<ClienteDetalhe[]> {
     const { rows } = await this.pool.query(
       `SELECT c.*, m.nome AS municipio_nome, u.sigla as uf_sigla
           FROM cliente c
           INNER JOIN municipio m ON m.id = c.municipio_id
           INNER JOIN uf u on u.id = m.uf_id 
           WHERE c.deleted_at is null 
-          ORDER BY c.id`);
+          ORDER BY c.nome ASC`);
     
     return rows;      
   }
 
-  async createCustomer(customer: Omit<Cliente, "id">): Promise<Cliente> {
+  async createCustomer(customer: ClienteInput): Promise<Cliente> {
     const {
       rows: [row],
     } = await this.pool.query<Cliente>(

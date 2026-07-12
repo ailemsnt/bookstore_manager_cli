@@ -6,11 +6,12 @@ import { LoginUserDto } from "./dto/login-user-form.dto"
 import { CustomerView } from './customer.view';
 import { Session } from "../infra/database/session";
 import { BorrowView } from './borrow.view';
+import { CountryUseCase } from '../usecase/country.usecase';
 
 export class MainView extends ConsoleView {
   constructor(private readonly loginUc: LoginUseCase, private readonly authorView: AuthorView, 
               private readonly bookView: BookView, private readonly costumerView: CustomerView,
-              private readonly borrowView: BorrowView) {
+              private readonly borrowView: BorrowView, private readonly countryUc: CountryUseCase) {
     super(true)
   }
 

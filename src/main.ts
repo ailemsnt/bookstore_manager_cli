@@ -14,6 +14,8 @@ import { CustomerUseCase } from './usecase/customer.usecase';
 import { BorrowUseCase } from './usecase/borrow.usecase';
 import { EmprestimoPostgresRepository } from './infra/repositories/adapters/emprestimo-postgres.repository';
 import { BorrowView } from './view/borrow.view';
+import { CountryUseCase } from './usecase/country.usecase';
+import { MunicipioPostgresRepository } from './infra/repositories/adapters/municipio-postgres.repository';
 
 async function bootstrap() {
   await initDatabase();
@@ -26,13 +28,15 @@ async function bootstrap() {
   const bookUseCase = new BookUseCase(new LivroPostgresRepository(pool), authorUseCase);
   const bookView = new BookView(bookUseCase, authorUseCase);
 
+  const countryUseCase = new CountryUseCase(new MunicipioPostgresRepository(pool));
+
   const customerUseCase = new CustomerUseCase(new ClientePostgresRepository(pool));
-  const customerView = new CustomerView(customerUseCase);
+  const customerView = new CustomerView(customerUseCase,countryUseCase);
 
   const borrowUseCase = new BorrowUseCase(new EmprestimoPostgresRepository(pool));
   const borrowView = new BorrowView(borrowUseCase);
   
-  const mainView = new MainView(loginUseCase, authorView, bookView, customerView, borrowView)
+  const mainView = new MainView(loginUseCase, authorView, bookView, customerView, borrowView, countryUseCase)
 
   await mainView.start()
 }
