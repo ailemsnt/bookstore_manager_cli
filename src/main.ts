@@ -23,8 +23,8 @@ async function bootstrap() {
   const authorUseCase = new AuthorUseCase(new AutorPostgresRepository(pool));
   const authorView = new AuthorView(authorUseCase);
 
-  const bookUseCase = new BookUseCase(new LivroPostgresRepository(pool));
-  const bookView = new BookView(bookUseCase);
+  const bookUseCase = new BookUseCase(new LivroPostgresRepository(pool), authorUseCase);
+  const bookView = new BookView(bookUseCase, authorUseCase);
 
   const customerUseCase = new CustomerUseCase(new ClientePostgresRepository(pool));
   const customerView = new CustomerView(customerUseCase);

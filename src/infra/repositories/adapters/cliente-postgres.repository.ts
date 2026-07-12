@@ -11,8 +11,9 @@ export class ClientePostgresRepository implements ClienteRepository{
           FROM cliente c
           INNER JOIN municipio m ON m.id = c.municipio_id
           INNER JOIN uf u on u.id = m.uf_id 
-          WHERE lower(unaccent(c.nome)) = lower(unaccent($1)) AND c.deleted_at is null`,
-      [name],
+          WHERE (unaccent(c.nome)) ilike (unaccent($1)) AND c.deleted_at is null
+          ORDER BY c.nome ASC`,
+      [`${name}%`],
     );
 
     if (rows.length === 0) {

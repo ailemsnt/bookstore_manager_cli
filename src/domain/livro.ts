@@ -22,7 +22,6 @@ export interface LivroUpdate {
 }
 
 export interface LivroInput {
-  id: number;
   titulo: string;
   editora: string;
   edicao: string;
@@ -32,3 +31,5 @@ export interface LivroInput {
   isbn: string;
   autores: number[];
 }
+
+export type LivroCreate = Omit<Livro, "id">;

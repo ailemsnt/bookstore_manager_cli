@@ -125,7 +125,7 @@ COMMENT ON COLUMN emprestimo.cliente_id IS 'ID do cliente que realizou o emprés
 COMMENT ON COLUMN emprestimo.data_emprestimo IS 'Data do empréstimo';
 COMMENT ON COLUMN emprestimo.usuario_id IS 'ID do usuário que registrou o empréstimo';
 ------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS emprestimo_item (
+CREATE TABLE IF NOT EXISTS emprestimo_livro (
     id INTEGER NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     emprestimo_id INTEGER NOT NULL REFERENCES emprestimo(id) ON DELETE CASCADE,
     livro_id INTEGER NOT NULL REFERENCES livro(id) ON DELETE CASCADE,
@@ -133,9 +133,9 @@ CREATE TABLE IF NOT EXISTS emprestimo_item (
     data_devolucao TIMESTAMPTZ,
     devolvido INTEGER NOT NULL DEFAULT 0
 );
-COMMENT ON COLUMN emprestimo_item.id IS 'ID do item do empréstimo';
-COMMENT ON COLUMN emprestimo_item.emprestimo_id IS 'ID do empréstimo';
-COMMENT ON COLUMN emprestimo_item.livro_id IS 'ID do livro emprestado';
-COMMENT ON COLUMN emprestimo_item.data_prevista_devolucao IS 'Data prevista para devolução';
-COMMENT ON COLUMN emprestimo_item.data_devolucao IS 'Data de devolução do livro';
-COMMENT ON COLUMN emprestimo_item.devolvido IS 'Indica se o livro foi devolvido (0 = não, 1 = sim)';
+COMMENT ON COLUMN emprestimo_livro.id IS 'ID do item do empréstimo';
+COMMENT ON COLUMN emprestimo_livro.emprestimo_id IS 'ID do empréstimo';
+COMMENT ON COLUMN emprestimo_livro.livro_id IS 'ID do livro emprestado';
+COMMENT ON COLUMN emprestimo_livro.data_prevista_devolucao IS 'Data prevista para devolução';
+COMMENT ON COLUMN emprestimo_livro.data_devolucao IS 'Data de devolução do livro';
+COMMENT ON COLUMN emprestimo_livro.devolvido IS 'Indica se o livro foi devolvido (0 = não, 1 = sim)';

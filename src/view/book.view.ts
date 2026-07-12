@@ -26,7 +26,7 @@ export class BookView extends ConsoleView {
       this.display(" 3. Cadastrar livro");
       this.display(" 4. Atualizar livro");
       this.display(" 5. Excluir livro");    
-      this.display(" 6. VOLTAR AO MENU PRINCIPAL");
+      this.display(" 0. VOLTAR AO MENU PRINCIPAL");
       this.display("________________________________________\n");
     
       const optionSelected = await this.prompt('Opção: ');         
@@ -70,10 +70,24 @@ export class BookView extends ConsoleView {
 
           while (true) {
             const authorId = await this.prompt('Informe o ID do autor: ');
-            if (!authorId) {            
+            const authorIdValidate = Number(authorId);
+            if (Number.isNaN(authorIdValidate)) {
+              this.display('ID do autor informado inválido.');
+              break;
+            } 
+
+            const authorExists = await this.authorUc.findAuthorById(authorIdValidate);
+            if (!authorExists) {            
               break;
             }
-            authorsId.push(Number(authorId));
+            
+            authorsId.push(authorIdValidate);
+            this.display(`Autor ${authorExists.nome} adicionado ao livro.`);
+
+            const confirmationAddAuthor = await this.confirmAction('adicionar novo autor para este livro');
+            if (!confirmationAddAuthor) {
+              break;
+            }            
           }
 
           const bookOrError = await this.bookUc
@@ -90,7 +104,12 @@ export class BookView extends ConsoleView {
             this.display(`Livro já cadastrado!`);
             return
           }
-                    
+          
+          if (authorsId.length === 0) {
+            this.display('O livro deve possuir ao menos um autor!');
+            return
+          }
+
           const confirmationCreate = await this.confirmAction('gravar o livro');
           if (!confirmationCreate) {
             return;
@@ -101,7 +120,7 @@ export class BookView extends ConsoleView {
           });
 
           this.display(
-              `Livro cadastrado com sucesso! ID: ${bookCreated.id} - #${bookCreated.codigo}: ${(bookCreated.titulo).toUpperCase()}`);
+              `\nLivro cadastrado com sucesso! ID: ${bookCreated.id} - #${bookCreated.codigo}: ${(bookCreated.titulo).toUpperCase()}`);
           break;
 
         case '4':
@@ -132,7 +151,17 @@ export class BookView extends ConsoleView {
           this.display('Excluindo livro...');
 
           const idDelete = await this.prompt('Informe o ID do livro a ser excluído: ');          
-          await this.bookUc.findBookById(Number(idDelete)); 
+          const bookDelete = await this.bookUc.findBookById(Number(idDelete)); 
+
+          const canDelete = await this.bookUc.canDeleteBook(Number(idDelete));    
+          if (!canDelete) {
+            return;
+          }
+
+          const confirmationDeleteBook = await this.confirmAction(`excluir o livro ${bookDelete.id} #${bookDelete.codigo} - ${(bookDelete.titulo).toUpperCase()}`);
+            if (!confirmationDeleteBook) {
+              break;
+            }  
 
           //TODO: fazer validação se não foi emprestado ?
           await this.bookUc.deleteBook(Number(idDelete));

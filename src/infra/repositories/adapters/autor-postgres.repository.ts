@@ -67,7 +67,8 @@ export class AutorPostgresRepository implements AutorRepository{
       `SELECT EXISTS(
         SELECT 1 
         FROM livro_autor la
-        WHERE la.autor_id = $1) as has_books`,[id]
+        INNER JOIN autor a ON a.id = la.autor_id
+        WHERE la.autor_id = $1 AND a.deleted_at is null) as has_book`,[id]
     );
 
     return (rows.length === 0);
