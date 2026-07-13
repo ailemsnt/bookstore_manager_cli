@@ -1,7 +1,7 @@
 import { ConsoleFormSchema } from "../../@common/view/console.view";
 
 export class LoginUserDto {
-  constructor(
+  constructor( 
     public login: string,
     public senha: string
   ) {}

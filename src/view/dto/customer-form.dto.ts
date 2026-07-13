@@ -8,7 +8,6 @@ export class CustomerFormDto {
     public numero: string,
     public cep: string,
     public bairro: string,
-    public municipio_id: number,
     public telefone: string,
     public email: string,
     public ativo: string
@@ -22,7 +21,6 @@ export class CustomerFormDto {
         numero: { type: 'string', required: true, maxLenght: 10 },
         cep: { type: 'string', required: false, minLength: 8, maxLenght: 8 },
         bairro: { type: 'string', required: true, minLength: 5, maxLenght: 60},
-        municipio_id: { type: 'number', required: true, minLength: 1},
         telefone: { type: 'string', required: true, minLength: 10, maxLenght: 15},
         email: { type: 'string', required: true, minLength: 5, maxLenght: 100 },
         ativo: { type: 'string', required: true, minLength: 1, maxLenght: 1}

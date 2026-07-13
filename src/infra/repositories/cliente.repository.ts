@@ -1,15 +1,17 @@
-import { Cliente, ClienteUpdate } from "../../domain/customer";
+import { Cliente, ClienteDetalhe, ClienteInput, ClienteUpdate } from "../../domain/customer";
 
 export interface ClienteRepository {
   findCustomerByName(title: string): Promise<Cliente | null>;
   
-  findCustomerById(id: number): Promise<Cliente | null>;
+  findCustomerById(id: number): Promise<ClienteDetalhe | null>;
 
-  findAllCustomers(): Promise<Cliente[]>;
+  findAllCustomers(): Promise<ClienteDetalhe[]>;
 
-  createCustomer(book: Omit<Cliente, "id">): Promise<Cliente>;
+  createCustomer(customer: ClienteInput): Promise<Cliente>;
 
   updateCustomer(book: ClienteUpdate): Promise<Cliente>;
 
   deleteCustomer(id: number): Promise<void>;
+
+  canDeleteCostumer(id: number): Promise<boolean>;
 }

@@ -6,11 +6,19 @@ import { AuthorView } from './view/author.view';
 import { AuthorUseCase } from './usecase/author.usecase';
 import { AutorPostgresRepository } from './infra/repositories/adapters/autor-postgres.repository';
 import { BookUseCase } from './usecase/book.usecase';
-import { LivroPostgresRepository } from './infra/repositories/adapters/livro.postgres.repository';
+import { LivroPostgresRepository } from './infra/repositories/adapters/livro-postgres.repository';
 import { BookView } from './view/book.view';
 import { ClientePostgresRepository } from './infra/repositories/adapters/cliente-postgres.repository';
 import { CustomerView } from './view/customer.view';
 import { CustomerUseCase } from './usecase/customer.usecase';
+import { BorrowUseCase } from './usecase/borrow.usecase';
+import { EmprestimoPostgresRepository } from './infra/repositories/adapters/emprestimo-postgres.repository';
+import { BorrowView } from './view/borrow.view';
+import { CountryUseCase } from './usecase/country.usecase';
+import { MunicipioPostgresRepository } from './infra/repositories/adapters/municipio-postgres.repository';
+import { ReportUseCase } from './usecase/report.usecase';
+import { RelatorioPostgresRepository } from './infra/repositories/adapters/relatorio-postgres.pository';
+import { ReportView } from './view/report.view';
 
 async function bootstrap() {
   await initDatabase();
@@ -20,13 +28,21 @@ async function bootstrap() {
   const authorUseCase = new AuthorUseCase(new AutorPostgresRepository(pool));
   const authorView = new AuthorView(authorUseCase);
 
-  const bookUseCase = new BookUseCase(new LivroPostgresRepository(pool));
-  const bookView = new BookView(bookUseCase);
+  const bookUseCase = new BookUseCase(new LivroPostgresRepository(pool), authorUseCase);
+  const bookView = new BookView(bookUseCase, authorUseCase);
+
+  const countryUseCase = new CountryUseCase(new MunicipioPostgresRepository(pool));
 
   const customerUseCase = new CustomerUseCase(new ClientePostgresRepository(pool));
-  const customerView = new CustomerView(customerUseCase);
+  const customerView = new CustomerView(customerUseCase,countryUseCase);
+
+  const borrowUseCase = new BorrowUseCase(new EmprestimoPostgresRepository(pool));
+  const borrowView = new BorrowView(borrowUseCase, bookUseCase);
   
-  const mainView = new MainView(loginUseCase, authorView, bookView, customerView)
+  const reportUseCase = new ReportUseCase(new RelatorioPostgresRepository(pool));
+  const reportView = new ReportView(reportUseCase);
+
+  const mainView = new MainView(loginUseCase, authorView, bookView, customerView, borrowView, bookUseCase, reportView);
 
   await mainView.start()
 }

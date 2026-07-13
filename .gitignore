@@ -4,3 +4,4 @@ dist/
 .env
 auxiliador.ts
 seed_login.sql
+seed_test.sql

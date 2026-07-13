@@ -1,8 +1,11 @@
-import { Livro, LivroUpdate } from "../domain/livro";
+import { Autor } from "../domain/autor";
+import { Livro, LivroCreate, LivroInput, LivroUpdate } from "../domain/livro";
 import { LivroRepository } from "../infra/repositories/livro.repository";
+import { AuthorUseCase } from "./author.usecase";
 
 export class BookUseCase {
-  constructor(private readonly repository: LivroRepository) {}
+  constructor(private readonly repository: LivroRepository, private readonly authorUc: AuthorUseCase   
+  ) {}
 
   async search(title: string): Promise<Livro | null> {
     const book = await this.repository.findBookByTitle(title);
@@ -15,6 +18,7 @@ export class BookUseCase {
     if (!book) {
       throw new Error("Livro não encontrado");
     }
+    
     return book;
   }
 
@@ -26,7 +30,33 @@ export class BookUseCase {
     return books;
   }
 
-  async createBook(book: Omit<Livro, "id">): Promise<Livro> {
+  async createBook(input: LivroInput): Promise<Livro> {
+    const authors: Autor[] = [];
+    for (const authorId of input.autores) {  
+      const author = await this.authorUc.findAuthorById(authorId);
+
+      if (!author) {
+        throw new Error(`Autor ${authorId} não encontrado`);
+      }
+          
+      authors.push(author);
+    } 
+
+    if (authors.length === 0) {
+      throw new Error("O livro deve possuir ao menos um autor!");
+    }
+
+    const book: LivroCreate = {
+      titulo: input.titulo,
+      editora: input.editora,
+      edicao: input.edicao,
+      ano_publicacao: input.ano_publicacao,
+      disponivel: input.disponivel,
+      codigo: input.codigo,
+      isbn: input.isbn,
+      autor: authors
+    };
+
     const newBook = await this.repository.createBook(book);
     if (!newBook) {
       throw new Error("Erro ao cadastrar o livro");
@@ -42,7 +72,23 @@ export class BookUseCase {
     return updatedBook;
   }
 
-  deleteBook(id: number): Promise<void> {     
+  async deleteBook(id: number): Promise<void> {     
     return this.repository.deleteBook(id);    
+  }
+
+  async canDeleteBook(id: number): Promise<boolean> {
+    const canDelete = await this.repository.canDeleteBook(id);
+    if (!canDelete) {
+      throw new Error("Não é possível excluir este livro pois ele já possui empréstimos. Se não puder mais realizar empréstimos, atualize sua disponibilidade.");
+    } 
+    return canDelete;
+  }
+
+  async hasActiveBorrow(id: number): Promise<boolean> {
+    const canBorrow = await this.repository.hasActiveBorrow(id);
+    if (!canBorrow) {
+      throw new Error("Não é possível emprestar o exemplar deste livro, pois ele possui empréstimos em aberto.");
+    } 
+    return canBorrow;
   }
 }

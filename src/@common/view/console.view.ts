@@ -235,4 +235,16 @@ export abstract class ConsoleView {
       await this.prompt('Press ENTER to continue:')
     }
   }
+
+  async confirmAction(action: string): Promise<boolean> {
+    const question = await this.prompt(`Deseja ${action}? (S/N): `);
+    const answer = question.trim().toUpperCase();
+
+    if (answer !== 'S' && answer !== 'SIM') {
+      this.display('Operação cancelada pelo usuário.');            
+      return false;
+    }
+
+    return true;
+  }
 }

@@ -1,12 +1,18 @@
+import { ReportView } from './report.view';
 import { BookView } from './book.view';
 import { AuthorView } from './author.view';
 import { ConsoleView } from "../@common/view/console.view"
 import { LoginUseCase } from "../usecase/login.usecase"
 import { LoginUserDto } from "./dto/login-user-form.dto"
 import { CustomerView } from './customer.view';
+import { Session } from "../infra/database/session";
+import { BorrowView } from './borrow.view';
+import { BookUseCase } from '../usecase/book.usecase';
 
 export class MainView extends ConsoleView {
-  constructor(private readonly loginUc: LoginUseCase, private readonly authorView: AuthorView, private readonly bookView: BookView, private readonly costumerView: CustomerView) {
+  constructor(private readonly loginUc: LoginUseCase, private readonly authorView: AuthorView, 
+              private readonly bookView: BookView, private readonly costumerView: CustomerView,
+              private readonly borrowView: BorrowView, private readonly bookUc: BookUseCase, private readonly reportView: ReportView) {
     super(true)
   }
 
@@ -34,10 +40,12 @@ export class MainView extends ConsoleView {
     }
 
     if (!userOrError) {
-      this.showError('Usuário ou senha inválidos. Tente novamente.')
+      ///this.showError('Usuário ou senha inválidos. Tente novamente.')
       await this.prompt('Pressione ENTER para sair...')
       return
     }
+
+    Session.currentUser = userOrError;
 
     //await this.prompt(
     this.display(`Usuário ${JSON.stringify(loginUserDto.login)} logado com sucesso!`);
@@ -54,10 +62,9 @@ export class MainView extends ConsoleView {
       this.display(" 1. AUTORES ");
       this.display(" 2. LIVROS");
       this.display(" 3. CLIENTES");
-      this.display(" 4. EMPRÉSTIMOS");
-      this.display(" 5. DEVOLUÇÕES");
-      this.display(" 6. RELATÓRIOS");
-      this.display(" 7. Sair");
+      this.display(" 4. EMPRÉSTIMOS | DEVOLUÇÕES");     
+      this.display(" 5. RELATÓRIOS");
+      this.display(" 0. Sair");
       this.display("========================================\n");
     
       const optionSelected = await this.prompt('Opção:');
@@ -76,15 +83,14 @@ export class MainView extends ConsoleView {
           await this.costumerView.start();
           break;
         case '4':
-          this.display('Acessando empréstimos...');
-          break;
+          this.display('Acessando empréstimos e devoluções...');
+          await this.borrowView.start();
+          break;        
         case '5':
-          this.display('Acessando devoluções...');
-          break;
-        case '6':
           this.display('Acessando relatórios...');
+          await this.reportView.start();  
           break;
-        case '7':
+        case '0':
           this.display('Saindo do sistema...');
           this.exit()
           return

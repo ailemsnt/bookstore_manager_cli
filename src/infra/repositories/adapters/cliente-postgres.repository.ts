@@ -1,3 +1,4 @@
+import { ClienteDetalhe, ClienteInput } from './../../../domain/customer';
 import { Pool } from "pg";
 import { Cliente } from "../../../domain/customer";
 import { ClienteRepository } from "../cliente.repository";
@@ -11,8 +12,9 @@ export class ClientePostgresRepository implements ClienteRepository{
           FROM cliente c
           INNER JOIN municipio m ON m.id = c.municipio_id
           INNER JOIN uf u on u.id = m.uf_id 
-          WHERE lower(unaccent(c.nome)) = lower(unaccent($1)) AND c.deletedAt is null`,
-      [name],
+          WHERE (unaccent(c.nome)) ilike (unaccent($1)) AND c.deleted_at is null
+          ORDER BY c.nome ASC`,
+      [`${name}%`],
     );
 
     if (rows.length === 0) {
@@ -22,13 +24,13 @@ export class ClientePostgresRepository implements ClienteRepository{
     return rows[0];
   }
 
-  async findCustomerById(id: number): Promise<Cliente | null> {
+  async findCustomerById(id: number): Promise<ClienteDetalhe | null> {
     const { rows } = await this.pool.query(
       `SELECT c.*, m.nome AS municipio_nome, u.sigla as uf_sigla
           FROM cliente c
           INNER JOIN municipio m ON m.id = c.municipio_id
           INNER JOIN uf u on u.id = m.uf_id 
-          WHERE c.id = $1 AND c.deletedAt is null`,
+          WHERE c.id = $1 AND c.deleted_at is null`,
       [id],
     );
 
@@ -39,19 +41,19 @@ export class ClientePostgresRepository implements ClienteRepository{
     return rows[0];
   }
 
-  async findAllCustomers(): Promise<Cliente[]> {
+  async findAllCustomers(): Promise<ClienteDetalhe[]> {
     const { rows } = await this.pool.query(
       `SELECT c.*, m.nome AS municipio_nome, u.sigla as uf_sigla
           FROM cliente c
           INNER JOIN municipio m ON m.id = c.municipio_id
           INNER JOIN uf u on u.id = m.uf_id 
-          WHERE c.deletedAt is null 
-          ORDER BY c.id`);
+          WHERE c.deleted_at is null 
+          ORDER BY c.nome ASC`);
     
     return rows;      
   }
 
-  async createCustomer(customer: Omit<Cliente, "id">): Promise<Cliente> {
+  async createCustomer(customer: ClienteInput): Promise<Cliente> {
     const {
       rows: [row],
     } = await this.pool.query<Cliente>(
@@ -66,7 +68,7 @@ export class ClientePostgresRepository implements ClienteRepository{
   async updateCustomer(customer: Cliente): Promise<Cliente> {
     const { rows: [row], } = await this.pool.query<Cliente>(
       `UPDATE cliente SET nome = $1,endereco = $2, cep = $3, numero = $4, bairro = $5, municipio_id = $6, telefone = $7, email = $8, ativo = $9
-        WHERE id = $10 AND deletedAt is null RETURNING *`,
+        WHERE id = $10 AND deleted_at is null RETURNING *`,
       [customer.nome, customer.endereco, customer.cep, customer.numero, customer.bairro, customer.municipio_id, customer.telefone, customer.email, customer.ativo, customer.id],
     );
 
@@ -74,9 +76,21 @@ export class ClientePostgresRepository implements ClienteRepository{
   }
 
   async deleteCustomer(id: number): Promise<void> {
-    await this.pool.query("UPDATE cliente SET deletedAt = NOW() WHERE id = $1", [id]);    
+    await this.pool.query("UPDATE cliente SET deleted_at = NOW() WHERE id = $1", [id]);    
     // if (result.rowCount === 0) {
     //   throw new Error(`Autor com id ${id} não encontrado`);
     // }
   }
+
+  async canDeleteCostumer(id: number): Promise<boolean> {
+    const { rows } = await this.pool.query(
+      `SELECT 1
+      FROM cliente c
+      LEFT JOIN emprestimo e ON e.cliente_id = c.id
+      WHERE c.id = 4 AND (c.deleted_at IS NOT NULL OR c.ativo <> 1 OR e.id IS NOT NULL)) AS can_delete`,
+        [id]
+    );
+
+    return (rows.length === 0);
+  } 
 }
