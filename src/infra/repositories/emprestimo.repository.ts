@@ -15,13 +15,15 @@ export interface EmprestimoRepository {
 
   findABorrowByExpireDate(expireDate: string): Promise<Emprestimo | null>;*/
 
-  findABorrowByStatus(status: number): Promise<Emprestimo[]>;
+  findBorrowByStatus(status: number): Promise<Emprestimo[]>;
+  
+  findBorrowById(id: number): Promise<Emprestimo | null>;
 
   canBorrowBook(id: number): Promise<boolean>;
 
   canCancelBorrow(id: number): Promise<boolean>;
 
   cancelBorrow(id: number): Promise<boolean>;
-  
+
  // createBorrow(borrow: Omit<Emprestimo, "id">, userId: number): Promise<Emprestimo>;
 }

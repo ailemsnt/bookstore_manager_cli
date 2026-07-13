@@ -4,10 +4,18 @@ import { EmprestimoRepository } from "../infra/repositories/emprestimo.repositor
 export class BorrowUseCase {
   constructor(private readonly repository: EmprestimoRepository) {}
 
-  async findABorrowByStatus(status: number): Promise<Emprestimo[]>  {
-    const borrow = await this.repository.findABorrowByStatus(status);
+  async findBorrowByStatus(status: number): Promise<Emprestimo[]>  {
+    const borrow = await this.repository.findBorrowByStatus(status);
     if (borrow.length === 0) {
       throw new Error("Não foram encontrados empréstimos com a situação informada.");
+    }
+    return borrow;
+  }
+
+  async findBorrowById(id: number): Promise<Emprestimo | null> {
+    const borrow = await this.repository.findBorrowById(id);
+    if (!borrow) {
+      throw new Error("Não foram encontrados empréstimos com o ID informado.");
     }
     return borrow;
   }

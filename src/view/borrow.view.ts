@@ -2,11 +2,12 @@ import { Session } from "../infra/database/session";
 import { ConsoleView } from "../@common/view/console.view";
 import { BorrowUseCase } from "../usecase/borrow.usecase";
 import { formatDate } from "../@common/utils/common.utils";
+import { BookUseCase } from "../usecase/book.usecase";
 
 const userId = Session.getUserId();
 
 export class BorrowView extends ConsoleView {
-  constructor(private readonly borrowUc: BorrowUseCase)
+  constructor(private readonly borrowUc: BorrowUseCase, private readonly bookUc: BookUseCase )
   { 
     super(); 
   }
@@ -36,7 +37,7 @@ export class BorrowView extends ConsoleView {
           case '1':
             this.display('Listando empréstimos em aberto...');
 
-            const listBorrowOpened = await this.borrowUc.findABorrowByStatus(0);
+            const listBorrowOpened = await this.borrowUc.findBorrowByStatus(1);
 
             listBorrowOpened.forEach((borrow) => {
               this.display(
@@ -68,10 +69,40 @@ Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Stat
 
             switch (optionSelected) {
               case '1':
-                this.display('ID...');
+                this.display('Buscando por ID...');
+
+                const id = await this.prompt('Informe o ID do empréstimo: ');          
+                const borrowById = await this.borrowUc.findBorrowById(Number(id));               
+
+                if (!borrowById) {
+                  return;
+                }
+              
+                  this.display(
+`------------------------------------
+Cliente: #${borrowById.cliente_id}: ${(borrowById.cliente_nome).toUpperCase()}
+Data empréstimo: ${formatDate(borrowById.data_emprestimo)}
+
+Livro(s) aguardando devolução:
+              `);
+
+                borrowById.livros.forEach((livro) => {
+                  this.display(
+`#${livro.id} - ${livro.codigo}: ${(livro.titulo).toUpperCase()}
+Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}
+Editora: ${livro.editora} • ${livro.edicao} • ${livro.ano_publicacao} • ISBN: ${livro.isbn} 
+Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Status: ${livro.status}\n`)
+                  });                 
+
                 break;
               case '2':
-                this.display('título...');
+                this.display('Buscando por título...');
+                // const bookTitle = await this.prompt('Informe o título do livro a ser pesquisado: ');          
+                // const book = await this.bookUc.search(bookTitle); 
+
+
+                
+
                 break;
               case '3':
                 this.display('cliente...');
@@ -85,6 +116,7 @@ Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Stat
             
           case '3':
             this.display('Cadastrando empréstimo...');
+            
   
             break; 
           

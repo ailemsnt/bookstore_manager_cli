@@ -1,10 +1,11 @@
 import { ConsoleView } from "../@common/view/console.view";
+import { ReportUseCase } from "../usecase/report.usecase";
 
 export class ReportView extends ConsoleView {
-  // constructor(private readonly reportUc: ReportUseCase)
-  // { 
-  //   super(); 
-  // }
+  constructor(private readonly reportUc: ReportUseCase)
+  { 
+    super(); 
+  }
   
   async start(): Promise<void> {
     await this.update();
@@ -13,9 +14,9 @@ export class ReportView extends ConsoleView {
   protected async update(){
       while (true) {
         this.display('')
-        this.display('________________________________________')
-        this.display('                RELATÓRIOS              ')   
-        this.display('________________________________________\n')     
+        this.display('________________________________________');
+        this.display('                RELATÓRIOS              ');   
+        this.display('________________________________________\n');     
         this.display(" Informe o número da opção desejada:");
         this.display(" 1. Listar livros disponíveis para empréstimo");        
         this.display(" 2. Listar livros emprestados");//ID ou nome do 
@@ -32,8 +33,30 @@ export class ReportView extends ConsoleView {
         const optionSelected = await this.prompt('Opção:');         
   
         switch (optionSelected) {
-          case '1':
-            this.display('Buscando empréstimos por Status...');
+          case '1':            
+            this.display('\n================================================================================');
+            this.display('         RELATÓRIO DE LIVROS DISPONÍVEIS PARA EMPRÉSTIMO   ');  
+            this.display('================================================================================');
+
+            const list = await this.reportUc.listAvailableBooks();
+            
+            let total = 0;
+            list.forEach((book) => {
+              total++; 
+
+              if (total > 1) {
+                this.display('----------------------------------------');  
+              }
+              const authors = book.autor.map((author) => author.nome).join(', ');
+            
+              this.display(
+                `${book.id} - #${book.codigo}: ${(book.titulo).toUpperCase()}
+                Autor(es): ${authors}
+                Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}\n`);              
+            });
+            this.display('================================================================================');
+            this.display(`   TOTAL DISPONÍVEL: ${total}`);  
+            this.display('================================================================================\n');
 
             break;          
   

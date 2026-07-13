@@ -18,20 +18,22 @@ INNER JOIN autor a on a.id = la.autor_id `;
 
 
 function createWhereFromStatus(status: number): string {    
-
-  switch (status) { 
-    case 0: //0 - em aberto
+  switch (status) {
+    case 0: //0 - todos independente o status, menos os cancelados 
+      return ' AND (e.canceled_at IS NULL)'; 
+    case 1: //1 - em aberto
       return ' AND (el.data_devolucao IS NULL) AND (e.canceled_at IS NULL)';
-    case 1: //1 - cancelado
+    case 2: //2 - cancelado
       return ' AND (e.canceled_at IS NOT NULL)';
-    case 2: //2 - devolvido
+    case 3: //3 - devolvido
       return ' AND (el.data_devolucao IS NOT NULL) AND (e.canceled_at IS NULL)'; 
-    case 3: //3 - atrasado
-      return ' AND ((el.data_devolucao IS NULL) AND (DATE(el.data_prevista_devolucao) < CURRENT_DATE)) AND (e.canceled_at IS NULL)';       
+    case 4: //4 - atrasado
+      return ' AND ((el.data_devolucao IS NULL) AND (DATE(el.data_prevista_devolucao) < CURRENT_DATE)) AND (e.canceled_at IS NULL)';           
     default:
-      return ' AND (el.data_devolucao IS NULL) AND (e.canceled_at IS NULL)'; //0 - em aberto
+      return ' AND (el.data_devolucao IS NULL) AND (e.canceled_at IS NULL)'; //1 - em aberto
   }
 }
+
 export class EmprestimoPostgresRepository implements EmprestimoRepository {
   constructor(private readonly pool: Pool) {}
 
@@ -132,9 +134,183 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
 
   //   return rows[0];
   // }
+  
+  //  this.display(" Informe o número da opção desejada:");
+  //           this.display(" 1. Pesquisar por ID do empréstimo"); 
+  //           this.display(" 2. Pesquisar por Título do livro (informe ao menos 3 letras)"); 
+  //           this.display(" 3. Pesquisar por Código ou CPF do cliente");
 
+  async findBorrowById(id: number): Promise<Emprestimo | null>{
+    const result = await this.pool.query(
+      `${sqlSelect} 
+      WHERE e.id = $1 AND ((c.deleted_at is null) and (l.deleted_at is null))      
+      ORDER BY e.data_emprestimo DESC`, 
+      [id],
+    );
 
-  async findABorrowByStatus(status: number): Promise<Emprestimo[]> {
+    if (result.rowCount === 0) {
+      return null;
+    }
+
+    const borrows = result.rows.reduce<Record<number, Emprestimo>>(
+      (acc, row) => {
+        const borrow = acc[row.emprestimo_id];
+
+        if (!borrow) {
+          acc[row.emprestimo_id] = {
+            id: row.emprestimo_id, 
+            cliente_id: row.cliente_id,
+            cliente_nome: row.nome_cliente,
+            data_emprestimo: row.data_emprestimo,
+            livros: [
+              {
+                id: row.livro_id,
+                codigo: row.codigo,
+                titulo: row.titulo,
+                editora: row.editora,
+                edicao: row.edicao,
+                ano_publicacao: row.ano_publicacao,
+                isbn: row.isbn,
+                data_prevista_devolucao: row.data_prevista_devolucao,
+                autores: [
+                  {
+                    id: row.autor_id,
+                    nome: row.nome_autor
+                  }
+                ],
+                status: getStatusBorrowBook(row.data_prevista_devolucao)
+              }
+            ],           
+          };
+          return acc;
+        }
+
+        const bookExists = borrow.livros.find((livro) => livro.id === row.livro_id);
+        if (!bookExists) {        
+          borrow.livros.push({
+            id: row.livro_id,
+            codigo: row.codigo,
+            titulo: row.titulo,
+            editora: row.editora,
+            edicao: row.edicao,
+            ano_publicacao: row.ano_publicacao,
+            isbn: row.isbn,
+            data_prevista_devolucao: row.data_prevista_devolucao,
+            autores: [
+              {
+                id: row.autor_id,
+                nome: row.nome_autor,
+              }
+            ],
+            status: getStatusBorrowBook(row.data_prevista_devolucao) 
+          });
+        }
+
+        if (bookExists) {
+          const authorExists = bookExists.autores.some((autor) => autor.id === row.autor_id);
+          if (!authorExists) {
+            bookExists.autores.push({
+              id: row.autor_id,
+              nome: row.nome_autor,
+            });
+          }
+        }
+
+        return acc;
+      },
+      {} as Record<number, Emprestimo>,
+    );
+
+    return Object.values(borrows)[0];
+  }
+
+  async findBorrowByStatus(status: number): Promise<Emprestimo[]> {
+    const sqlWhereStatus = createWhereFromStatus(status);
+
+    const result = await this.pool.query(
+      `${sqlSelect} 
+      WHERE e.id > 0 AND ((c.deleted_at is null) and (l.deleted_at is null))
+      ${sqlWhereStatus}
+      ORDER BY e.data_emprestimo DESC`,
+    );
+
+    if (result.rowCount === 0) {
+      return [];
+    }
+
+    const borrows = result.rows.reduce<Record<number, Emprestimo>>(
+      (acc, row) => {
+        const borrow = acc[row.emprestimo_id];
+
+        if (!borrow) {
+          acc[row.emprestimo_id] = {
+            id: row.emprestimo_id, 
+            cliente_id: row.cliente_id,
+            cliente_nome: row.nome_cliente,
+            data_emprestimo: row.data_emprestimo,
+            livros: [
+              {
+                id: row.livro_id,
+                codigo: row.codigo,
+                titulo: row.titulo,
+                editora: row.editora,
+                edicao: row.edicao,
+                ano_publicacao: row.ano_publicacao,
+                isbn: row.isbn,
+                data_prevista_devolucao: row.data_prevista_devolucao,
+                autores: [
+                  {
+                    id: row.autor_id,
+                    nome: row.nome_autor
+                  }
+                ],
+                status: getStatusBorrowBook(row.data_prevista_devolucao)
+              }
+            ],           
+          };
+          return acc;
+        }
+
+        const bookExists = borrow.livros.find((livro) => livro.id === row.livro_id);
+        if (!bookExists) {        
+          borrow.livros.push({
+            id: row.livro_id,
+            codigo: row.codigo,
+            titulo: row.titulo,
+            editora: row.editora,
+            edicao: row.edicao,
+            ano_publicacao: row.ano_publicacao,
+            isbn: row.isbn,
+            data_prevista_devolucao: row.data_prevista_devolucao,
+            autores: [
+              {
+                id: row.autor_id,
+                nome: row.nome_autor,
+              }
+            ],
+            status: getStatusBorrowBook(row.data_prevista_devolucao) 
+          });
+        }
+
+        if (bookExists) {
+          const authorExists = bookExists.autores.some((autor) => autor.id === row.autor_id);
+          if (!authorExists) {
+            bookExists.autores.push({
+              id: row.autor_id,
+              nome: row.nome_autor,
+            });
+          }
+        }
+
+        return acc;
+      },
+      {} as Record<number, Emprestimo>,
+    );
+
+    return Object.values(borrows);
+  }
+
+  async findBorrowByBook(status: number): Promise<Emprestimo[]> {
     const sqlWhereStatus = createWhereFromStatus(status);
 
     const result = await this.pool.query(
