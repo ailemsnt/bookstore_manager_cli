@@ -12,4 +12,6 @@ export interface ClienteRepository {
   updateCustomer(book: ClienteUpdate): Promise<Cliente>;
 
   deleteCustomer(id: number): Promise<void>;
+
+  canDeleteCostumer(id: number): Promise<boolean>;
 }

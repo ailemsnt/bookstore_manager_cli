@@ -1,6 +1,7 @@
 import { Session } from "../infra/database/session";
 import { ConsoleView } from "../@common/view/console.view";
 import { BorrowUseCase } from "../usecase/borrow.usecase";
+import { formatDate } from "../@common/utils/common.utils";
 
 const userId = Session.getUserId();
 
@@ -21,48 +22,84 @@ export class BorrowView extends ConsoleView {
         this.display('                EMPRÉSTIMOS             ')   
         this.display('________________________________________\n')     
         this.display(" Informe o número da opção desejada:");
-        this.display(" 1. Buscar empréstimos por Status");        
-        this.display(" 2. Buscar empréstimos por Cliente");//ID ou nome do 
-        this.display(" 3. Buscar empréstimos por Livro");//Código ou ISBN
-        this.display(" 4. Buscar empréstimos por Data de inclusão");
-        this.display(" 5. Buscar empréstimos por Data de devolução");
-        this.display(" 6. Realizar empréstimo");          
+        this.display(" 1. Listar empréstimos em aberto");        
+        this.display(" 2. Buscar empréstimos");//Livro ou cliente       
+        this.display(" 3. Realizar empréstimo");          
+        this.display(" 4. Cancelar empréstimo"); 
+        this.display(" 5. Registrar devolução");   
         this.display(" 0. VOLTAR AO MENU PRINCIPAL");
         this.display("________________________________________\n");
       
-        const optionSelected = await this.prompt('Opção:');         
+        const optionSelected = await this.prompt('Opção: ');         
   
         switch (optionSelected) {
           case '1':
-            this.display('Buscando empréstimos por Status...');
+            this.display('Listando empréstimos em aberto...');
 
+            const listBorrowOpened = await this.borrowUc.findABorrowByStatus(0);
+
+            listBorrowOpened.forEach((borrow) => {
+              this.display(
+`------------------------------------
+Cliente: #${borrow.cliente_id}: ${(borrow.cliente_nome).toUpperCase()}
+Data empréstimo: ${formatDate(borrow.data_emprestimo)}
+
+Livro(s) aguardando devolução:
+              `);
+
+              borrow.livros.forEach((livro) => {
+                this.display(
+`#${livro.id} - ${livro.codigo}: ${(livro.titulo).toUpperCase()}
+Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}
+Editora: ${livro.editora} • ${livro.edicao} • ${livro.ano_publicacao} • ISBN: ${livro.isbn} 
+Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Status: ${livro.status}\n`)
+              });
+            });            
             break;          
   
           case '2':
-            this.display('Buscando empréstimos por Cliente...');
-
-            break;
-  
-          case '3':
-            this.display('Buscando empréstimos por livro...');
+            this.display('Buscando empréstimos...');
+            this.display(" Informe o número da opção desejada:");
+            this.display(" 1. Pesquisar por ID do empréstimo"); 
+            this.display(" 2. Pesquisar por Título do livro (informe ao menos 3 letras)"); 
+            this.display(" 3. Pesquisar por Código ou CPF do cliente");
             
-            break;
-  
-          case '4':
-            this.display('Buscando empréstimos por Data de inclusão...');
-  
-            break;
+            const optionSelected = await this.prompt('Opção: '); 
 
-          case '5':
-            this.display('Buscando empréstimos por Data de devolução...');
-  
+            switch (optionSelected) {
+              case '1':
+                this.display('ID...');
+                break;
+              case '2':
+                this.display('título...');
+                break;
+              case '3':
+                this.display('cliente...');
+                break;  
+              default:  
+                this.display('Opção inválida. Por favor, selecione uma opção válida.');
+                break;  
+            }
+            
             break;  
-          case '6':
-            this.display('Iniciando empréstimo...');
+            
+          case '3':
+            this.display('Cadastrando empréstimo...');
+  
+            break; 
+          
+          case '4':
+            this.display('Cancelamento de empréstimo...'); 
+            
   
             break; 
 
-          case '0': 
+          case '5':
+            this.display('Registrando devolução...');  
+  
+            break; 
+          
+            case '0': 
             this.display('Voltando ao menu principal...');              
             return
           default:

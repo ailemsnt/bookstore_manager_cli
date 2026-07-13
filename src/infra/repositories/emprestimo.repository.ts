@@ -1,7 +1,7 @@
 import { Emprestimo } from "../../domain/emprestimo";
 
 export interface EmprestimoRepository {
-  findBorrowByCostumerId(costumerId: number): Promise<Emprestimo | null>;
+  /*findBorrowByCostumerId(costumerId: number): Promise<Emprestimo | null>;
 
   findBorrowByCostumerName(costumerName: string): Promise<Emprestimo | null>;
     
@@ -13,9 +13,15 @@ export interface EmprestimoRepository {
 
   findABorrowByReturnDate(returnDate: string): Promise<Emprestimo | null>;
 
-  findABorrowByExpireDate(expireDate: string): Promise<Emprestimo | null>;
+  findABorrowByExpireDate(expireDate: string): Promise<Emprestimo | null>;*/
 
-  findABorrowByStatus(status: string): Promise<Emprestimo | null>;
+  findABorrowByStatus(status: number): Promise<Emprestimo[]>;
 
-  createBorrow(borrow: Omit<Emprestimo, "id">, userId: number): Promise<Emprestimo>;
+  canBorrowBook(id: number): Promise<boolean>;
+
+  canCancelBorrow(id: number): Promise<boolean>;
+
+  cancelBorrow(id: number): Promise<boolean>;
+  
+ // createBorrow(borrow: Omit<Emprestimo, "id">, userId: number): Promise<Emprestimo>;
 }

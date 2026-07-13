@@ -7,7 +7,7 @@ export class CountryUseCase {
   async findCountryByName(name: string): Promise<Municipio[]> {
     const country = await this.repository.findCountryByName(name);
     
-    return [];
+    return country;
   }
 
   async findCountryById(id: number): Promise<Municipio | null>  {

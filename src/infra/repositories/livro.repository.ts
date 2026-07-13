@@ -14,4 +14,6 @@ export interface LivroRepository {
   deleteBook(id: number): Promise<void>;
 
   canDeleteBook(id: number): Promise<boolean>;
+
+  hasActiveBorrow(id: number): Promise<boolean>;
 }

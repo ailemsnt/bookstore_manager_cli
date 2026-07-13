@@ -79,8 +79,16 @@ export class BookUseCase {
   async canDeleteBook(id: number): Promise<boolean> {
     const canDelete = await this.repository.canDeleteBook(id);
     if (!canDelete) {
-      throw new Error("Não é possível excluir este livro pois ele possui empréstimos em aberto.");
+      throw new Error("Não é possível excluir este livro pois ele já possui empréstimos. Se não puder mais realizar empréstimos, atualize sua disponibilidade.");
     } 
     return canDelete;
+  }
+
+  async hasActiveBorrow(id: number): Promise<boolean> {
+    const canBorrow = await this.repository.hasActiveBorrow(id);
+    if (!canBorrow) {
+      throw new Error("Não é possível emprestar o exemplar deste livro, pois ele possui empréstimos em aberto.");
+    } 
+    return canBorrow;
   }
 }

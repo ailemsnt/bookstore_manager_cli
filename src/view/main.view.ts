@@ -61,9 +61,8 @@ export class MainView extends ConsoleView {
       this.display(" 1. AUTORES ");
       this.display(" 2. LIVROS");
       this.display(" 3. CLIENTES");
-      this.display(" 4. EMPRÉSTIMOS");
-      this.display(" 5. DEVOLUÇÕES");
-      this.display(" 6. RELATÓRIOS");
+      this.display(" 4. EMPRÉSTIMOS | DEVOLUÇÕES");     
+      this.display(" 5. RELATÓRIOS");
       this.display(" 0. Sair");
       this.display("========================================\n");
     
@@ -83,13 +82,10 @@ export class MainView extends ConsoleView {
           await this.costumerView.start();
           break;
         case '4':
-          this.display('Acessando empréstimos...');
+          this.display('Acessando empréstimos e devoluções...');
           await this.borrowView.start();
-          break;
+          break;        
         case '5':
-          this.display('Acessando devoluções...');
-          break;
-        case '6':
           this.display('Acessando relatórios...');
           break;
         case '0':

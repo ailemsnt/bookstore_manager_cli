@@ -76,7 +76,7 @@ COMMENT ON COLUMN livro.editora IS 'Editora do livro';
 COMMENT ON COLUMN livro.edicao IS 'Edição do livro';
 COMMENT ON COLUMN livro.ano_publicacao IS 'Ano de publicação do livro';
 COMMENT ON COLUMN livro.codigo IS 'Código interno do livro';
-COMMENT ON COLUMN livro.disponivel IS 'Indica se o livro está disponível';
+COMMENT ON COLUMN livro.disponivel IS 'Indica se o livro está disponível (0 = Não, 1 = Sim)';
 COMMENT ON COLUMN livro.data_cadastro IS 'Data de cadastro do livro';
 CREATE TABLE IF NOT EXISTS livro_autor (
     autor_id INTEGER NOT NULL REFERENCES autor(id) ON DELETE CASCADE, 
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS cliente(
     telefone VARCHAR(15) NOT NULL,
     email VARCHAR(100),
     data_cadastro TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    ativo INTEGER NOT NULL DEFAULT 1
+    ativo INTEGER NOT NULL DEFAULT 1 
 );
 COMMENT ON COLUMN cliente.nome IS 'Nome do cliente';
 COMMENT ON COLUMN cliente.cpf IS 'CPF do cliente';
@@ -111,7 +111,7 @@ COMMENT ON COLUMN cliente.municipio_id IS 'ID do município do cliente';
 COMMENT ON COLUMN cliente.telefone IS 'Telefone do cliente';
 COMMENT ON COLUMN cliente.email IS 'Email do cliente';
 COMMENT ON COLUMN cliente.data_cadastro IS 'Data de cadastro';
-COMMENT ON COLUMN cliente.ativo IS 'Indica se o cliente está ativo';
+COMMENT ON COLUMN cliente.ativo IS 'Indica se o cliente está ativo (0 = Não, 1 = Sim)';
 ------------------------------------------------------------------
 --DROP TABLE IF EXISTS emprestimo CASCADE;
 CREATE TABLE IF NOT EXISTS emprestimo(
@@ -130,12 +130,10 @@ CREATE TABLE IF NOT EXISTS emprestimo_livro (
     emprestimo_id INTEGER NOT NULL REFERENCES emprestimo(id) ON DELETE CASCADE,
     livro_id INTEGER NOT NULL REFERENCES livro(id) ON DELETE CASCADE,
     data_prevista_devolucao TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '10 days'),  
-    data_devolucao TIMESTAMPTZ,
-    devolvido INTEGER NOT NULL DEFAULT 0
+    data_devolucao TIMESTAMPTZ
 );
 COMMENT ON COLUMN emprestimo_livro.id IS 'ID do item do empréstimo';
 COMMENT ON COLUMN emprestimo_livro.emprestimo_id IS 'ID do empréstimo';
 COMMENT ON COLUMN emprestimo_livro.livro_id IS 'ID do livro emprestado';
 COMMENT ON COLUMN emprestimo_livro.data_prevista_devolucao IS 'Data prevista para devolução';
 COMMENT ON COLUMN emprestimo_livro.data_devolucao IS 'Data de devolução do livro';
-COMMENT ON COLUMN emprestimo_livro.devolvido IS 'Indica se o livro foi devolvido (0 = não, 1 = sim)';

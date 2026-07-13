@@ -163,7 +163,6 @@ export class BookView extends ConsoleView {
               break;
             }  
 
-          //TODO: fazer validação se não foi emprestado ?
           await this.bookUc.deleteBook(Number(idDelete));
           this.display('Livro excluído com sucesso!');
           break;

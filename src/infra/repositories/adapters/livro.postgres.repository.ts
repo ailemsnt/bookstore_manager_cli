@@ -170,16 +170,6 @@ export class LivroPostgresRepository implements LivroRepository {
     }
   }
 
-  // async createBook(book: Omit<Livro, "id">): Promise<Livro> {
-  //   const { rows: [row] } = await this.pool.query<Livro>(
-  //     `INSERT INTO livro (titulo, editora, edicao, ano_publicacao, codigo, disponivel, isbn) 
-  //     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
-  //     RETURNING titulo, autor_id, editora, edicao, ano_publicacao, codigo, disponivel, isbn::text`,
-  //     [book.titulo, book.editora, book.edicao, book.ano_publicacao, book.codigo, book.disponivel, book.isbn]
-  //   );
-  //   return row;
-  // }
-
   async updateBook(book: Livro): Promise<Livro>{
     const { rows: [row], } = await this.pool.query<Livro>(
       `UPDATE livro SET titulo = $1, autor_id = $2, editora = $3, edicao = $4, ano_publicacao = $5, disponivel = $6
@@ -198,8 +188,21 @@ export class LivroPostgresRepository implements LivroRepository {
       `SELECT EXISTS(
         SELECT 1 
         FROM emprestimo_livro el 
-        WHERE el.livro_id = $1 AND el.data_devolucao is null) as has_active_borrow`,[id]
+        INNER JOIN livro l on l.id = el.livro_id
+        WHERE el.livro_id = $1 AND (l.deleted_at is null AND l.disponivel = 0)as can_delete`,[id]
     );
+
+    return (rows.length === 0);
+  }
+
+  async hasActiveBorrow(id: number): Promise<boolean> {
+    const { rows } = await this.pool.query(
+      `SELECT EXISTS(
+        SELECT 1 
+        FROM emprestimo_livro el 
+        WHERE el.livro_id = $1 AND el.data_devolucao is null) as has_active_borrow`,
+        [id]
+    )
 
     return (rows.length === 0);
   }

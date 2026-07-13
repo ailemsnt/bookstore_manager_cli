@@ -42,7 +42,15 @@ export class CustomerUseCase {
     return updatedCustomer;
   }
 
-  deleteCustomer(id: number): Promise<void> {     
+  async deleteCustomer(id: number): Promise<void> {     
     return this.repository.deleteCustomer(id);    
+  }
+
+  async canDeleteCostumer(id: number): Promise<boolean> {
+    const canDelete = await this.repository.canDeleteCostumer(id);
+    if (!canDelete) {
+      throw new Error("Não é possível excluir este cliente pois ele já possui empréstimos. Você apenas poderá inativá-lo, atualizando os dados.");
+    } 
+    return canDelete;
   }
 }

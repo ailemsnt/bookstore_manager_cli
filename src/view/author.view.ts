@@ -1,6 +1,4 @@
 import { ConsoleView } from "../@common/view/console.view";
-import { pool } from "../infra/database/database";
-import { AutorPostgresRepository } from "../infra/repositories/adapters/autor-postgres.repository";
 import { AuthorUseCase } from "../usecase/author.usecase";
 import { AuthorFormDto } from "./dto/author-form.dto";
 export class AuthorView extends ConsoleView {

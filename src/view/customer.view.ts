@@ -26,9 +26,10 @@ export class CustomerView extends ConsoleView {
       }
 
       this.display('Municípios disponíveis:');
+      this.display('ID     | Nome - UF');
 
       countries.forEach((m) => {
-        this.display(`${m.id} - ${m.nome} - ${m.uf_sigla}`);
+        this.display(`#${m.id} | ${m.nome} - ${m.uf_sigla}`);
       });
       
       while (true) {
@@ -120,16 +121,16 @@ export class CustomerView extends ConsoleView {
             
             const customerCreated = await this.customerUc.createCustomer({ nome: customerDto.nome, cpf: customerDto.cpf, endereco: customerDto.endereco, cep: customerDto.cep, numero: customerDto.numero,  bairro: customerDto.bairro, municipio_id: Number(countryIdCostumer), telefone: customerDto.telefone, email: customerDto.email, ativo: formatInChar(customerDto.ativo)});
 
-            this.display(`Cliente cadastrado com sucesso! Nome: ${customerCreated.nome}, CPF: ${maskCpf(customerCreated.cpf)}`);
+            this.display(`Cliente cadastrado com sucesso! Nome: ${customerCreated.nome} • CPF:  ${maskCpf(customerCreated.cpf)}`);
           break;
 
         case '4':
           this.display('Atualizando cliente...');
           
-          const idUpdate = await this.prompt('Informe o ID do livro a ser atualizado:'); 
+          const idUpdate = await this.prompt('Informe o ID do cliente a ser atualizado:'); 
           await this.customerUc.findCustomerById(Number(idUpdate));  
 
-          const customerUpdateDto = await this.promptInteractiveForm('Informe os dados do livro',CustomerUpdateDto.schema(), CustomerUpdateDto);
+          const customerUpdateDto = await this.promptInteractiveForm('Informe os dados do cliente a serem alterados: ',CustomerUpdateDto.schema(), CustomerUpdateDto);
 
           const customerUpdateOrError = await this.customerUc
           .search(customerUpdateDto.nome)
@@ -143,14 +144,24 @@ export class CustomerView extends ConsoleView {
         
           const customerUpdated = await this.customerUc.updateCustomer( {id: Number(idUpdate), nome: customerUpdateDto.nome, endereco: customerUpdateDto.endereco, cep: customerUpdateDto.cep, numero: customerUpdateDto.numero,  bairro: customerUpdateDto.bairro, municipio_id: Number(customerUpdateDto.municipio_id), telefone: customerUpdateDto.telefone, email: customerUpdateDto.email, ativo: formatInChar(customerUpdateDto.ativo)});           
 
-          this.display(`Livro atualizado com sucesso! ID: ${customerUpdated.id}, Título: ${customerUpdated.nome}`);
+          this.display(`Cliente alterado com sucesso! Nome: ${customerUpdated.nome} • CPF:  ${maskCpf(customerUpdated.cpf)}`);
           break;
 
         case '5':
           this.display('Excluindo cliente...');
 
           const idDelete = await this.prompt('Informe o ID do cliente a ser excluído:');          
-          await this.customerUc.findCustomerById(Number(idDelete)); 
+          const costumerDelete = await this.customerUc.findCustomerById(Number(idDelete)); 
+
+          const canDelete = await this.customerUc.canDeleteCostumer(Number(costumerDelete));    
+          if (!canDelete) {
+            return;
+          }
+
+          const confirmationDeleteCostumer = await this.confirmAction(`excluir o cliente #${costumerDelete.id} - ${costumerDelete.nome}  • CPF:  ${maskCpf(costumerDelete.cpf)}`);
+          if (!confirmationDeleteCostumer) {
+            break;
+          }
 
           //TODO: fazer validação se não foi utilizado ?
           await this.customerUc.deleteCustomer(Number(idDelete));

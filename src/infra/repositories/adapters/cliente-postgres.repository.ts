@@ -81,4 +81,16 @@ export class ClientePostgresRepository implements ClienteRepository{
     //   throw new Error(`Autor com id ${id} não encontrado`);
     // }
   }
+
+  async canDeleteCostumer(id: number): Promise<boolean> {
+    const { rows } = await this.pool.query(
+      `SELECT 1
+      FROM cliente c
+      LEFT JOIN emprestimo e ON e.cliente_id = c.id
+      WHERE c.id = 4 AND (c.deleted_at IS NOT NULL OR c.ativo <> 1 OR e.id IS NOT NULL)) AS can_delete`,
+        [id]
+    );
+
+    return (rows.length === 0);
+  } 
 }
