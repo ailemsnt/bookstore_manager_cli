@@ -141,12 +141,26 @@ export class LivroPostgresRepository implements LivroRepository {
 
       const bookRow = bookResult.rows[0];      
 
-      for (const author of book.autor) {
-        await queryInsert.query(
-          `INSERT INTO livro_autor(autor_id, livro_id)
-          VALUES ($1, $2)`,
-        [author.id, bookRow.id]);
+      // for (const author of book.autor) {
+      //   await queryInsert.query(
+      //     `INSERT INTO livro_autor(autor_id, livro_id)
+      //     VALUES ($1, $2)`,//adicionar todos de uma vez
+      //   [author.id, bookRow.id]);
+      // }
+
+      const placeholders = [];
+      const params = [];
+      let i = 1;
+
+      for (const { autorId, livroId } of bookRow) {
+        placeholders.push(`($${i}, $${i + 1})`);
+        params.push(autorId, livroId);
+        i += 2;
       }
+      const queryInsertAuthor = `INSERT INTO livro_autor(autor_id, livro_id) VALUES ${placeholders.join(', ')}`;
+      await this.pool.query(queryInsertAuthor, params);
+
+  
 
       await queryInsert.query('COMMIT');
 

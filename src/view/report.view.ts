@@ -1,6 +1,9 @@
+import { formatDate } from "../@common/utils/common.utils";
 import { ConsoleView } from "../@common/view/console.view";
 import { ReportUseCase } from "../usecase/report.usecase";
 
+let total = 0;
+const dataAtual = new(Date);
 export class ReportView extends ConsoleView {
   constructor(private readonly reportUc: ReportUseCase)
   { 
@@ -12,85 +15,119 @@ export class ReportView extends ConsoleView {
   }
 
   protected async update(){
-      while (true) {
-        this.display('')
-        this.display('________________________________________');
-        this.display('                RELATÓRIOS              ');   
-        this.display('________________________________________\n');     
-        this.display(" Informe o número da opção desejada:");
-        this.display(" 1. Listar livros disponíveis para empréstimo");        
-        this.display(" 2. Listar livros emprestados");//ID ou nome do 
-        this.display(" 3. Listar livros cadastrados por autor");//Código ou ISBN
-        this.display(" 4. Listar quantidade de empréstimos por livro");
-        this.display(" 5. Listar clientes com empréstimo ativo");
-        this.display(" 6. Listar apenas livros que não podem mais ser emprestados");
-        this.display(" 7. Ranking de clientes assíduos");
-        this.display(" 8. Ranking de autores mais populares");
-        this.display(" 9. .....");          
-        this.display(" 0. VOLTAR AO MENU PRINCIPAL");
-        this.display("________________________________________\n");
-      
-        const optionSelected = await this.prompt('Opção:');         
-  
-        switch (optionSelected) {
-          case '1':            
-            this.display('\n================================================================================');
-            this.display('         RELATÓRIO DE LIVROS DISPONÍVEIS PARA EMPRÉSTIMO   ');  
-            this.display('================================================================================');
+    while (true) {
+      this.display('')
+      this.display('________________________________________');
+      this.display('                RELATÓRIOS              ');   
+      this.display('________________________________________\n');     
+      this.display(" Informe o número da opção desejada:");
+      this.display(" 1. Resumo de livros disponíveis para empréstimo");        
+      this.display(" 2. Resumo de livros atualmente emprestados"); 
+      this.display(" 3. Resumo de livros cadastrados por autor");
+      this.display(" 4. Resumo de quantidade de empréstimos por livro");
+      this.display(" 5. Resumo de clientes com empréstimo ativo");//--
+      this.display(" 6. Resumo de livros que não podem mais ser emprestados");
+      this.display(" 7. Ranking de assiduidade de clientes");
+      this.display(" 8. Ranking de populareidade de autores");
+      this.display(" 9. .....");          
+      this.display(" 0. VOLTAR AO MENU PRINCIPAL");
+      this.display("________________________________________\n");
+    
+      const optionSelected = await this.prompt('Opção:');         
 
-            const list = await this.reportUc.listAvailableBooks();
-            
-            let total = 0;
-            list.forEach((book) => {
-              total++; 
+      switch (optionSelected) {
+        case '1':            
+          this.display('\n================================================================================');
+          this.display(`   RELATÓRIO DE LIVROS DISPONÍVEIS PARA EMPRÉSTIMO - DATA GERAÇÃO ${formatDate(dataAtual)}`);  
+          this.display('================================================================================');
 
-              if (total > 1) {
-                this.display('----------------------------------------');  
-              }
-              const authors = book.autor.map((author) => author.nome).join(', ');
-            
-              this.display(
-                `${book.id} - #${book.codigo}: ${(book.titulo).toUpperCase()}
-                Autor(es): ${authors}
-                Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}\n`);              
-            });
-            this.display('================================================================================');
-            this.display(`   TOTAL DISPONÍVEL: ${total}`);  
-            this.display('================================================================================\n');
+          const listAvailable = await this.reportUc.listAvailableBooks();
+          
+          total = 0;
+          listAvailable.forEach((book) => {
+            total++; 
 
-            break;          
-  
-          case '2':
-            this.display('Buscando empréstimos por Cliente...');
+            if (total > 1) {
+              this.display('----------------------------------------');  
+            }
+            const authors = book.autor.map((author) => author.nome).join(', ');
+          
+            this.display(
+              `${book.id} - #${book.codigo}: ${(book.titulo).toUpperCase()}
+              Autor(es): ${authors}
+              Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}\n`);              
+          });
+          this.display('================================================================================');
+          this.display(`   TOTAL DISPONÍVEL: ${total}`);  
+          this.display('================================================================================\n');
 
-            break;
-  
-          case '3':
-            this.display('Buscando empréstimos por livro...');
-            
-            break;
-  
-          case '4':
-            this.display('Buscando empréstimos por Data de inclusão...');
-  
-            break;
+          break;          
 
-          case '5':
-            this.display('Buscando empréstimos por Data de devolução...');
-  
-            break;  
-          case '6':
-            this.display('Iniciando empréstimo...');
-  
-            break; 
+        case '2':
+          this.display('\n================================================================================');
+          this.display(`        RELATÓRIO DE LIVROS EMPRESTADOS - DATA GERAÇÃO ${formatDate(dataAtual)}`);  
+          this.display('================================================================================');
 
-          case '0': 
-            this.display('Voltando ao menu principal...');              
-            return
-          default:
-            this.display('Opção inválida. Por favor, selecione uma opção válida.');
-            break;
-        }
+          const list = await this.reportUc.listUnavailableBooks();
+          
+          total = 0;
+          list.forEach((book) => {
+            total++; 
+
+            if (total > 1) {
+              this.display('----------------------------------------');  
+            }
+            const authors = book.autor.map((author) => author.nome).join(', ');
+          
+            this.display(
+              `${book.id} - #${book.codigo}: ${(book.titulo).toUpperCase()}
+              Autor(es): ${authors}
+              Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}
+              Cliente: #${book.cliente_id} - ${book.cliente_nome}
+              Data empréstimo: ${formatDate(book.data_emprestimo)} • Previsão devolução: ${formatDate(book.data_prevista_devolucao)} • Status: ${book.status}\n`);              
+          });
+          this.display('================================================================================');
+          this.display(`   TOTAL: ${total}`);  
+          this.display('================================================================================\n');
+
+          break;
+
+        case '3':
+          this.display('\n================================================================================');
+          this.display(`        RELATÓRIO DE LIVROS CASTRADOS POR AUTOR - DATA GERAÇÃO ${formatDate(dataAtual)}`);  
+          this.display('================================================================================');
+          
+          // const idAutor = await this.prompt('Buscar por ID do autor: (Deixe em branco para listar TODOS)');          
+          // const borrowById = await this.borrowUc.findBorrowById(Number(idAutor));               
+
+          // if (!borrowById) {
+          //   return;
+          // }
+
+
+          break;
+
+        case '4':
+          this.display('Buscando empréstimos por Data de inclusão...');
+
+          break;
+
+        case '5':
+          this.display('Buscando empréstimos por Data de devolução...');
+
+          break;  
+        case '6':
+          this.display('Iniciando empréstimo...');
+
+          break; 
+
+        case '0': 
+          this.display('Voltando ao menu principal...');              
+          return
+        default:
+          this.display('Opção inválida. Por favor, selecione uma opção válida.');
+          break;
       }
     }
+  }
 }
