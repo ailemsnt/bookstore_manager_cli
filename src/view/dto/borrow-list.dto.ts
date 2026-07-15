@@ -17,6 +17,7 @@ export class BorrowBookDto {
     public data_prevista_devolucao: Date,
 
     public autor: AuthorListDto[],
-    public status: string
+    public status?: string,
+    public quantidade_emprestimo?: number
   ) {}
 }

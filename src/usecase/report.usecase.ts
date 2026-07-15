@@ -24,4 +24,10 @@ export class ReportUseCase {
     
     return author;
   }
+
+  async listBorrowsCountByBooks (dataIni?: Date, dataFim?: Date): Promise<BorrowBookDto[]> {
+    const book = await this.repository.listBorrowsCountByBooks (dataIni, dataFim);
+
+    return book;
+  }
 }

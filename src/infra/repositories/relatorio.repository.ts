@@ -8,4 +8,6 @@ export interface RelatorioRepository {
   listUnavailableBooks (): Promise<BorrowBookDto[]>;
 
   listBooksByAuthor (idAuthor?: number): Promise<AuthorReportDto[]>;
+  
+  listBorrowsCountByBooks (dataIni?: Date, dataFim?: Date): Promise<BorrowBookDto[]>;
 }

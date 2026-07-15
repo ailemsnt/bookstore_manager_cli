@@ -59,7 +59,7 @@ export class ReportView extends ConsoleView {
               Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}\n`);              
           });
           this.display('================================================================================');
-          this.display(`   TOTAL DISPONÍVEL: ${total}`);  
+          this.display(`   TOTAL: ${total} livros disponíveis`);  
           this.display('================================================================================\n');
 
           break;          
@@ -88,7 +88,7 @@ export class ReportView extends ConsoleView {
               Data empréstimo: ${formatDate(book.data_emprestimo)} • Previsão devolução: ${formatDate(book.data_prevista_devolucao)} • Status: ${book.status}\n`);              
           });
           this.display('================================================================================');
-          this.display(`   TOTAL: ${total}`);  
+          this.display(`   TOTAL: ${total} livros emprestados`);  
           this.display('================================================================================\n');
 
           break;
@@ -120,11 +120,41 @@ export class ReportView extends ConsoleView {
             });
           });
 
+          this.display('================================================================================');
+          this.display(`   TOTAL: ${total} autores listados`);  
+          this.display('================================================================================\n');
+
           break;
 
         case '4':
-          this.display('Buscando empréstimos por Data de inclusão...');
+          this.display('\n================================================================================');
+          this.display(`    RELATÓRIO DE QUANTIDADE DE EMPRÉSTIMOS POR LIVRO - DATA GERAÇÃO ${formatDate(dataAtual)}`);  
+          this.display('================================================================================');
+          
+          // const idAuthor = await this.prompt('Buscar por ID do autor: (Deixe em branco para listar TODOS) ');                                      
+          // const author = idAuthor ? await this.authorUc.findAuthorById(Number(idAuthor)) : null;          
+   //parametro datas
+          const listBorrowBooks = await this.reportUc.listBorrowsCountByBooks();
 
+          total = 0;
+          listBorrowBooks.forEach((book) => {
+            total++; 
+
+            if (total > 1) {
+              this.display('----------------------------------------');  
+            }
+            const authors = book.autor.map((author) => author.nome).join(', ');
+          
+            this.display(
+              `${book.id} - #${book.codigo}: ${(book.titulo).toUpperCase()}
+              Autor(es): ${authors}
+              Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}
+              Quantidade de empréstimos no intervalo informado: ${book.quantidade_emprestimo}\n`);              
+          });
+
+          this.display('================================================================================');
+          this.display(`   TOTAL: ${total} livros listados`);  
+          this.display('================================================================================\n');
           break;
 
         case '5':

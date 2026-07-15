@@ -200,4 +200,76 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
   
     return Object.values(authors);  
   }
+
+  async listBorrowsCountByBooks (dataIni?: Date, dataFim?: Date): Promise<BorrowBookDto[]> {
+    const conditionValidate = dataIni !== undefined && dataFim !== undefined;
+    const paramsBorrow = conditionValidate ? [dataIni, dataFim] : [];
+    const sqlWhereCondition = conditionValidate? `AND e.data_emprestimo >= $1 AND e.data_emprestimo <= $2` : '';
+
+    const sqlBorrow = `SELECT l.id AS livro_id, l.codigo, l.titulo, l.editora,
+          l.edicao,l.ano_publicacao,l.isbn,
+          a.id AS autor_id, a.nome AS nome_autor,
+          COALESCE(emp.quantidade_emprestimos, 0) AS quantidade_emprestimos
+      FROM livro l
+      INNER JOIN livro_autor la ON la.livro_id = l.id
+      INNER JOIN autor a ON a.id = la.autor_id
+      LEFT JOIN (
+          SELECT el.livro_id, COUNT(e.id) AS quantidade_emprestimos
+          FROM emprestimo_livro el
+          INNER JOIN emprestimo e ON e.id = el.emprestimo_id
+          WHERE e.canceled_at IS NULL
+          ${sqlWhereCondition}
+          GROUP BY el.livro_id
+      ) emp ON emp.livro_id = l.id
+      WHERE l.baixado = 0 AND l.deleted_at IS NULL
+      ORDER BY emp.quantidade_emprestimos DESC`;
+    
+    const result = await this.pool.query(sqlBorrow, paramsBorrow);
+
+    if (result.rowCount === 0) {
+      return [];
+    }
+  
+    const books = result.rows.reduce<Record<number, BorrowBookDto>>(
+      (acc, row) => {
+        const book = acc[row.livro_id];
+
+        if(!book) {
+          acc[row.livro_id] = {
+            id: row.livro_id,
+            codigo: row.codigo,
+            titulo: row.titulo,
+            editora: row.editora,
+            edicao: row.edicao,
+            ano_publicacao: row.ano_publicacao,
+            isbn: row.isbn,
+            cliente_id: row.cliente_id,
+            cliente_nome: row.cliente_nome,
+            data_emprestimo: row.data_emprestimo,
+            data_prevista_devolucao: row.data_prevista_devolucao,
+            autor: [
+              {
+                id: row.autor_id,
+                nome: row.nome_autor
+              }              
+            ],
+            quantidade_emprestimo: row.quantidade_emprestimos
+          };
+          return acc;
+        }
+
+        book.autor.push({        
+          id: row.autor_id,
+          nome: row.nome_autor                                        
+        });
+
+        return acc;
+
+      },
+      {} as Record<number, BorrowBookDto>,
+    );
+  
+    return Object.values(books);
+  }
+
 }
