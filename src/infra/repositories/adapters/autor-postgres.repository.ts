@@ -7,7 +7,7 @@ export class AutorPostgresRepository implements AutorRepository{
 
   async findAuthorByName(name: string): Promise<Autor | null> {
     const { rows } = await this.pool.query(
-      "SELECT * FROM autor WHERE lower(unaccent(nome)) = lower(unaccent($1)) AND deleted_at is null",
+      "SELECT * FROM autor WHERE lower(unaccent(nome)) = lower(unaccent($1)) AND deleted_at is null ORDER BY nome ASC",
       [name],
     );
 
@@ -32,7 +32,7 @@ export class AutorPostgresRepository implements AutorRepository{
   }
 
   async findAllAuthors(): Promise<Autor[]> {
-    const { rows } = await this.pool.query("SELECT * FROM autor WHERE deleted_at is null ORDER BY id");
+    const { rows } = await this.pool.query("SELECT * FROM autor WHERE deleted_at is null ORDER BY nome ASC");
 
     return rows;      
   }
@@ -73,5 +73,4 @@ export class AutorPostgresRepository implements AutorRepository{
 
     return (rows.length === 0);
   }
-  
 }

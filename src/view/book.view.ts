@@ -44,7 +44,7 @@ export class BookView extends ConsoleView {
               `${book.id} - #${book.codigo}: ${(book.titulo).toUpperCase()}
               Autor(es): ${authors}
               Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn} 
-              Disponível empréstimo: ${formatOutChar(book.disponivel)}\n`);
+              Baixado: ${formatOutChar(book.baixado)}\n`);
           });
           break;          
 
@@ -59,7 +59,7 @@ export class BookView extends ConsoleView {
               `${book.id} - #${book.codigo}: ${(book.titulo).toUpperCase()}
               Autor(es): ${authors}
               Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn} 
-              Disponível empréstimo: ${formatOutChar(book.disponivel)}\n`);
+              Baixado: ${formatOutChar(book.baixado)}\n`);
           break;
 
         case '3':
@@ -115,7 +115,7 @@ export class BookView extends ConsoleView {
             return;
           }
           
-          const bookCreated = await this.bookUc.createBook({ titulo: bookDto.titulo, editora: bookDto.editora, edicao: bookDto.edicao, ano_publicacao: Number(bookDto.ano_publicacao), disponivel: formatInChar(bookDto.disponivel), codigo: bookDto.codigo, isbn: bookDto.isbn, 
+          const bookCreated = await this.bookUc.createBook({ titulo: bookDto.titulo, editora: bookDto.editora, edicao: bookDto.edicao, ano_publicacao: Number(bookDto.ano_publicacao), baixado: formatInChar(bookDto.baixado), codigo: bookDto.codigo, isbn: bookDto.isbn, 
           autores: authorsId
           });
 
@@ -142,7 +142,7 @@ export class BookView extends ConsoleView {
             return
           }
         
-          // const bookUpdated = await this.bookUc.updateBook( {id: Number(idUpdate), titulo: bookUpdateDto.titulo, autor_id: Number(bookUpdateDto.autor_id), editora: bookUpdateDto.editora, edicao: bookUpdateDto.edicao, ano_publicacao: Number(bookUpdateDto.ano_publicacao), disponivel: formatInChar(bookUpdateDto.disponivel)});
+          // const bookUpdated = await this.bookUc.updateBook( {id: Number(idUpdate), titulo: bookUpdateDto.titulo, autor_id: Number(bookUpdateDto.autor_id), editora: bookUpdateDto.editora, edicao: bookUpdateDto.edicao, ano_publicacao: Number(bookUpdateDto.ano_publicacao), baixado: formatInChar(bookUpdateDto.baixado)});
 
           // this.display(`Livro atualizado com sucesso! ID: ${bookUpdated.id}, Título: ${bookUpdated.titulo}`);
           break;

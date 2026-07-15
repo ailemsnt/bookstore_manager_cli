@@ -1,11 +1,12 @@
-import { formatDate } from "../@common/utils/common.utils";
+import { AuthorUseCase } from './../usecase/author.usecase';
+import { formatDate, formatOutChar } from "../@common/utils/common.utils";
 import { ConsoleView } from "../@common/view/console.view";
 import { ReportUseCase } from "../usecase/report.usecase";
 
 let total = 0;
 const dataAtual = new(Date);
 export class ReportView extends ConsoleView {
-  constructor(private readonly reportUc: ReportUseCase)
+  constructor(private readonly reportUc: ReportUseCase, private readonly authorUc: AuthorUseCase)
   { 
     super(); 
   }
@@ -68,10 +69,10 @@ export class ReportView extends ConsoleView {
           this.display(`        RELATÓRIO DE LIVROS EMPRESTADOS - DATA GERAÇÃO ${formatDate(dataAtual)}`);  
           this.display('================================================================================');
 
-          const list = await this.reportUc.listUnavailableBooks();
+          const listUnavaliable = await this.reportUc.listUnavailableBooks();
           
           total = 0;
-          list.forEach((book) => {
+          listUnavaliable.forEach((book) => {
             total++; 
 
             if (total > 1) {
@@ -97,13 +98,27 @@ export class ReportView extends ConsoleView {
           this.display(`        RELATÓRIO DE LIVROS CASTRADOS POR AUTOR - DATA GERAÇÃO ${formatDate(dataAtual)}`);  
           this.display('================================================================================');
           
-          // const idAutor = await this.prompt('Buscar por ID do autor: (Deixe em branco para listar TODOS)');          
-          // const borrowById = await this.borrowUc.findBorrowById(Number(idAutor));               
+          const idAuthor = await this.prompt('Buscar por ID do autor: (Deixe em branco para listar TODOS) ');                                      
+          const author = idAuthor ? await this.authorUc.findAuthorById(Number(idAuthor)) : null;          
 
-          // if (!borrowById) {
-          //   return;
-          // }
+          const listBooksByAuthor = await this.reportUc.listBooksByAuthor(author?.id);
 
+          total = 0;
+          listBooksByAuthor.forEach((author) => {
+            total++; 
+
+            if (total > 1) {
+              this.display('----------------------------------------');  
+            }
+          
+            this.display(`Autor: #${author.id} ${(author.nome).toUpperCase()}
+            Livro(os): `);
+            author.livros.forEach((book) => {
+              this.display(`${book.id} - #${book.codigo}: ${book.titulo}              
+              Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}              
+              Baixado: ${formatOutChar(book.baixado)}\n`);
+            });
+          });
 
           break;
 

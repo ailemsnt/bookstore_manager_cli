@@ -8,8 +8,6 @@
 --     WITH
 --     OWNER = postgres
 --     ENCODING = 'UTF8'
---     LC_COLLATE = 'C'
---     LC_CTYPE = 'C'
 --     LOCALE_PROVIDER = 'libc'
 --     TABLESPACE = pg_default
 --     CONNECTION LIMIT = -1
@@ -68,7 +66,7 @@ CREATE TABLE IF NOT EXISTS livro(
     edicao VARCHAR(20) NOT NULL,
     ano_publicacao INTEGER NOT NULL,
     codigo VARCHAR(20) NOT NULL,
-    disponivel INTEGER NOT NULL DEFAULT 1,
+    baixado INTEGER NOT NULL DEFAULT 1,
     data_cadastro TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 COMMENT ON COLUMN livro.titulo IS 'Título do livro';
@@ -76,7 +74,7 @@ COMMENT ON COLUMN livro.editora IS 'Editora do livro';
 COMMENT ON COLUMN livro.edicao IS 'Edição do livro';
 COMMENT ON COLUMN livro.ano_publicacao IS 'Ano de publicação do livro';
 COMMENT ON COLUMN livro.codigo IS 'Código interno do livro';
-COMMENT ON COLUMN livro.disponivel IS 'Indica se o livro está disponível (0 = Não, 1 = Sim)';
+COMMENT ON COLUMN livro.baixado IS 'Indica se o livro está baixado ou apto para empréstimo (0 = Não, 1 = Sim)';
 COMMENT ON COLUMN livro.data_cadastro IS 'Data de cadastro do livro';
 CREATE TABLE IF NOT EXISTS livro_autor (
     autor_id INTEGER NOT NULL REFERENCES autor(id) ON DELETE CASCADE, 

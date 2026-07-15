@@ -49,7 +49,7 @@ export class LivroPostgresRepository implements LivroRepository {
             edicao: row.edicao,
             ano_publicacao: row.ano_publicacao,
             codigo: row.codigo,
-            disponivel: row.disponivel,
+            baixado: row.baixado,
             isbn: row.isbn,
             autor: [
               {
@@ -82,12 +82,18 @@ export class LivroPostgresRepository implements LivroRepository {
           INNER JOIN livro_autor la ON la.livro_id = l.id
           INNER JOIN autor a ON a.id = la.autor_id
           WHERE l.deleted_at is null AND a.deleted_at is null
-          ORDER BY l.titulo asc`        
+          ORDER BY upper(l.titulo) asc`        
     );
+// ORDER BY l.titulo asc`
 
     if (result.rowCount === 0) {
       return [];
     }
+    // console.log('resultado query')
+    // console.log(result.rows.map(r => ({
+    //   id: r.livro_id,
+    //   titulo: r.titulo,
+    // })));
 
     const books = result.rows.reduce<Record<number, Livro>>(
       (acc, row) => {
@@ -101,7 +107,7 @@ export class LivroPostgresRepository implements LivroRepository {
             edicao: row.edicao,
             ano_publicacao: row.ano_publicacao,
             codigo: row.codigo,
-            disponivel: row.disponivel,
+            baixado: row.baixado,
             isbn: row.isbn,
             autor: [
               {
@@ -123,20 +129,27 @@ export class LivroPostgresRepository implements LivroRepository {
       },
       {} as Record<number, Livro>,
     );
-
+    
+//     console.log('depois reduce >') 
+//     console.log(Object.values(books).map(b => ({
+//   id: b.id,
+//   titulo: b.titulo,
+// })));
     return Object.values(books);
+    
   }
 
+  
   async createBook(book: Omit<Livro, "id">): Promise<Livro | null> {
     const queryInsert = await this.pool.connect();
 
     try {
       await queryInsert.query('BEGIN');
       const bookResult = await queryInsert.query(
-        `INSERT INTO livro (titulo, editora, edicao, ano_publicacao, codigo, disponivel, isbn) 
+        `INSERT INTO livro (titulo, editora, edicao, ano_publicacao, codigo, baixado, isbn) 
         VALUES ($1, $2, $3, $4, $5, $6, $7) 
-        RETURNING id, titulo, editora, edicao, ano_publicacao, codigo, disponivel, isbn::text`,
-        [book.titulo, book.editora, book.edicao, book.ano_publicacao, book.codigo, book.disponivel, book.isbn]
+        RETURNING id, titulo, editora, edicao, ano_publicacao, codigo, baixado, isbn::text`,
+        [book.titulo, book.editora, book.edicao, book.ano_publicacao, book.codigo, book.baixado, book.isbn]
       );
 
       const bookRow = bookResult.rows[0];      
@@ -171,7 +184,7 @@ export class LivroPostgresRepository implements LivroRepository {
         edicao: bookRow.edicao,
         ano_publicacao: bookRow.ano_publicacao,
         codigo: bookRow.codigo,
-        disponivel: bookRow.disponivel,
+        baixado: bookRow.baixado,
         isbn: bookRow.isbn,
         autor: book.autor
       }
@@ -186,9 +199,9 @@ export class LivroPostgresRepository implements LivroRepository {
 
   async updateBook(book: Livro): Promise<Livro>{
     const { rows: [row], } = await this.pool.query<Livro>(
-      `UPDATE livro SET titulo = $1, autor_id = $2, editora = $3, edicao = $4, ano_publicacao = $5, disponivel = $6
+      `UPDATE livro SET titulo = $1, autor_id = $2, editora = $3, edicao = $4, ano_publicacao = $5, baixado = $6
         WHERE id = $7 AND deleted_at is null RETURNING *`,
-      [book.titulo, book.editora, book.edicao, book.ano_publicacao, book.disponivel, book.id],
+      [book.titulo, book.editora, book.edicao, book.ano_publicacao, book.baixado, book.id],
         );
     return row;
   }
@@ -203,7 +216,7 @@ export class LivroPostgresRepository implements LivroRepository {
         SELECT 1 
         FROM emprestimo_livro el 
         INNER JOIN livro l on l.id = el.livro_id
-        WHERE el.livro_id = $1 AND (l.deleted_at is null AND l.disponivel = 0)as can_delete`,[id]
+        WHERE el.livro_id = $1 AND (l.deleted_at is null AND l.baixado = 0)as can_delete`,[id]
     );
 
     return (rows.length === 0);

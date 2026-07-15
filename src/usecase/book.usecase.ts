@@ -51,7 +51,7 @@ export class BookUseCase {
       editora: input.editora,
       edicao: input.edicao,
       ano_publicacao: input.ano_publicacao,
-      disponivel: input.disponivel,
+      baixado: input.baixado,
       codigo: input.codigo,
       isbn: input.isbn,
       autor: authors

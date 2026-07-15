@@ -412,7 +412,7 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
       SELECT 1
       FROM livro l
       WHERE l.id = $1
-        AND l.disponivel = 1
+        AND l.baixado = 0
         AND (l.deleted_at IS NULL)
         AND NOT EXISTS (
             SELECT 1
