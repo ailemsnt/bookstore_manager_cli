@@ -1,11 +1,12 @@
 import { Livro } from './../../../domain/livro';
 import { Pool } from "pg";
 import { LivroRepository } from "../livro.repository";
+import { BookListDto } from '../../../view/dto/book-list.dto';
 
 export class LivroPostgresRepository implements LivroRepository {
   constructor(private readonly pool: Pool) {}
 
-  async findBookByTitle(title: string): Promise<Livro | null> {
+  async findBookByTitle(title: string): Promise<BookListDto[]> {
     const { rows } = await this.pool.query(
       ` SELECT l.*, la.*, a.nome as nome_autor
           FROM livro l
@@ -17,10 +18,10 @@ export class LivroPostgresRepository implements LivroRepository {
     );
 
     if (rows.length === 0) {
-      return null;
+      return [];
     }
 
-    return rows[0];
+    return rows;
   }
 
   async findBookById(id: number): Promise<Livro | null> {

@@ -161,17 +161,17 @@ export class ReportView extends ConsoleView {
 
           case '5':
 
-          const idCostumer = await this.prompt('Buscar por ID do cliente: (Deixe em branco para listar TODOS) ');                                      
-          const costumer = idCostumer ? await this.authorUc.findAuthorById(Number(idCostumer)) : null;          
+          const idCustomer = await this.prompt('Buscar por ID do cliente: (Deixe em branco para listar TODOS) ');                                      
+          const customer = idCustomer ? await this.authorUc.findAuthorById(Number(idCustomer)) : null;          
         
-          const listCostumerBorrow = await this.reportUc.listCostumerBorrowBooks(costumer?.id);
+          const listCustomerBorrow = await this.reportUc.listCustomerBorrowBooks(customer?.id);
 
           this.display('\n================================================================================');
           this.display(`   RELATÓRIO DE CLIENTES COM EMPRÉSTIMO ATIVO - DATA GERAÇÃO ${formatDate(dataAtual)}`);  
           this.display('================================================================================');
 
                     
-          listCostumerBorrow.forEach((borrow) => {
+          listCustomerBorrow.forEach((borrow) => {
               this.display(
 `\nCliente: #${borrow.cliente_id}: ${(borrow.cliente_nome).toUpperCase()}`);
 

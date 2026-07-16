@@ -3,17 +3,96 @@ import { ConsoleView } from "../@common/view/console.view";
 import { BorrowUseCase } from "../usecase/borrow.usecase";
 import { formatDate } from "../@common/utils/common.utils";
 import { BookUseCase } from "../usecase/book.usecase";
+import { CustomerUseCase } from "../usecase/customer.usecase";
 
 const userId = Session.getUserId();
 
 export class BorrowView extends ConsoleView {
-  constructor(private readonly borrowUc: BorrowUseCase, private readonly bookUc: BookUseCase )
+  constructor(private readonly borrowUc: BorrowUseCase, private readonly bookUc: BookUseCase, private readonly customerUc: CustomerUseCase )
   { 
     super(); 
   }
   
   async start(): Promise<void> {
     await this.update();
+  }
+
+  private async selectBook(): Promise<number> {
+    while (true) {
+      const bookTitlePartial = await this.prompt('Informe o título do livro: (ao menos 3 letras) ');
+
+      const books = await this.bookUc.search(bookTitlePartial);
+
+      if (!books) {
+        this.display('Livro não encontrado.');
+        continue;
+      }
+
+      this.display('Livros encontrados:');
+      this.display('ID     | Código interno  | Título');
+
+      books.forEach((b) => {
+        this.display(`#${b.id} | ${b.codigo} | ${b.titulo}`);
+      });
+      
+      while (true) {
+        const bookId = await this.prompt('Informe o ID do livro exibido na lista acima: ');
+        
+        const bookIdValidate = Number(bookId);
+        if (Number.isNaN(bookIdValidate)) {
+          this.display('ID do livro informado inválido.');
+          continue;
+        } 
+
+        const bookExists = await this.bookUc.findBookById(bookIdValidate);
+        if (!bookExists) {            
+          continue;
+        } 
+
+        this.display(`Livro selecionado: #${bookExists.id} - ${bookExists.codigo} - ${bookExists.titulo}`);
+
+        return bookIdValidate;
+      }
+    } 
+  }
+
+  private async selectCustomer(): Promise<number> {
+    while (true) {
+      const customerNamePartial = await this.prompt('Informe o nome do cliente: (ao menos 3 letras) ');
+
+      const customers = await this.customerUc.search(customerNamePartial);
+
+      if (!customers) {
+        this.display('Cliente não encontrado.');
+        continue;
+      }
+
+      this.display('Clientes encontrados:');
+      this.display('Código     | Nome');
+
+      customers.forEach((customer) => {
+        this.display(`#${customer.id} | ${customer.nome} | ${customer.cpf}`);
+      });
+      
+      while (true) {
+        const customerId = await this.prompt('Informe o ID do cliente exibido na lista acima: ');
+        
+        const customerIdValidate = Number(customerId);
+        if (Number.isNaN(customerIdValidate)) {
+          this.display('ID do livro informado inválido.');
+          continue;
+        } 
+
+        const customerExists = await this.customerUc.findCustomerById(customerIdValidate);
+        if (!customerExists) {            
+          continue;
+        } 
+
+        this.display(`Cliente selecionado: #${customerExists.id} - ${customerExists.nome} - ${customerExists.cpf}`);
+
+        return customerIdValidate;
+      }
+    } 
   }
 
   protected async update(){
@@ -61,15 +140,15 @@ Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Stat
           case '2':
             this.display('Buscando empréstimos...');
             this.display(" Informe o número da opção desejada:");
-            this.display(" 1. Pesquisar por ID do empréstimo"); 
-            this.display(" 2. Pesquisar por Título do livro (informe ao menos 3 letras)"); 
-            this.display(" 3. Pesquisar por Código ou CPF do cliente");
+            this.display(" 1. Pesquisar por Empréstimo"); 
+            this.display(" 2. Pesquisar por Livro"); 
+            this.display(" 3. Pesquisar por Cliente");
             
             const optionSelected = await this.prompt('Opção: '); 
 
             switch (optionSelected) {
               case '1':
-                this.display('Buscando por ID...');
+                this.display('Buscando por Empréstimo...');
 
                 const id = await this.prompt('Informe o ID do empréstimo: ');          
                 const borrowById = await this.borrowUc.findBorrowById(Number(id));               
@@ -100,6 +179,8 @@ Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Stat
                 // const bookTitle = await this.prompt('Informe o título do livro a ser pesquisado: ');          
                 // const book = await this.bookUc.search(bookTitle); 
 
+                
+                const bookId = await this.selectBook();
 
                 
 

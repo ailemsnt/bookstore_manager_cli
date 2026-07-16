@@ -31,9 +31,9 @@ export class ReportUseCase {
     return book;
   }
 
-  async listCostumerBorrowBooks (idCliente?: number): Promise<BorrowDto[]> {
-    const costumer = await this.repository.listCostumerBorrowBooks(idCliente);
+  async listCustomerBorrowBooks (idCliente?: number): Promise<BorrowDto[]> {
+    const customer = await this.repository.listCustomerBorrowBooks(idCliente);
     
-    return costumer;
+    return customer;
   }
 }

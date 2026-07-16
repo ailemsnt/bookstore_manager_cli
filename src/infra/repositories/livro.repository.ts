@@ -1,7 +1,8 @@
 import { Livro, LivroUpdate } from "../../domain/livro";
+import { BookListDto } from "../../view/dto/book-list.dto";
 
 export interface LivroRepository {
-  findBookByTitle(title: string): Promise<Livro | null>;
+  findBookByTitle(title: string): Promise<BookListDto[]>;
 
   findBookById(id: number): Promise<Livro | null>;
 

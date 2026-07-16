@@ -12,7 +12,7 @@ import { AuthorUseCase } from '../usecase/author.usecase';
 
 export class MainView extends ConsoleView {
   constructor(private readonly loginUc: LoginUseCase, private readonly authorView: AuthorView, 
-              private readonly bookView: BookView, private readonly costumerView: CustomerView,
+              private readonly bookView: BookView, private readonly customerView: CustomerView,
               private readonly borrowView: BorrowView, private readonly bookUc: BookUseCase, private readonly reportView: ReportView, private readonly authorUc: AuthorUseCase) {
     super(true)
   }
@@ -81,7 +81,7 @@ export class MainView extends ConsoleView {
           break;
         case '3':
           this.display('Acessando clientes...');
-          await this.costumerView.start();
+          await this.customerView.start();
           break;
         case '4':
           this.display('Acessando empréstimos e devoluções...');

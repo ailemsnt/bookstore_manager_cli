@@ -11,5 +11,5 @@ export interface RelatorioRepository {
   
   listBorrowsCountByBooks (dataIni?: Date, dataFim?: Date): Promise<BorrowBookDto[]>;
 
-  listCostumerBorrowBooks (idCliente?: number): Promise<BorrowDto[]>;
+  listCustomerBorrowBooks (idCliente?: number): Promise<BorrowDto[]>;
 }

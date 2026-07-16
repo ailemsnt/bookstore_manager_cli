@@ -272,12 +272,12 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
     return Array.from(books.values());    
   }
 
-  async listCostumerBorrowBooks (idCliente?: number): Promise<BorrowDto[]> {
+  async listCustomerBorrowBooks (idCliente?: number): Promise<BorrowDto[]> {
     const conditionValidate = idCliente !== undefined && idCliente > 0;
-    const paramsCostumer = conditionValidate ? [idCliente] : [];
+    const paramsCustomer = conditionValidate ? [idCliente] : [];
     const sqlWhereCondition = conditionValidate? ` c.id = $1 AND ` : '';
 
-    const sqlCostumer  = `SELECT l.id livro_id, l.codigo, l.titulo, l.editora,
+    const sqlCustomer  = `SELECT l.id livro_id, l.codigo, l.titulo, l.editora,
             l.edicao, l.ano_publicacao, l.isbn,
             a.id AS autor_id, a.nome AS nome_autor,
             c.id AS cliente_id, c.nome AS cliente_nome,
@@ -294,13 +294,13 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
         (l.baixado = 0 AND l.deleted_at IS NULL AND c.deleted_at IS NULL AND e.canceled_at IS NULL)          
         ORDER BY a.nome, l.titulo ASC`;
 
-    const result = await this.pool.query(sqlCostumer, paramsCostumer);
+    const result = await this.pool.query(sqlCustomer, paramsCustomer);
     
     if (result.rowCount === 0) {
       return [];
     }
   
-    const costumers = result.rows.reduce<Map<number, BorrowDto>>(
+    const customers = result.rows.reduce<Map<number, BorrowDto>>(
       (acc, row) => {
         const borrow = acc.get(row.emprestimo_id);
 
@@ -371,7 +371,7 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
       new Map<number, BorrowDto>(),
     );
 
-    return Array.from(costumers.values());
+    return Array.from(customers.values());
   }
 
 }
