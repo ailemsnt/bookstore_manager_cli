@@ -1,5 +1,6 @@
 import { Emprestimo } from "../domain/emprestimo";
 import { EmprestimoRepository } from "../infra/repositories/emprestimo.repository";
+import { BorrowDto } from "../view/dto/borrow-list.dto";
 
 export class BorrowUseCase {
   constructor(private readonly repository: EmprestimoRepository) {}
@@ -12,7 +13,7 @@ export class BorrowUseCase {
     return borrow;
   }
 
-  async findBorrowById(id: number): Promise<Emprestimo | null> {
+  async findBorrowById(id: number): Promise<BorrowDto | null> {
     const borrow = await this.repository.findBorrowById(id);
     if (!borrow) {
       throw new Error("Não foram encontrados empréstimos com o ID informado.");

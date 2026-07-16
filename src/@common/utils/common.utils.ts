@@ -31,12 +31,12 @@ export function defer(fn: () => void) {
   };
 }
 
-export function formatOutChar(disponivel: number) : string {
-  return disponivel === 1 ? "Sim" : "Não";
+export function formatOutChar(baixado: number) : string {
+  return baixado === 1 ? "Sim" : "Não";
 } 
 
-export function formatInChar(disponivel: string) : number {
-  return disponivel === "S" ? 1 : 0;
+export function formatInChar(baixado: string) : number {
+  return baixado === "S" ? 1 : 0;
 }
 
 export function maskCpf(cpf: string): string {

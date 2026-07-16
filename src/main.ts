@@ -40,9 +40,9 @@ async function bootstrap() {
   const borrowView = new BorrowView(borrowUseCase, bookUseCase);
   
   const reportUseCase = new ReportUseCase(new RelatorioPostgresRepository(pool));
-  const reportView = new ReportView(reportUseCase);
+  const reportView = new ReportView(reportUseCase, authorUseCase);
 
-  const mainView = new MainView(loginUseCase, authorView, bookView, customerView, borrowView, bookUseCase, reportView);
+  const mainView = new MainView(loginUseCase, authorView, bookView, customerView, borrowView, bookUseCase, reportView, authorUseCase);
 
   await mainView.start()
 }

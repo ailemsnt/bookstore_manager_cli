@@ -8,11 +8,12 @@ import { CustomerView } from './customer.view';
 import { Session } from "../infra/database/session";
 import { BorrowView } from './borrow.view';
 import { BookUseCase } from '../usecase/book.usecase';
+import { AuthorUseCase } from '../usecase/author.usecase';
 
 export class MainView extends ConsoleView {
   constructor(private readonly loginUc: LoginUseCase, private readonly authorView: AuthorView, 
               private readonly bookView: BookView, private readonly costumerView: CustomerView,
-              private readonly borrowView: BorrowView, private readonly bookUc: BookUseCase, private readonly reportView: ReportView) {
+              private readonly borrowView: BorrowView, private readonly bookUc: BookUseCase, private readonly reportView: ReportView, private readonly authorUc: AuthorUseCase) {
     super(true)
   }
 

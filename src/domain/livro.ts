@@ -7,7 +7,7 @@ export interface Livro {
   edicao: string;
   ano_publicacao: number;
   codigo: string;
-  disponivel: number;
+  baixado: number;
   isbn: string;
   autor: Autor[];
 }
@@ -17,7 +17,7 @@ export interface LivroUpdate {
   editora: string;
   edicao: string;
   ano_publicacao: number;
-  disponivel: number; 
+  baixado: number; 
   autor: Autor[];
 }
 
@@ -27,7 +27,7 @@ export interface LivroInput {
   edicao: string;
   ano_publicacao: number;
   codigo: string;
-  disponivel: number;
+  baixado: number;
   isbn: string;
   autores: number[];
 }

@@ -6,7 +6,7 @@ export class BookFormDto {
     public editora: string,
     public edicao: string,
     public ano_publicacao: number,
-    public disponivel: string,
+    public baixado: string,
     public codigo: string,
     public isbn: string,
   ) {}
@@ -16,7 +16,7 @@ export class BookFormDto {
       editora: { type: 'string', required: true, minLength: 1 },
       edicao: { type: 'string', required: false, minLength: 3 },
       ano_publicacao: { type: 'number', required: true },
-      disponivel: { type: 'string', required: true, minLength: 1, maxLenght: 1},
+      baixado: { type: 'string', required: true, minLength: 1, maxLenght: 1},
       codigo: { type: 'string', required: true, minLength: 1},
       isbn: { type: 'string', required: true, minLength: 1, }
     };
@@ -28,7 +28,7 @@ export class BookUpdateDto {
     public editora: string,
     public edicao: string,
     public ano_publicacao: number,
-    public disponivel: string,   
+    public baixado: string,   
   ) {}
   static schema(): ConsoleFormSchema {
     return {
@@ -36,7 +36,7 @@ export class BookUpdateDto {
       editora: { type: 'string', required: false, minLength: 1 },
       edicao: { type: 'string', required: false, minLength: 3 },
       ano_publicacao: { type: 'number', required: false },
-      disponivel: { type: 'string', required: false, minLength: 1, maxLenght: 1}      
+      baixado: { type: 'string', required: false, minLength: 1, maxLenght: 1}      
     };
   }
 }
