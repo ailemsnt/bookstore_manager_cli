@@ -1,5 +1,5 @@
 import { Livro } from "../../domain/livro";
-import { BorrowBookDto } from "../../view/dto/borrow-list.dto";
+import { BorrowBookDto, BorrowDto } from "../../view/dto/borrow-list.dto";
 import { AuthorReportDto } from "../../view/dto/report-list.dto";
 
 export interface RelatorioRepository {
@@ -10,4 +10,6 @@ export interface RelatorioRepository {
   listBooksByAuthor (idAuthor?: number): Promise<AuthorReportDto[]>;
   
   listBorrowsCountByBooks (dataIni?: Date, dataFim?: Date): Promise<BorrowBookDto[]>;
+
+  listCostumerBorrowBooks (idCliente?: number): Promise<BorrowDto[]>;
 }

@@ -1,6 +1,6 @@
 import { getStatusBorrowBook } from '../../../@common/utils/common.utils';
 import { BookListDto } from '../../../view/dto/book-list.dto';
-import { BorrowBookDto } from '../../../view/dto/borrow-list.dto';
+import { BorrowBookDto, BorrowDto } from '../../../view/dto/borrow-list.dto';
 import { AuthorReportDto } from '../../../view/dto/report-list.dto';
 import { RelatorioRepository } from '../relatorio.repository';
 import { Livro } from './../../../domain/livro';
@@ -46,7 +46,7 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
             codigo: row.codigo,
             baixado: row.baixado,
             isbn: row.isbn,
-            autor: [
+            autores: [
               {
                 id: row.autor_id,
                 nome: row.nome_autor
@@ -56,7 +56,7 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
           return acc;
         }
 
-        book.autor.push({        
+        book.autores.push({        
           id: row.autor_id,
           nome: row.nome_autor                                        
         });
@@ -247,7 +247,7 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
             cliente_nome: row.cliente_nome,
             data_emprestimo: row.data_emprestimo,
             data_prevista_devolucao: row.data_prevista_devolucao,
-            autor: [
+            autores: [
               {
                 id: row.autor_id,
                 nome: row.nome_autor
@@ -271,4 +271,107 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
   
     return Array.from(books.values());    
   }
+
+  async listCostumerBorrowBooks (idCliente?: number): Promise<BorrowDto[]> {
+    const conditionValidate = idCliente !== undefined && idCliente > 0;
+    const paramsCostumer = conditionValidate ? [idCliente] : [];
+    const sqlWhereCondition = conditionValidate? ` c.id = $1 AND ` : '';
+
+    const sqlCostumer  = `SELECT l.id livro_id, l.codigo, l.titulo, l.editora,
+            l.edicao, l.ano_publicacao, l.isbn,
+            a.id AS autor_id, a.nome AS nome_autor,
+            c.id AS cliente_id, c.nome AS cliente_nome,
+            e.id AS emprestimo_id, e.data_emprestimo,
+            el.data_prevista_devolucao, el.data_devolucao
+        FROM livro l
+        INNER JOIN livro_autor la ON la.livro_id = l.id
+        INNER JOIN autor a ON a.id = la.autor_id
+        INNER JOIN emprestimo_livro el ON el.livro_id = l.id
+        INNER JOIN emprestimo e ON e.id = el.emprestimo_id
+        INNER JOIN cliente c ON c.id = e.cliente_id
+        WHERE 
+        ${sqlWhereCondition} 
+        (l.baixado = 0 AND l.deleted_at IS NULL AND c.deleted_at IS NULL AND e.canceled_at IS NULL)          
+        ORDER BY a.nome, l.titulo ASC`;
+
+    const result = await this.pool.query(sqlCostumer, paramsCostumer);
+    
+    if (result.rowCount === 0) {
+      return [];
+    }
+  
+    const costumers = result.rows.reduce<Map<number, BorrowDto>>(
+      (acc, row) => {
+        const borrow = acc.get(row.emprestimo_id);
+
+        if (!borrow) {
+          acc.set(row.emprestimo_id, {
+            id: row.emprestimo_id, 
+            cliente_id: row.cliente_id,
+            cliente_nome: row.cliente_nome,
+            data_emprestimo: row.data_emprestimo,
+            livros: [
+              {
+                id: row.livro_id,
+                codigo: row.codigo,
+                titulo: row.titulo,
+                edicao: row.edicao,
+                editora: row.editora,
+                ano_publicacao: row.ano_publicacao,
+                isbn: row.isbn,
+                data_prevista_devolucao: row.data_prevista_devolucao,
+                data_devolucao: row.data_devolucao,
+                autores: [
+                  {
+                    id: row.autor_id,
+                    nome: row.nome_autor
+                  }
+                ],
+                status: getStatusBorrowBook(row.data_prevista_devolucao, row.data_devolucao)
+              }
+            ],           
+          });
+          return acc;
+        }
+
+        const bookExists = borrow.livros.find((livro) => livro.id === row.livro_id);
+        if (!bookExists) {        
+          borrow.livros.push({
+            id: row.livro_id,
+            codigo: row.codigo,
+            titulo: row.titulo,
+            editora: row.editora,
+            edicao: row.edicao,
+            ano_publicacao: row.ano_publicacao,
+            isbn: row.isbn,
+            data_prevista_devolucao: row.data_prevista_devolucao,
+            data_devolucao: row.data_devolucao,
+            autores: [
+              {
+                id: row.autor_id,
+                nome: row.nome_autor,
+              }
+            ],
+            status: getStatusBorrowBook(row.data_prevista_devolucao,row.data_devolucao) 
+          });
+        }
+
+        if (bookExists) {
+          const authorExists = bookExists.autores.some((autor) => autor.id === row.autor_id);
+          if (!authorExists) {
+            bookExists.autores.push({
+              id: row.autor_id,
+              nome: row.nome_autor,
+            });
+          }
+        }
+
+        return acc;
+      },
+      new Map<number, BorrowDto>(),
+    );
+
+    return Array.from(costumers.values());
+  }
+
 }

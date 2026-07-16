@@ -1,6 +1,6 @@
 import { Livro } from "../domain/livro";
 import { RelatorioRepository } from "../infra/repositories/relatorio.repository";
-import { BorrowBookDto } from "../view/dto/borrow-list.dto";
+import { BorrowBookDto, BorrowDto } from "../view/dto/borrow-list.dto";
 import { AuthorReportDto } from "../view/dto/report-list.dto";
 
 export class ReportUseCase {
@@ -29,5 +29,11 @@ export class ReportUseCase {
     const book = await this.repository.listBorrowsCountByBooks (dataIni, dataFim);
 
     return book;
+  }
+
+  async listCostumerBorrowBooks (idCliente?: number): Promise<BorrowDto[]> {
+    const costumer = await this.repository.listCostumerBorrowBooks(idCliente);
+    
+    return costumer;
   }
 }
