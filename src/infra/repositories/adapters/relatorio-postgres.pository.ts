@@ -1,5 +1,5 @@
 import { getStatusBorrowBook } from '../../../@common/utils/common.utils';
-import { BookDto } from '../../../view/dto/book-list.dto';
+import { BookListDto } from '../../../view/dto/book-list.dto';
 import { BorrowBookDto } from '../../../view/dto/borrow-list.dto';
 import { AuthorReportDto } from '../../../view/dto/report-list.dto';
 import { RelatorioRepository } from '../relatorio.repository';
@@ -9,7 +9,7 @@ import { Pool } from 'pg';
 export class RelatorioPostgresRepository implements RelatorioRepository {
   constructor(private readonly pool: Pool) {}
 
-  async listAvailableBooks (): Promise<Livro[]> {
+  async listAvailableBooks (): Promise<BookListDto[]> {
 
     const result  = await this.pool.query(        
   `SELECT l.id livro_id, l.codigo, l.titulo, l.editora,
@@ -32,12 +32,12 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
       return [];
     }
   
-    const books = result.rows.reduce<Record<number, Livro>>(
+    const books = result.rows.reduce(
       (acc, row) => {
-        const book = acc[row.livro_id];
+        const book = acc.get(row.livro_id);
 
         if(!book) {
-          acc[row.livro_id] = {
+          acc.set(row.livro_id, {
             id: row.livro_id,
             titulo: row.titulo,
             editora: row.editora,
@@ -52,7 +52,7 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
                 nome: row.nome_autor
               }              
             ],
-          };
+          });
           return acc;
         }
 
@@ -64,10 +64,10 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
         return acc;
 
       },
-      {} as Record<number, Livro>,
+      new Map(),
     );
   
-    return Object.values(books);
+    return Array.from(books.values());
   }
 
   async listUnavailableBooks (): Promise<BorrowBookDto[]> {
@@ -93,12 +93,12 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
       return [];
     }
   
-    const books = result.rows.reduce<Record<number, BorrowBookDto>>(
+    const books = result.rows.reduce(
       (acc, row) => {
-        const book = acc[row.livro_id];
+        const book = acc.get(row.livro_id);
 
         if(!book) {
-          acc[row.livro_id] = {
+          acc.set(row.livro_id, {
             id: row.livro_id,
             codigo: row.codigo,
             titulo: row.titulo,
@@ -110,18 +110,18 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
             cliente_nome: row.cliente_nome,
             data_emprestimo: row.data_emprestimo,
             data_prevista_devolucao: row.data_prevista_devolucao,
-            autor: [
+            autores: [
               {
                 id: row.autor_id,
                 nome: row.nome_autor
               }              
             ],
             status: getStatusBorrowBook(row.data_prevista_devolucao),
-          };
+          });
           return acc;
         }
 
-        book.autor.push({        
+        book.autores.push({        
           id: row.autor_id,
           nome: row.nome_autor                                        
         });
@@ -129,10 +129,10 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
         return acc;
 
       },
-      {} as Record<number, BorrowBookDto>,
+      new Map<number, BorrowBookDto>(),
     );
   
-    return Object.values(books);
+    return Array.from(books.values());
   }
 
   async listBooksByAuthor (idAuthor?: number): Promise<AuthorReportDto[]> {
@@ -157,12 +157,12 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
       return [];
     }
 
-    const authors = result.rows.reduce<Record<number, AuthorReportDto>>(
+    const authors = result.rows.reduce(
       (acc, row) => {
-        const author = acc[row.autor_id];
+        const author = acc.get(row.autor_id);
 
         if(!author) {
-          acc[row.autor_id] = {
+          acc.set(row.autor_id, {
             id: row.autor_id,
             nome: row.nome_autor,
             livros: [
@@ -177,7 +177,7 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
                 isbn: row.isbn,
               }
             ],
-          };
+          });
           return acc;
         }
 
@@ -195,10 +195,10 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
         return acc;
 
       },
-      {} as Record<number, AuthorReportDto>,
+      new Map(),
     );
   
-    return Object.values(authors);  
+    return Array.from(authors.values());  
   }
 
   async listBorrowsCountByBooks (dataIni?: Date, dataFim?: Date): Promise<BorrowBookDto[]> {
@@ -230,12 +230,12 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
       return [];
     }
   
-    const books = result.rows.reduce<Record<number, BorrowBookDto>>(
+    const books = result.rows.reduce(
       (acc, row) => {
-        const book = acc[row.livro_id];
+        const book = acc.get(row.livro_id);
 
         if(!book) {
-          acc[row.livro_id] = {
+          acc.set(row.livro_id, {
             id: row.livro_id,
             codigo: row.codigo,
             titulo: row.titulo,
@@ -254,22 +254,21 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
               }              
             ],
             quantidade_emprestimo: row.quantidade_emprestimos
-          };
+          });
           return acc;
         }
 
-        book.autor.push({        
+        book.autores.push({        
           id: row.autor_id,
           nome: row.nome_autor                                        
         });
-
+    
         return acc;
 
       },
-      {} as Record<number, BorrowBookDto>,
+      new Map<number, BorrowBookDto>(),
     );
   
-    return Object.values(books);
+    return Array.from(books.values());    
   }
-
 }

@@ -1,4 +1,6 @@
-export class BookDto {
+import { AuthorListDto } from "./author-list.dto";
+
+export class BookListDto {
   constructor(
     public id: number,
     public codigo: string,
@@ -7,6 +9,7 @@ export class BookDto {
     public edicao: string,
     public ano_publicacao: number,
     public isbn: string,
-    public baixado: number
+    public baixado: number,
+    public autor: AuthorListDto[]
   ) {}
 }

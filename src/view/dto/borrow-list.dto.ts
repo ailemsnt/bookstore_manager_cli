@@ -9,15 +9,21 @@ export class BorrowBookDto {
     public edicao: string,
     public ano_publicacao: number,
     public isbn: string,
-
-    public cliente_id: number,
-    public cliente_nome: string,
-
-    public data_emprestimo: Date,
-    public data_prevista_devolucao: Date,
-
-    public autor: AuthorListDto[],
+    public data_prevista_devolucao: Date,        
+    public autores: AuthorListDto[],
+    public cliente_nome?: string,
+    public cliente_id?: number,
     public status?: string,
     public quantidade_emprestimo?: number
+  ) {}
+}
+
+export class BorrowDto {
+  constructor(
+    public id: number, 
+    public data_emprestimo: Date,
+    public livros: BorrowBookDto[], 
+    public cliente_id: number,
+    public cliente_nome: string,
   ) {}
 }

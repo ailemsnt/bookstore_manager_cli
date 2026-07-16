@@ -1,5 +1,5 @@
+import { Livro } from './../../../domain/livro';
 import { Pool } from "pg";
-import { Livro } from "../../../domain/livro";
 import { LivroRepository } from "../livro.repository";
 
 export class LivroPostgresRepository implements LivroRepository {
@@ -37,12 +37,12 @@ export class LivroPostgresRepository implements LivroRepository {
       return null;
     }
 
-    const books = result.rows.reduce<Record<number, Livro>>(
+    const books = result.rows.reduce(
       (acc, row) => {
-        const book = acc[row.livro_id];
+        const book = acc.get(row.livro_id);
 
         if(!book) {
-          acc[row.livro_id] = {
+          acc.set(row.livro_id, {
             id: row.livro_id,
             titulo: row.titulo,
             editora: row.editora,
@@ -57,7 +57,7 @@ export class LivroPostgresRepository implements LivroRepository {
                 nome: row.nome_autor
               }              
             ],
-          };
+          });
           return acc;
         }
 
@@ -65,14 +65,12 @@ export class LivroPostgresRepository implements LivroRepository {
           id: row.autor_id,
           nome: row.nome_autor                                        
         });
-
-        return acc;
-
+        return acc;       
       },
-      {} as Record<number, Livro>,
+      new Map<number, Livro>(),
     );
 
-    return Object.values(books)[0];
+    return books.values().next().value ?? null;
   }
 
   async findAllBooks(): Promise<Livro[]> {
@@ -95,12 +93,12 @@ export class LivroPostgresRepository implements LivroRepository {
     //   titulo: r.titulo,
     // })));
 
-    const books = result.rows.reduce<Record<number, Livro>>(
+    const books = result.rows.reduce(
       (acc, row) => {
-        const book = acc[row.livro_id];
+        const book = acc.get(row.livro_id);
 
         if(!book) {
-          acc[row.livro_id] = {
+          acc.set(row.livro_id, {
             id: row.livro_id,
             titulo: row.titulo,
             editora: row.editora,
@@ -115,7 +113,7 @@ export class LivroPostgresRepository implements LivroRepository {
                 nome: row.nome_autor
               }              
             ],
-          };
+          });
           return acc;
         }
 
@@ -127,16 +125,10 @@ export class LivroPostgresRepository implements LivroRepository {
         return acc;
 
       },
-      {} as Record<number, Livro>,
+      new Map(),
     );
     
-//     console.log('depois reduce >') 
-//     console.log(Object.values(books).map(b => ({
-//   id: b.id,
-//   titulo: b.titulo,
-// })));
-    return Object.values(books);
-    
+    return Array.from(books.values());    
   }
 
   

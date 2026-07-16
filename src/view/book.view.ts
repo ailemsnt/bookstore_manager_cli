@@ -53,7 +53,7 @@ export class BookView extends ConsoleView {
 
           const id = await this.prompt('Informe o ID do livro: ');          
           const book = await this.bookUc.findBookById(Number(id));   
-          
+
           const authors = book.autor.map((author) => author.nome).join(', ');
           this.display(
               `${book.id} - #${book.codigo}: ${(book.titulo).toUpperCase()}

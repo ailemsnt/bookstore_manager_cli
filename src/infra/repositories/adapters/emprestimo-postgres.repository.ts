@@ -2,6 +2,7 @@ import { Pool } from "pg";
 import { Emprestimo } from "../../../domain/emprestimo";
 import { EmprestimoRepository } from "../emprestimo.repository";
 import { getStatusBorrowBook } from "../../../@common/utils/common.utils";
+import { BorrowDto } from "../../../view/dto/borrow-list.dto";
 
 const sqlSelect = `SELECT e.id as emprestimo_id, e.cliente_id, e.data_emprestimo,
     e.canceled_at, c.nome as nome_cliente,  c.cpf,
@@ -140,7 +141,7 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
   //           this.display(" 2. Pesquisar por Título do livro (informe ao menos 3 letras)"); 
   //           this.display(" 3. Pesquisar por Código ou CPF do cliente");
 
-  async findBorrowById(id: number): Promise<Emprestimo | null>{
+  async findBorrowById(id: number): Promise<BorrowDto | null>{
     const result = await this.pool.query(
       `${sqlSelect} 
       WHERE e.id = $1 AND ((c.deleted_at is null) and (l.deleted_at is null))      
@@ -152,12 +153,12 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
       return null;
     }
 
-    const borrows = result.rows.reduce<Record<number, Emprestimo>>(
+    const borrows = result.rows.reduce<Map<number, BorrowDto>>(
       (acc, row) => {
-        const borrow = acc[row.emprestimo_id];
+        const borrow = acc.get(row.emprestimo_id);
 
         if (!borrow) {
-          acc[row.emprestimo_id] = {
+          acc.set(row.emprestimo_id, {
             id: row.emprestimo_id, 
             cliente_id: row.cliente_id,
             cliente_nome: row.nome_cliente,
@@ -167,8 +168,8 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
                 id: row.livro_id,
                 codigo: row.codigo,
                 titulo: row.titulo,
-                editora: row.editora,
                 edicao: row.edicao,
+                editora: row.editora,
                 ano_publicacao: row.ano_publicacao,
                 isbn: row.isbn,
                 data_prevista_devolucao: row.data_prevista_devolucao,
@@ -181,7 +182,7 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
                 status: getStatusBorrowBook(row.data_prevista_devolucao)
               }
             ],           
-          };
+          });
           return acc;
         }
 
@@ -218,10 +219,10 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
 
         return acc;
       },
-      {} as Record<number, Emprestimo>,
+      new Map<number, BorrowDto>(),
     );
 
-    return Object.values(borrows)[0];
+    return borrows.values().next().value ?? null;
   }
 
   async findBorrowByStatus(status: number): Promise<Emprestimo[]> {

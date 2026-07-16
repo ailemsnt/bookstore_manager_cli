@@ -78,14 +78,14 @@ export class ReportView extends ConsoleView {
             if (total > 1) {
               this.display('----------------------------------------');  
             }
-            const authors = book.autor.map((author) => author.nome).join(', ');
+            const authors = book.autores.map((author) => author.nome).join(', ');
           
             this.display(
               `${book.id} - #${book.codigo}: ${(book.titulo).toUpperCase()}
               Autor(es): ${authors}
               Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}
               Cliente: #${book.cliente_id} - ${book.cliente_nome}
-              Data empréstimo: ${formatDate(book.data_emprestimo)} • Previsão devolução: ${formatDate(book.data_prevista_devolucao)} • Status: ${book.status}\n`);              
+              Previsão devolução: ${formatDate(book.data_prevista_devolucao)} • Status: ${book.status}\n`);              
           });
           this.display('================================================================================');
           this.display(`   TOTAL: ${total} livros emprestados`);  
@@ -143,7 +143,7 @@ export class ReportView extends ConsoleView {
             if (total > 1) {
               this.display('----------------------------------------');  
             }
-            const authors = book.autor.map((author) => author.nome).join(', ');
+            const authors = book.autores.map((author) => author.nome).join(', ');
           
             this.display(
               `${book.id} - #${book.codigo}: ${(book.titulo).toUpperCase()}
