@@ -7,7 +7,7 @@ export class UsuarioPostgresRepository implements UsuarioRepository {
 
   async findUserByLogin(login: string): Promise<Usuario | null> {
     const { rows } = await this.pool.query(
-      "SELECT * FROM usuario WHERE login = $1",
+      "SELECT id, login, senha, perfil_id, data_cadastro FROM usuario WHERE login = $1",
       [login],
     );
 
@@ -15,7 +15,14 @@ export class UsuarioPostgresRepository implements UsuarioRepository {
       return null;
     }
 
-    return rows[0];
+    const row = rows[0];
+    return {
+      id: row.id,
+      login: row.login,
+      senha: row.senha,
+      perfil_id: row.perfil_id,
+      data_cadastro: row.data_cadastro
+    }
   }
 
   async createUser(user: Omit<Usuario, "id">): Promise<Usuario> {

@@ -1,5 +1,4 @@
 import { MunicipalityListDto } from "./municipality-list.dto";
-
 export class CustomerListDto {
   constructor(
     public id: number,

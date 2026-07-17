@@ -1,10 +1,10 @@
-import { ClienteDetalhe, ClienteInput } from './../../../domain/customer';
+import { ClienteInput } from './../../../domain/customer';
 import { Pool } from "pg";
 import { Cliente } from "../../../domain/customer";
 import { ClienteRepository } from "../cliente.repository";
 import { CustomerListDto } from '../../../view/dto/customer-list.dto';
 
-const sqlSelect = `SELECT c.id cliente_id, c.nome, c.cpf, c.endereco,
+const sqlSelect = `SELECT c.id, c.nome, c.cpf, c.endereco,
             c.numero, c.bairro, c.cep, c.telefone,
             c.email, c.ativo, c.data_cadastro,
             m.id AS municipio_id, m.nome AS municipio_nome,
@@ -29,8 +29,8 @@ export class ClientePostgresRepository implements ClienteRepository{
 
     const customers = result.rows.map(
       (row): CustomerListDto => ({        
-      id: row.cliente_id,
-      nome: row.cliente_nome,
+      id: row.id,
+      nome: row.nome,
       cpf: row.cpf,
       endereco: row.endereco,
       numero: row.numero,
@@ -79,8 +79,8 @@ export class ClientePostgresRepository implements ClienteRepository{
 
     const customers = result.rows.map(
       (row): CustomerListDto => ({        
-      id: row.cliente_id,
-      nome: row.cliente_nome,
+      id: row.id,
+      nome: row.nome,
       cpf: row.cpf,
       endereco: row.endereco,
       numero: row.numero,

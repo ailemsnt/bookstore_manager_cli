@@ -56,9 +56,9 @@ export class CustomerView extends ConsoleView {
   protected async update(){
     while (true) {
       this.display('')
-      this.display('________________________________________')
-      this.display('                CLIENTES                ')   
-      this.display('________________________________________\n')     
+      this.display('____________________________________________________________')
+      this.display('                          CLIENTES                          ')   
+      this.display('____________________________________________________________\n')     
       this.display(" Informe o número da opção desejada:");
       this.display(" 1. Listar todos os clientes");
       this.display(" 2. Buscar cliente por ID");
@@ -66,7 +66,7 @@ export class CustomerView extends ConsoleView {
       this.display(" 4. Atualizar cliente");
       this.display(" 5. Excluir cliente");    
       this.display(" 0. VOLTAR AO MENU PRINCIPAL");
-      this.display("________________________________________\n");
+      this.display("____________________________________________________________\n");
     
       const optionSelected = await this.prompt('Opção:');         
 
@@ -158,7 +158,7 @@ export class CustomerView extends ConsoleView {
             return;
           }
 
-          const confirmationDeleteCustomer = await this.confirmAction(`excluir o cliente #${customerDelete.id} - ${customerDelete.nome}  • CPF:  ${maskCpf(customerDelete.cpf)}`);
+          const confirmationDeleteCustomer = await this.confirmAction(`excluir o cliente #${customerDelete.id} - ${customerDelete.nome}  • CPF:  ${maskCpf(customerDelete.cpf)}`,'Operação cancelada pelo usuário');
           if (!confirmationDeleteCustomer) {
             break;
           }

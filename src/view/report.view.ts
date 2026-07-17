@@ -18,21 +18,21 @@ export class ReportView extends ConsoleView {
   protected async update(){
     while (true) {
       this.display('')
-      this.display('________________________________________');
-      this.display('                RELATÓRIOS              ');   
-      this.display('________________________________________\n');     
+      this.display('____________________________________________________________');
+      this.display('                          RELATÓRIOS                        ');   
+      this.display('____________________________________________________________\n');     
       this.display(" Informe o número da opção desejada:");
       this.display(" 1. Relatório de livros disponíveis para empréstimo");        
       this.display(" 2. Relatório de livros atualmente emprestados"); 
       this.display(" 3. Relatório de livros cadastrados por autor");
       this.display(" 4. Relatório de quantidade de empréstimos por livro");
       this.display(" 5. Relatório de clientes com empréstimo ativo");//--
-      this.display(" 6. Relatório de livros baixados");
-      this.display(" 7. Ranking de assiduidade de clientes");
-      this.display(" 8. Ranking de popularidade de autores");
-      this.display(" 9. .....");          
+      // this.display(" 6. Relatório de livros baixados");
+      // this.display(" 7. Ranking de assiduidade de clientes");
+      // this.display(" 8. Ranking de popularidade de autores");
+      // this.display(" 9. .....");          
       this.display(" 0. VOLTAR AO MENU PRINCIPAL");
-      this.display("________________________________________\n");
+      this.display("____________________________________________________________\n");
     
       const optionSelected = await this.prompt('Opção:');         
 
@@ -195,10 +195,10 @@ export class ReportView extends ConsoleView {
           this.display('================================================================================\n');
 
           break;  
-        case '6':
-          this.display('Iniciando empréstimo...');
+        // case '6':
+        //   this.display('Iniciando empréstimo...');
 
-          break; 
+        //   break; 
 
         case '0': 
           this.display('Voltando ao menu principal...');              

@@ -64,13 +64,13 @@ export class AutorPostgresRepository implements AutorRepository{
 
   async canDeleteAuthor(id: number): Promise<boolean> {
     const { rows } = await this.pool.query(
-      `SELECT EXISTS(
+      `SELECT NOT EXISTS(
         SELECT 1 
         FROM livro_autor la
         INNER JOIN autor a ON a.id = la.autor_id
-        WHERE la.autor_id = $1 AND a.deleted_at is null) as has_book`,[id]
+        WHERE la.autor_id = $1 AND a.deleted_at is null) as can_delete`,[id]
     );
 
-    return (rows.length === 0);
+    return (rows[0].can_delete);
   }
 }

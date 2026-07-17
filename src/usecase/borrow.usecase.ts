@@ -1,14 +1,16 @@
-import { Emprestimo } from "../domain/emprestimo";
+import { Emprestimo, EmprestimoRetorno } from "../domain/emprestimo";
 import { EmprestimoRepository } from "../infra/repositories/emprestimo.repository";
+import { BorrowFilterDto } from "../view/dto/borrow-filter.dto";
+import { BorrowFormDto } from "../view/dto/borrow-form.dto";
 import { BorrowDto } from "../view/dto/borrow-list.dto";
 
 export class BorrowUseCase {
   constructor(private readonly repository: EmprestimoRepository) {}
 
-  async findBorrowByStatus(status: number): Promise<Emprestimo[]>  {
-    const borrow = await this.repository.findBorrowByStatus(status);
+  async findBorrowFilter(filters: BorrowFilterDto): Promise<Emprestimo[]>  {
+    const borrow = await this.repository.findBorrowFilter(filters);
     if (borrow.length === 0) {
-      throw new Error("Não foram encontrados empréstimos com a situação informada.");
+      throw new Error("Não foram encontrados empréstimos para a busca informada.");
     }
     return borrow;
   }
@@ -40,9 +42,24 @@ export class BorrowUseCase {
   async cancelBorrow(id: number): Promise<boolean> {
     const cancelBorrow = await this.repository.cancelBorrow(id);
     if (!cancelBorrow) {
-      throw new Error("Não é possível cancelar este empréstimo.");
+      throw new Error("Não é possível cancelar este empréstimo. Verifique se não existe devolução realizada.");
     } 
     return cancelBorrow;
   }
 
+  async canReturnBorrow(id: number): Promise<boolean> {
+    const returnBorrow = await this.repository.canReturnBorrow(id);
+    if (!returnBorrow) {
+      throw new Error("Não é possível realizar a devolução dos livros. Verifique o status do empréstimo.");
+    } 
+    return returnBorrow;
+  }
+
+  async createBorrow(borrow: BorrowFormDto, livrosId: number[], userId: number): Promise<EmprestimoRetorno | null> {
+    const newBorrow = await this.repository.createBorrow(borrow, livrosId, userId);
+    if (!newBorrow) {
+      throw new Error("Erro ao cadastrar o cliente");
+    }
+    return newBorrow;
+  }
 }

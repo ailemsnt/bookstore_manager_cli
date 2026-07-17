@@ -14,11 +14,11 @@ import { CustomerUseCase } from './usecase/customer.usecase';
 import { BorrowUseCase } from './usecase/borrow.usecase';
 import { EmprestimoPostgresRepository } from './infra/repositories/adapters/emprestimo-postgres.repository';
 import { BorrowView } from './view/borrow.view';
-import { MunicipalityUseCase } from './usecase/municipality.usecase';
 import { MunicipioPostgresRepository } from './infra/repositories/adapters/municipio-postgres.repository';
 import { ReportUseCase } from './usecase/report.usecase';
 import { RelatorioPostgresRepository } from './infra/repositories/adapters/relatorio-postgres.pository';
 import { ReportView } from './view/report.view';
+import { MunicipalityUseCase } from './usecase/municipality.usecase';
 
 async function bootstrap() {
   await initDatabase();
@@ -37,7 +37,7 @@ async function bootstrap() {
   const customerView = new CustomerView(customerUseCase,municipalityUseCase);
 
   const borrowUseCase = new BorrowUseCase(new EmprestimoPostgresRepository(pool));
-  const borrowView = new BorrowView(borrowUseCase, bookUseCase);
+  const borrowView = new BorrowView(borrowUseCase, bookUseCase, customerUseCase);
   
   const reportUseCase = new ReportUseCase(new RelatorioPostgresRepository(pool));
   const reportView = new ReportView(reportUseCase, authorUseCase);

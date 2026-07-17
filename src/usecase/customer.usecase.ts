@@ -9,9 +9,9 @@ export class CustomerUseCase {
     const customer = await this.repository.findCustomerByName(name);
     
     if (!customer) {
-      throw new Error("Nenhum livro encontrado");
+      throw new Error("Nenhum cliente encontrado");
     }
-    return [];
+    return customer;
   }
 
   async findCustomerById(id: number): Promise<CustomerListDto> {

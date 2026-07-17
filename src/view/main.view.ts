@@ -18,10 +18,10 @@ export class MainView extends ConsoleView {
   }
 
   protected async update(): Promise<void> {
-    this.display('========================================')
-    this.display('   Bem-vindo ao Acervo CLI              ')
-    this.display('   Sistema de Gestão de Biblioteca      ')
-    this.display('========================================')
+    this.display('============================================================')
+    this.display('                 Bem-vindo ao Acervo CLI                    ')
+    this.display('             Sistema de Gestão de Biblioteca                ')
+    this.display('============================================================')
     this.display('')
 
     const loginUserDto = await this.promptInteractiveForm(
@@ -47,15 +47,14 @@ export class MainView extends ConsoleView {
     }
 
     Session.currentUser = userOrError;
-
     //await this.prompt(
     this.display(`Usuário ${JSON.stringify(loginUserDto.login)} logado com sucesso!`);
     ///)
     while (true) {
       this.display('')
-      this.display('========================================')
+      this.display('============================================================')
       this.display('                  MENU                  ')   
-      this.display('========================================')
+      this.display('============================================================')
       this.display('')
       this.display(" INSTRUÇÕES DE USO:");
       this.display(" Gerencie empréstimos de livros.\n");
@@ -66,7 +65,7 @@ export class MainView extends ConsoleView {
       this.display(" 4. EMPRÉSTIMOS | DEVOLUÇÕES");     
       this.display(" 5. RELATÓRIOS");
       this.display(" 0. Sair");
-      this.display("========================================\n");
+      this.display("============================================================\n");
     
       const optionSelected = await this.prompt('Opção:');
 

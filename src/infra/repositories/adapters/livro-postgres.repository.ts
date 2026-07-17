@@ -164,7 +164,7 @@ export class LivroPostgresRepository implements LivroRepository {
         i += 2;
       }
       const queryInsertAuthor = `INSERT INTO livro_autor(autor_id, livro_id) VALUES ${placeholders.join(', ')}`;
-      await this.pool.query(queryInsertAuthor, params);
+      await queryInsert.query(queryInsertAuthor, params);
 
   
 
@@ -205,14 +205,14 @@ export class LivroPostgresRepository implements LivroRepository {
 
   async canDeleteBook(id: number): Promise<boolean> {
     const { rows } = await this.pool.query(
-      `SELECT EXISTS(
+      `SELECT NOT EXISTS(
         SELECT 1 
         FROM emprestimo_livro el 
         INNER JOIN livro l on l.id = el.livro_id
-        WHERE el.livro_id = $1 AND (l.deleted_at is null AND l.baixado = 0)as can_delete`,[id]
+        WHERE el.livro_id = $1 AND (l.deleted_at is null AND l.baixado = 0 AND el.data_devolucao IS NULL) as can_delete`,[id]
     );
 
-    return (rows.length === 0);
+    return (rows[0].can_delete);
   }
 
   async hasActiveBorrow(id: number): Promise<boolean> {
@@ -224,6 +224,6 @@ export class LivroPostgresRepository implements LivroRepository {
         [id]
     )
 
-    return (rows.length === 0);
+    return (rows[0].has_active_borrow);
   }
 }

@@ -6,6 +6,7 @@ export class BorrowDto {
     public cliente_nome: string,
     public data_emprestimo: Date,
     public livros: BorrowBookDto[], 
+    public canceled_at?: Date,
   ) {}
 }
 export class BorrowBookDto {
