@@ -53,10 +53,6 @@ export abstract class ConsoleView {
           return [false, null]
         }
 
-        if (schema.maxLength && response.length < schema.maxLength) {
-          this.display('Tamanho máximo não atendido! Tente novamente...')
-          return [false, null]
-        }
       }
       
       if (schema.type === 'string') {
@@ -70,10 +66,6 @@ export abstract class ConsoleView {
 
         if (schema.minLength  && response.length < schema.minLength) {
           return [false, `Informe ao menos ${schema.minLength} registro(s).`];
-        }
-
-        if (schema.maxLength  && response.length > schema.maxLength) {
-          return [false, `Informe no máximo ${schema.maxLength} registro(s).`];
         }
 
         return [true, response]

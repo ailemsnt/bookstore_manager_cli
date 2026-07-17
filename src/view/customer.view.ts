@@ -105,7 +105,7 @@ export class CustomerView extends ConsoleView {
             const municipalityIdCustomer = await this.selectMunicipality();
 
             const customerOrError = await this.customerUc
-            .search(customerDto.nome)
+            .findCustomerByCpf(customerDto.cpf)
             .catch((error: unknown) => error as Error)
 
             if (customerOrError instanceof Error) {
@@ -129,8 +129,10 @@ export class CustomerView extends ConsoleView {
           
           const idUpdate = await this.prompt('Informe o ID do cliente a ser atualizado:'); 
           await this.customerUc.findCustomerById(Number(idUpdate));  
-
+        
           const customerUpdateDto = await this.promptInteractiveForm('Informe os dados do cliente a serem alterados: ',CustomerUpdateDto.schema(), CustomerUpdateDto);
+
+          const municipalityIdCustomerUpdate = await this.selectMunicipality();
 
           const customerUpdateOrError = await this.customerUc
           .search(customerUpdateDto.nome)
@@ -142,7 +144,7 @@ export class CustomerView extends ConsoleView {
             return
           }
         
-          const customerUpdated = await this.customerUc.updateCustomer( {id: Number(idUpdate), nome: customerUpdateDto.nome, endereco: customerUpdateDto.endereco, cep: customerUpdateDto.cep, numero: customerUpdateDto.numero,  bairro: customerUpdateDto.bairro, municipio_id: Number(customerUpdateDto.municipio_id), telefone: customerUpdateDto.telefone, email: customerUpdateDto.email, ativo: formatInChar(customerUpdateDto.ativo)});           
+          const customerUpdated = await this.customerUc.updateCustomer( {id: Number(idUpdate), nome: customerUpdateDto.nome, endereco: customerUpdateDto.endereco, cep: customerUpdateDto.cep, numero: customerUpdateDto.numero,  bairro: customerUpdateDto.bairro, municipio_id: Number(municipalityIdCustomerUpdate), telefone: customerUpdateDto.telefone, email: customerUpdateDto.email, ativo: formatInChar(customerUpdateDto.ativo), cpf: ""});           
 
           this.display(`Cliente alterado com sucesso! Nome: ${customerUpdated.nome} • CPF:  ${maskCpf(customerUpdated.cpf)}`);
           break;
@@ -153,7 +155,7 @@ export class CustomerView extends ConsoleView {
           const idDelete = await this.prompt('Informe o ID do cliente a ser excluído:');          
           const customerDelete = await this.customerUc.findCustomerById(Number(idDelete)); 
 
-          const canDelete = await this.customerUc.canDeleteCustomer(Number(customerDelete));    
+          const canDelete = await this.customerUc.canDeleteCustomer(Number(idDelete));    
           if (!canDelete) {
             return;
           }
@@ -163,7 +165,6 @@ export class CustomerView extends ConsoleView {
             break;
           }
 
-          //TODO: fazer validação se não foi utilizado ?
           await this.customerUc.deleteCustomer(Number(idDelete));
           this.display('Cliente excluído com sucesso!');
           break;

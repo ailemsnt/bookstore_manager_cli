@@ -1,5 +1,5 @@
-import { Autor } from "../domain/autor";
-import { Livro, LivroCreate, LivroInput, LivroUpdate } from "../domain/livro";
+import { Autor } from './../domain/autor';
+import { Livro, LivroInput, LivroUpdate } from "../domain/livro";
 import { LivroRepository } from "../infra/repositories/livro.repository";
 import { BookListDto } from "../view/dto/book-list.dto";
 import { AuthorUseCase } from "./author.usecase";
@@ -23,6 +23,12 @@ export class BookUseCase {
     return book;
   }
 
+  async findBookByInternalCodeIsbn(internalCode: string, isbn: number): Promise<Livro |null> {
+    const book = await this.repository.findBookByInternalCodeIsbn(internalCode, isbn);
+    
+    return book;
+  }
+
   async findAllBooks(): Promise<Livro[]> {
     const books = await this.repository.findAllBooks();
     if (books.length === 0) {
@@ -33,9 +39,14 @@ export class BookUseCase {
 
   async createBook(input: LivroInput): Promise<Livro> {
     const authors: Autor[] = [];
+
+    if (input.autores.length === 0) {
+      throw new Error("O livro deve possuir ao menos um autor!");
+    }
+
     for (const authorId of input.autores) {  
       const author = await this.authorUc.findAuthorById(authorId);
-
+      
       if (!author) {
         throw new Error(`Autor ${authorId} não encontrado`);
       }
@@ -43,29 +54,48 @@ export class BookUseCase {
       authors.push(author);
     } 
 
-    if (authors.length === 0) {
-      throw new Error("O livro deve possuir ao menos um autor!");
-    }
-
-    const book: LivroCreate = {
+    const book = ({
       titulo: input.titulo,
       editora: input.editora,
       edicao: input.edicao,
       ano_publicacao: input.ano_publicacao,
-      baixado: input.baixado,
       codigo: input.codigo,
+      baixado: input.baixado,
       isbn: input.isbn,
       autor: authors
-    };
+  });
 
     const newBook = await this.repository.createBook(book);
     if (!newBook) {
       throw new Error("Erro ao cadastrar o livro");
     }
+
     return newBook;
   }
 
-  async updateBook(book: LivroUpdate): Promise<Livro> {
+  async updateBook(input: LivroUpdate): Promise<Livro> {
+    const authors: Autor[] = [];
+
+    for (const authorId of input.autores){
+      const author = await this.authorUc.findAuthorById(authorId);
+      if (!author) {
+        throw new Error(`Autor ${author} não encontrado`);
+      }
+      authors.push(author);
+    }
+
+    const book: Livro = {
+      id: Number(input.id),
+      titulo: input.titulo,
+      editora: input.editora,
+      edicao: input.edicao,
+      ano_publicacao: input.ano_publicacao,
+      baixado: input.baixado,
+      codigo:"",
+      isbn:"",
+      autor: authors
+    };
+
     const updatedBook = await this.repository.updateBook(book);
     if (!updatedBook) {
       throw new Error("Erro ao atualizar livro");

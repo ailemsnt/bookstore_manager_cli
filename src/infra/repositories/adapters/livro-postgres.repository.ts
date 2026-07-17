@@ -1,4 +1,4 @@
-import { Livro } from './../../../domain/livro';
+import { Livro, LivroCreate, LivroUpdate } from './../../../domain/livro';
 import { Pool } from "pg";
 import { LivroRepository } from "../livro.repository";
 import { BookListDto } from '../../../view/dto/book-list.dto';
@@ -22,6 +22,56 @@ export class LivroPostgresRepository implements LivroRepository {
     }
 
     return rows;
+  }
+
+  async findBookByInternalCodeIsbn(internalCode: string, isbn: number): Promise<Livro |null> {
+    const result  = await this.pool.query(        
+        `SELECT l.*, la.*, a.nome as nome_autor
+          FROM livro l
+          INNER JOIN livro_autor la ON la.livro_id = l.id
+          INNER JOIN autor a ON a.id = la.autor_id
+          WHERE l.codigo = $1 AND l.isbn = $2 AND (l.deleted_at is null AND a.deleted_at is null)`,
+          [internalCode, isbn],   
+    );
+
+    if (result.rowCount === 0) {
+      return null;
+    }
+
+    const books = result.rows.reduce(
+      (acc, row) => {
+        const book = acc.get(row.livro_id);
+
+        if(!book) {
+          acc.set(row.livro_id, {
+            id: row.livro_id,
+            titulo: row.titulo,
+            editora: row.editora,
+            edicao: row.edicao,
+            ano_publicacao: row.ano_publicacao,
+            codigo: row.codigo,
+            baixado: row.baixado,
+            isbn: row.isbn,
+            autor: [
+              {
+                id: row.autor_id,
+                nome: row.nome_autor
+              }              
+            ],
+          });
+          return acc;
+        }
+
+        book.autor.push({        
+          id: row.autor_id,
+          nome: row.nome_autor                                        
+        });
+        return acc;       
+      },
+      new Map<number, Livro>(),
+    );
+
+    return books.values().next().value ?? null;
   }
 
   async findBookById(id: number): Promise<Livro | null> {
@@ -132,8 +182,7 @@ export class LivroPostgresRepository implements LivroRepository {
     return Array.from(books.values());    
   }
 
-  
-  async createBook(book: Omit<Livro, "id">): Promise<Livro | null> {
+  async createBook(book: LivroCreate): Promise<Livro | null> {
     const queryInsert = await this.pool.connect();
 
     try {
@@ -147,26 +196,17 @@ export class LivroPostgresRepository implements LivroRepository {
 
       const bookRow = bookResult.rows[0];      
 
-      // for (const author of book.autor) {
-      //   await queryInsert.query(
-      //     `INSERT INTO livro_autor(autor_id, livro_id)
-      //     VALUES ($1, $2)`,//adicionar todos de uma vez
-      //   [author.id, bookRow.id]);
-      // }
-
       const placeholders = [];
       const params = [];
       let i = 1;
 
-      for (const { autorId, livroId } of bookRow) {
+      for (const author of book.autor) {
         placeholders.push(`($${i}, $${i + 1})`);
-        params.push(autorId, livroId);
+        params.push(author.id, bookRow.id);
         i += 2;
       }
       const queryInsertAuthor = `INSERT INTO livro_autor(autor_id, livro_id) VALUES ${placeholders.join(', ')}`;
       await queryInsert.query(queryInsertAuthor, params);
-
-  
 
       await queryInsert.query('COMMIT');
 
@@ -191,12 +231,55 @@ export class LivroPostgresRepository implements LivroRepository {
   }
 
   async updateBook(book: Livro): Promise<Livro>{
-    const { rows: [row], } = await this.pool.query<Livro>(
-      `UPDATE livro SET titulo = $1, autor_id = $2, editora = $3, edicao = $4, ano_publicacao = $5, baixado = $6
-        WHERE id = $7 AND deleted_at is null RETURNING *`,
-      [book.titulo, book.editora, book.edicao, book.ano_publicacao, book.baixado, book.id],
-        );
-    return row;
+    const queryInsert = await this.pool.connect();
+
+    try {
+      await queryInsert.query('BEGIN');
+      const bookResult = await queryInsert.query(`UPDATE livro SET titulo = $1, editora = $2, edicao = $3, ano_publicacao = $4, baixado = $5
+        WHERE id = $6 AND deleted_at is null 
+        RETURNING id, titulo, editora, edicao, ano_publicacao, codigo, baixado, isbn::text`,
+        [book.titulo, book.editora, book.edicao, book.ano_publicacao, book.baixado, book.id],
+      );
+
+      const bookRow = bookResult.rows[0];      
+
+      await queryInsert.query(`DELETE FROM livro_autor
+            WHERE livro_id = $1`,
+            [book.id]
+      );
+
+      const placeholders = [];
+      const params = [];
+      let i = 1;
+
+      for (const author of book.autor) {
+        placeholders.push(`($${i}, $${i + 1})`);
+        params.push(author.id, bookRow.id);
+        i += 2;
+      }
+      const queryInsertAuthor = `INSERT INTO livro_autor(autor_id, livro_id) VALUES ${placeholders.join(', ')}`;
+      await queryInsert.query(queryInsertAuthor, params);
+
+      await queryInsert.query('COMMIT');
+
+      return {
+        id: bookRow.id,
+        titulo: bookRow.titulo,            
+        editora: bookRow.editora,
+        edicao: bookRow.edicao,
+        ano_publicacao: bookRow.ano_publicacao,
+        codigo: bookRow.codigo,
+        baixado: bookRow.baixado,
+        isbn: bookRow.isbn,
+        autor: book.autor
+      }
+
+    } catch(error) {
+      await queryInsert.query('ROLLBACK');
+      throw error;
+    } finally {
+      queryInsert.release();
+    }
   }
 
   async deleteBook(id: number): Promise<void> {
@@ -209,7 +292,7 @@ export class LivroPostgresRepository implements LivroRepository {
         SELECT 1 
         FROM emprestimo_livro el 
         INNER JOIN livro l on l.id = el.livro_id
-        WHERE el.livro_id = $1 AND (l.deleted_at is null AND l.baixado = 0 AND el.data_devolucao IS NULL) as can_delete`,[id]
+        WHERE el.livro_id = $1 AND (l.deleted_at is null AND l.baixado = 0 AND el.data_devolucao IS NULL)) as can_delete`,[id]
     );
 
     return (rows[0].can_delete);

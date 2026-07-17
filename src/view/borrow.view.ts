@@ -273,6 +273,11 @@ Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Stat
                 continue;
               }
               
+              const canBorrowBook = await this.borrowUc.canBorrowBook(bookIdValidate);
+              if (!canBorrowBook) {
+                return
+              }
+
               booksId.push(bookIdValidate);
               this.display(`Livro ${(bookExists.titulo).toUpperCase()} adicionado ao empréstimo.`);             
 

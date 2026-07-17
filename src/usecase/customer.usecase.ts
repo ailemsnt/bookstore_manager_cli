@@ -22,6 +22,14 @@ export class CustomerUseCase {
     return customer;
   }
 
+  async findCustomerByCpf(cpf: string): Promise<CustomerListDto | null> {
+    const customer = await this.repository.findCustomerByCpf(cpf);
+    if (customer) {
+      throw new Error("Cliente já cadastrado");
+    }
+    return customer;
+  }
+
   async findAllCustomers(): Promise<CustomerListDto[]> {
     const customers = await this.repository.findAllCustomers();
     if (customers.length === 0) {

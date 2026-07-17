@@ -73,14 +73,19 @@ export class BookView extends ConsoleView {
             const authorIdValidate = Number(authorId);
             if (Number.isNaN(authorIdValidate)) {
               this.display('ID do autor informado inválido.');
-              break;
+              continue;
             } 
 
             const authorExists = await this.authorUc.findAuthorById(authorIdValidate);
             if (!authorExists) {            
-              break;
+              continue;
             }
             
+            if (authorsId.includes(authorIdValidate)) {
+              this.display('O Autor já foi adicionado ao livro');
+              continue;
+            }
+
             authorsId.push(authorIdValidate);
             this.display(`Autor ${authorExists.nome} adicionado ao livro.`);
 
@@ -91,7 +96,7 @@ export class BookView extends ConsoleView {
           }
 
           const bookOrError = await this.bookUc
-          .search(bookDto.titulo)
+          .findBookByInternalCodeIsbn(bookDto.codigo, Number(bookDto.isbn))
           .catch((error: unknown) => error as Error)
 
           if (bookOrError instanceof Error) {
@@ -123,18 +128,46 @@ export class BookView extends ConsoleView {
             break;
           }
 
-          this.display(`\nLivro cadastrado com sucesso! ID: ${bookCreated.id} - #${bookCreated.codigo}: ${(bookCreated.titulo).toUpperCase()}`);
+          this.display(`\nLivro cadastrado com sucesso! Cod. int. ${bookCreated.codigo}: ${(bookCreated.titulo).toUpperCase()}`);
           break;
 
         case '4':
           this.display('Atualizando livro...');
-          
           
           const idUpdate = await this.prompt('Informe o ID do livro a ser atualizado: '); 
           await this.bookUc.findBookById(Number(idUpdate));  
 
           const bookUpdateDto = await this.promptInteractiveForm('Informe os dados do livro',BookUpdateDto.schema(), BookUpdateDto);
 
+          const authorsIdUpdate: number[] = [];
+
+          while (true) {
+            const authorId = await this.prompt('Informe o ID do autor: ');
+            const authorIdValidate = Number(authorId);
+            if (Number.isNaN(authorIdValidate)) {
+              this.display('ID do autor informado inválido.');
+              continue;
+            } 
+
+            const authorExists = await this.authorUc.findAuthorById(authorIdValidate);
+            if (!authorExists) {            
+              continue;
+            }
+            
+            if (authorsIdUpdate.includes(authorIdValidate)) {
+              this.display('O Autor já foi adicionado ao livro');
+              continue;
+            }
+
+            authorsIdUpdate.push(authorIdValidate);
+            this.display(`Autor ${authorExists.nome} adicionado ao livro.`);
+
+            const confirmationAddAuthor = await this.confirmAction('adicionar novo autor para este livro','Continuando...');
+            if (!confirmationAddAuthor) {
+              break;
+            }            
+          }
+          
           const bookUpdateOrError = await this.bookUc
           .search(bookUpdateDto.titulo)
           .catch((error: unknown) => error as Error)
@@ -145,9 +178,9 @@ export class BookView extends ConsoleView {
             return
           }
         
-          // const bookUpdated = await this.bookUc.updateBook( {id: Number(idUpdate), titulo: bookUpdateDto.titulo, autor_id: Number(bookUpdateDto.autor_id), editora: bookUpdateDto.editora, edicao: bookUpdateDto.edicao, ano_publicacao: Number(bookUpdateDto.ano_publicacao), baixado: formatInChar(bookUpdateDto.baixado)});
+          const bookUpdated = await this.bookUc.updateBook( {id: Number(idUpdate), titulo: bookUpdateDto.titulo, editora: bookUpdateDto.editora, edicao: bookUpdateDto.edicao, ano_publicacao: Number(bookUpdateDto.ano_publicacao), baixado: formatInChar(bookUpdateDto.baixado), autores: authorsIdUpdate });
 
-          // this.display(`Livro atualizado com sucesso! ID: ${bookUpdated.id}, Título: ${bookUpdated.titulo}`);
+          this.display(`Livro atualizado com sucesso! ID: ${bookUpdated.id}, Título: ${bookUpdated.titulo}`);
           break;
 
         case '5':

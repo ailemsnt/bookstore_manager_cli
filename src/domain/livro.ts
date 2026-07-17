@@ -11,17 +11,8 @@ export interface Livro {
   isbn: string;
   autor: Autor[];
 }
-export interface LivroUpdate {
-  id: number;
-  titulo: string; 
-  editora: string;
-  edicao: string;
-  ano_publicacao: number;
-  baixado: number; 
-  autor: Autor[];
-}
-
 export interface LivroInput {
+  id?: number,
   titulo: string;
   editora: string;
   edicao: string;
@@ -31,5 +22,15 @@ export interface LivroInput {
   isbn: string;
   autores: number[];
 }
+export interface LivroUpdate {
+  id?: number,
+  titulo: string;
+  editora: string;
+  edicao: string;
+  baixado: number;
+  ano_publicacao: number;
+  autores: number[];
+}
+
 
 export type LivroCreate = Omit<Livro, "id">;
