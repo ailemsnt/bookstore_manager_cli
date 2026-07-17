@@ -6,6 +6,7 @@ export interface Emprestimo {
   cliente_nome: string;
   data_emprestimo: Date;
   livros: EmprestimoLivro[]; 
+  canceled_at?: Date;
 }
 export interface EmprestimoLivro {
   id: number;
@@ -18,4 +19,10 @@ export interface EmprestimoLivro {
   data_prevista_devolucao: Date;
   autores: Autor[];
   status: string;
+  data_devolucao?: Date;
+}
+
+export interface EmprestimoRetorno {
+  id: number,
+  cliente_id: number;
 }

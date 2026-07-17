@@ -1,16 +1,20 @@
 import { Cliente, ClienteDetalhe, ClienteInput, ClienteUpdate } from "../domain/customer";
 import { ClienteRepository } from "../infra/repositories/cliente.repository";
+import { CustomerListDto } from "../view/dto/customer-list.dto";
 
 export class CustomerUseCase {
   constructor(private readonly repository: ClienteRepository) {}
 
-  async search(name: string): Promise<Cliente | null> {
+  async search(name: string): Promise<CustomerListDto[]> {
     const customer = await this.repository.findCustomerByName(name);
     
+    if (!customer) {
+      throw new Error("Nenhum cliente encontrado");
+    }
     return customer;
   }
 
-  async findCustomerById(id: number): Promise<ClienteDetalhe> {
+  async findCustomerById(id: number): Promise<CustomerListDto> {
     const customer = await this.repository.findCustomerById(id);
     if (!customer) {
       throw new Error("Cliente não encontrado");
@@ -18,7 +22,7 @@ export class CustomerUseCase {
     return customer;
   }
 
-  async findAllCustomers(): Promise<ClienteDetalhe[]> {
+  async findAllCustomers(): Promise<CustomerListDto[]> {
     const customers = await this.repository.findAllCustomers();
     if (customers.length === 0) {
       throw new Error("Nenhum livro encontrado");
@@ -46,8 +50,8 @@ export class CustomerUseCase {
     return this.repository.deleteCustomer(id);    
   }
 
-  async canDeleteCostumer(id: number): Promise<boolean> {
-    const canDelete = await this.repository.canDeleteCostumer(id);
+  async canDeleteCustomer(id: number): Promise<boolean> {
+    const canDelete = await this.repository.canDeleteCustomer(id);
     if (!canDelete) {
       throw new Error("Não é possível excluir este cliente pois ele já possui empréstimos. Você apenas poderá inativá-lo, atualizando os dados.");
     } 

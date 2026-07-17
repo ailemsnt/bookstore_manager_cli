@@ -2,6 +2,6 @@ export interface Usuario {
   id: number;
   login: string;
   senha: string;
-  perfilId: number;
-  dataCadastro: Date;
+  perfil_id: number;
+  data_cadastro: Date;
 }

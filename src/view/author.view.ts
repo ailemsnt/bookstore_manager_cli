@@ -14,9 +14,9 @@ export class AuthorView extends ConsoleView {
   protected async update(){
     while (true) {
       this.display('')
-      this.display('________________________________________')
-      this.display('                AUTORES                 ')   
-      this.display('________________________________________')
+      this.display('____________________________________________________________')
+      this.display('                          AUTORES                           ')   
+      this.display('____________________________________________________________')
       this.display('')  
       this.display(" Informe o número da opção desejada:");
       this.display(" 1. Listar todos os autores");
@@ -25,7 +25,7 @@ export class AuthorView extends ConsoleView {
       this.display(" 4. Atualizar autor");
       this.display(" 5. Excluir autor");    
       this.display(" 0. VOLTAR AO MENU PRINCIPAL");
-      this.display("________________________________________\n");
+      this.display("____________________________________________________________\n");
     
       const optionSelected = await this.prompt('Opção: ');
 
@@ -36,7 +36,7 @@ export class AuthorView extends ConsoleView {
           const list = await this.authorUc.findAllAuthors();
 
           list.forEach((author) => {
-            this.display(`ID: ${author.id} - Nome: ${(author.nome).toUpperCase()}\n`);
+            this.display(`ID: #${author.id} - Nome: ${(author.nome).toUpperCase()}\n`);
           });
           break;          
 
@@ -68,7 +68,7 @@ export class AuthorView extends ConsoleView {
             return
           }
 
-          const confirmationCreate = await this.confirmAction('gravar o autor');
+          const confirmationCreate = await this.confirmAction('gravar o autor','Operação cancelada pelo usuário.');
           if (!confirmationCreate) {
             return;
           }
@@ -87,7 +87,7 @@ export class AuthorView extends ConsoleView {
           this.display(`Autor encontrado: ${authorUpdate.nome}`);
 
           const nameUpdate = await this.prompt('Informe o novo nome do autor: ');
-          const confirmationUpdate = await this.confirmAction('gravar o autor');
+          const confirmationUpdate = await this.confirmAction('gravar o autor','Operação cancelada pelo usuário.');
           if (!confirmationUpdate) {
             return;
           }
@@ -111,7 +111,7 @@ export class AuthorView extends ConsoleView {
             return;
           }
 
-          const confirmationDelete = await this.confirmAction('excluir o autor');
+          const confirmationDelete = await this.confirmAction('excluir o autor','Operação cancelada pelo usuário.');
           if (!confirmationDelete) {
             return;
           }

@@ -1,13 +1,14 @@
 import { Autor } from "../domain/autor";
 import { Livro, LivroCreate, LivroInput, LivroUpdate } from "../domain/livro";
 import { LivroRepository } from "../infra/repositories/livro.repository";
+import { BookListDto } from "../view/dto/book-list.dto";
 import { AuthorUseCase } from "./author.usecase";
 
 export class BookUseCase {
   constructor(private readonly repository: LivroRepository, private readonly authorUc: AuthorUseCase   
   ) {}
 
-  async search(title: string): Promise<Livro | null> {
+  async search(title: string): Promise<BookListDto[]> {
     const book = await this.repository.findBookByTitle(title);
     
     return book;

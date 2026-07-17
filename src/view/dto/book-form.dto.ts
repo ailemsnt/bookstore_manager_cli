@@ -16,7 +16,7 @@ export class BookFormDto {
       editora: { type: 'string', required: true, minLength: 1 },
       edicao: { type: 'string', required: false, minLength: 3 },
       ano_publicacao: { type: 'number', required: true },
-      baixado: { type: 'string', required: true, minLength: 1, maxLenght: 1},
+      baixado: { type: 'string', required: true, minLength: 1, maxLength: 1},
       codigo: { type: 'string', required: true, minLength: 1},
       isbn: { type: 'string', required: true, minLength: 1, }
     };
@@ -36,7 +36,7 @@ export class BookUpdateDto {
       editora: { type: 'string', required: false, minLength: 1 },
       edicao: { type: 'string', required: false, minLength: 3 },
       ano_publicacao: { type: 'number', required: false },
-      baixado: { type: 'string', required: false, minLength: 1, maxLenght: 1}      
+      baixado: { type: 'string', required: false, minLength: 1, maxLength: 1}      
     };
   }
 }

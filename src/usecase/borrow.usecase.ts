@@ -1,14 +1,16 @@
-import { Emprestimo } from "../domain/emprestimo";
+import { Emprestimo, EmprestimoRetorno } from "../domain/emprestimo";
 import { EmprestimoRepository } from "../infra/repositories/emprestimo.repository";
+import { BorrowFilterDto } from "../view/dto/borrow-filter.dto";
+import { BorrowFormDto } from "../view/dto/borrow-form.dto";
 import { BorrowDto } from "../view/dto/borrow-list.dto";
 
 export class BorrowUseCase {
   constructor(private readonly repository: EmprestimoRepository) {}
 
-  async findBorrowByStatus(status: number): Promise<Emprestimo[]>  {
-    const borrow = await this.repository.findBorrowByStatus(status);
+  async findBorrowFilter(filters: BorrowFilterDto): Promise<Emprestimo[]>  {
+    const borrow = await this.repository.findBorrowFilter(filters);
     if (borrow.length === 0) {
-      throw new Error("Não foram encontrados empréstimos com a situação informada.");
+      throw new Error("Não foram encontrados empréstimos para a busca informada.");
     }
     return borrow;
   }
@@ -40,80 +42,24 @@ export class BorrowUseCase {
   async cancelBorrow(id: number): Promise<boolean> {
     const cancelBorrow = await this.repository.cancelBorrow(id);
     if (!cancelBorrow) {
-      throw new Error("Não é possível cancelar este empréstimo.");
+      throw new Error("Não é possível cancelar este empréstimo. Verifique se não existe devolução realizada.");
     } 
     return cancelBorrow;
   }
 
-/* async findBorrowByCostumerId(costumerId: number): Promise<Emprestimo | null> {
-    const borrow = await this.repository.findBorrowByCostumerId(costumerId);
-    if (!borrow) {
-      throw new Error("Empréstimos não encontrados para o ID do cliente informado.");
-    }
-    return borrow;
+  async canReturnBorrow(id: number): Promise<boolean> {
+    const returnBorrow = await this.repository.canReturnBorrow(id);
+    if (!returnBorrow) {
+      throw new Error("Não é possível realizar a devolução dos livros. Verifique o status do empréstimo.");
+    } 
+    return returnBorrow;
   }
 
-  async findBorrowByCostumerName(costumerName: string): Promise<Emprestimo | null> {
-    const borrow = await this.repository.findBorrowByCostumerName(costumerName);
-    if (!borrow) {
-      throw new Error("Empréstimos não encontrados para o cliente informado.");
-    }
-    return borrow;
-  }
-
-  async findBorrowByBookId(bookId: number): Promise<Emprestimo | null> {
-    const borrow = await this.repository.findBorrowByBookId(bookId);
-    if (!borrow) {
-      throw new Error("Empréstimos não encontrados para o ID do livro informado.");
-    }
-    return borrow;
-  }
-
-  async findBorrowByBookCodeOrIsbn(codeOrIsbn: string): Promise<Emprestimo | null> {
-    const borrow = await this.repository.findBorrowByBookCodeOrIsbn(codeOrIsbn);
-    if (!borrow) {
-      throw new Error("Empréstimos não encontrados para os códigos de livro informado.");
-    }
-    return borrow;
-  } 
-
-  async findABorrowByBorrowDate(borrowDate: string): Promise<Emprestimo | null> {
-    const borrow = await this.repository.findABorrowByBorrowDate(borrowDate);
-    if (!borrow) {
-      throw new Error("Empréstimos não encontrados para a data de empréstimo informada.");
-    }
-    return borrow;
-  }  
-
-  async findABorrowByReturnDate(returnDate: string): Promise<Emprestimo | null> {
-    const borrow = await this.repository.findABorrowByReturnDate(returnDate);
-    if (!borrow) {
-      throw new Error("Empréstimos não encontrados para a data de devolução informada.");
-    }
-    return borrow;
-  } 
-
-  async findABorrowByExpireDate(expireDate: string): Promise<Emprestimo | null> {
-    const borrow = await this.repository.findABorrowByExpireDate(expireDate);
-    if (!borrow) {
-      throw new Error("Empréstimos não encontrados para a data prevista de devolução informada.");
-    }
-    return borrow;
-  } 
-  
-  async findABorrowByStatus(status: number): Promise<Emprestimo | null> {
-    const borrow = await this.repository.findABorrowByStatus(status);
-    if (!borrow) {
-      throw new Error("Empréstimos não encontrados para a data prevista de devolução informada.");
-    }
-    return borrow;
-  } 
-  
-  async createBorrow(borrow: Omit<Emprestimo, "id">, userId: number): Promise<Emprestimo>{
-    const newBorrow = await this.repository.createBorrow(borrow, userId);
+  async createBorrow(borrow: BorrowFormDto, livrosId: number[], userId: number): Promise<EmprestimoRetorno | null> {
+    const newBorrow = await this.repository.createBorrow(borrow, livrosId, userId);
     if (!newBorrow) {
-      throw new Error("Erro ao cadastrar o empréstimo.");
+      throw new Error("Erro ao cadastrar o cliente");
     }
     return newBorrow;
-  } */
+  }
 }

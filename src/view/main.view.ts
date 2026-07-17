@@ -12,16 +12,16 @@ import { AuthorUseCase } from '../usecase/author.usecase';
 
 export class MainView extends ConsoleView {
   constructor(private readonly loginUc: LoginUseCase, private readonly authorView: AuthorView, 
-              private readonly bookView: BookView, private readonly costumerView: CustomerView,
+              private readonly bookView: BookView, private readonly customerView: CustomerView,
               private readonly borrowView: BorrowView, private readonly bookUc: BookUseCase, private readonly reportView: ReportView, private readonly authorUc: AuthorUseCase) {
     super(true)
   }
 
   protected async update(): Promise<void> {
-    this.display('========================================')
-    this.display('   Bem-vindo ao Acervo CLI              ')
-    this.display('   Sistema de Gestão de Biblioteca      ')
-    this.display('========================================')
+    this.display('============================================================')
+    this.display('                 Bem-vindo ao Acervo CLI                    ')
+    this.display('             Sistema de Gestão de Biblioteca                ')
+    this.display('============================================================')
     this.display('')
 
     const loginUserDto = await this.promptInteractiveForm(
@@ -47,15 +47,14 @@ export class MainView extends ConsoleView {
     }
 
     Session.currentUser = userOrError;
-
     //await this.prompt(
     this.display(`Usuário ${JSON.stringify(loginUserDto.login)} logado com sucesso!`);
     ///)
     while (true) {
       this.display('')
-      this.display('========================================')
+      this.display('============================================================')
       this.display('                  MENU                  ')   
-      this.display('========================================')
+      this.display('============================================================')
       this.display('')
       this.display(" INSTRUÇÕES DE USO:");
       this.display(" Gerencie empréstimos de livros.\n");
@@ -66,7 +65,7 @@ export class MainView extends ConsoleView {
       this.display(" 4. EMPRÉSTIMOS | DEVOLUÇÕES");     
       this.display(" 5. RELATÓRIOS");
       this.display(" 0. Sair");
-      this.display("========================================\n");
+      this.display("============================================================\n");
     
       const optionSelected = await this.prompt('Opção:');
 
@@ -81,7 +80,7 @@ export class MainView extends ConsoleView {
           break;
         case '3':
           this.display('Acessando clientes...');
-          await this.costumerView.start();
+          await this.customerView.start();
           break;
         case '4':
           this.display('Acessando empréstimos e devoluções...');

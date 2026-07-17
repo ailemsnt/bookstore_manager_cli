@@ -1,35 +1,61 @@
-import { ClienteDetalhe, ClienteInput } from './../../../domain/customer';
+import { ClienteInput } from './../../../domain/customer';
 import { Pool } from "pg";
 import { Cliente } from "../../../domain/customer";
 import { ClienteRepository } from "../cliente.repository";
+import { CustomerListDto } from '../../../view/dto/customer-list.dto';
 
+const sqlSelect = `SELECT c.id, c.nome, c.cpf, c.endereco,
+            c.numero, c.bairro, c.cep, c.telefone,
+            c.email, c.ativo, c.data_cadastro,
+            m.id AS municipio_id, m.nome AS municipio_nome,
+            u.id AS uf_id, u.sigla AS uf_sigla
+          FROM cliente c
+          INNER JOIN municipio m ON m.id = c.municipio_id
+          INNER JOIN uf u on u.id = m.uf_id `;
 export class ClientePostgresRepository implements ClienteRepository{
   constructor(private readonly pool: Pool) {}
 
-  async findCustomerByName(name: string): Promise<Cliente | null> {
-    const { rows } = await this.pool.query(
-      `SELECT c.*, m.nome AS municipio_nome, u.sigla as uf_sigla
-          FROM cliente c
-          INNER JOIN municipio m ON m.id = c.municipio_id
-          INNER JOIN uf u on u.id = m.uf_id 
-          WHERE (unaccent(c.nome)) ilike (unaccent($1)) AND c.deleted_at is null
+  async findCustomerByName(name: string): Promise<CustomerListDto[]> {
+    const result = await this.pool.query(
+      `${sqlSelect} 
+          WHERE (unaccent(c.nome)) ilike (unaccent($1)) AND (c.deleted_at is null)
           ORDER BY c.nome ASC`,
       [`${name}%`],
     );
 
-    if (rows.length === 0) {
-      return null;
+    if (result.rowCount === 0) {
+      return [];
     }
 
-    return rows[0];
+    const customers = result.rows.map(
+      (row): CustomerListDto => ({        
+      id: row.id,
+      nome: row.nome,
+      cpf: row.cpf,
+      endereco: row.endereco,
+      numero: row.numero,
+      bairro: row.bairro,
+      cep: row.cep,
+      telefone: row.telefone,
+      email: row.email,
+      ativo: row.ativo,
+      data_cadastro: row.data_cadastro,
+      municipio: {
+        id: row.municipio_id,
+        nome: row.municipio_nome,
+        uf: {
+          id: row.uf_id,
+          uf_sigla: row.uf_sigla
+        },                  
+      },            
+    }));
+
+    return customers;
   }
 
-  async findCustomerById(id: number): Promise<ClienteDetalhe | null> {
+  async findCustomerById(id: number): Promise<CustomerListDto | null> {
     const { rows } = await this.pool.query(
-      `SELECT c.*, m.nome AS municipio_nome, u.sigla as uf_sigla
-          FROM cliente c
-          INNER JOIN municipio m ON m.id = c.municipio_id
-          INNER JOIN uf u on u.id = m.uf_id 
+      `${sqlSelect} 
           WHERE c.id = $1 AND c.deleted_at is null`,
       [id],
     );
@@ -41,16 +67,40 @@ export class ClientePostgresRepository implements ClienteRepository{
     return rows[0];
   }
 
-  async findAllCustomers(): Promise<ClienteDetalhe[]> {
-    const { rows } = await this.pool.query(
-      `SELECT c.*, m.nome AS municipio_nome, u.sigla as uf_sigla
-          FROM cliente c
-          INNER JOIN municipio m ON m.id = c.municipio_id
-          INNER JOIN uf u on u.id = m.uf_id 
+  async findAllCustomers(): Promise<CustomerListDto[]> {
+    const result = await this.pool.query(
+      `${sqlSelect} 
           WHERE c.deleted_at is null 
           ORDER BY c.nome ASC`);
     
-    return rows;      
+    if (result.rowCount === 0) {
+      return [];
+    }
+
+    const customers = result.rows.map(
+      (row): CustomerListDto => ({        
+      id: row.id,
+      nome: row.nome,
+      cpf: row.cpf,
+      endereco: row.endereco,
+      numero: row.numero,
+      bairro: row.bairro,
+      cep: row.cep,
+      telefone: row.telefone,
+      email: row.email,
+      ativo: row.ativo,
+      data_cadastro: row.data_cadastro,
+      municipio: {
+        id: row.municipio_id,
+        nome: row.municipio_nome,
+        uf: {
+          id: row.uf_id,
+          uf_sigla: row.uf_sigla
+        },                  
+      },            
+    }));
+
+    return customers;     
   }
 
   async createCustomer(customer: ClienteInput): Promise<Cliente> {
@@ -82,7 +132,7 @@ export class ClientePostgresRepository implements ClienteRepository{
     // }
   }
 
-  async canDeleteCostumer(id: number): Promise<boolean> {
+  async canDeleteCustomer(id: number): Promise<boolean> {
     const { rows } = await this.pool.query(
       `SELECT 1
       FROM cliente c

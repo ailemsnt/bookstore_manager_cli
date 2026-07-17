@@ -6,12 +6,12 @@ import { LoggerUtil } from "../utils/logger.util"
 export type ConsoleFormSchema = Record<string, InteractiveFormKey>
 
 interface InteractiveFormKey {
-  type: 'string' | 'number' | 'boolean'
+  type: 'string' | 'number' | 'boolean' | 'array'
   required?: boolean
-  default?: string | number | boolean
+  default?: string | number | boolean | unknown[]
   hidden?: boolean
   minLength?: number
-  maxLenght?: number
+  maxLength?: number
 }
 
 export abstract class ConsoleView {
@@ -34,7 +34,7 @@ export abstract class ConsoleView {
     const parseResponse = (
       response: string,
       schema: InteractiveFormKey
-    ): [boolean, string | number | boolean | null] => {
+    ): [boolean, string | number | boolean | null | unknown[]] => {
       if (!response) {
         if (schema.default) {
           return [true, schema.default]
@@ -47,12 +47,35 @@ export abstract class ConsoleView {
         return [true, null]
       }
       
-      if (schema.minLength && response.length < schema.minLength) {
-        this.display('Tamanho mínimo não atendido! Tente novamente...')
-        return [false, null]
+      if (schema.type !== 'array') {
+        if (schema.minLength && response.length < schema.minLength) {
+          this.display('Tamanho mínimo não atendido! Tente novamente...')
+          return [false, null]
+        }
+
+        if (schema.maxLength && response.length < schema.maxLength) {
+          this.display('Tamanho máximo não atendido! Tente novamente...')
+          return [false, null]
+        }
       }
       
       if (schema.type === 'string') {
+        return [true, response]
+      }
+
+      if (schema.type === 'array') {
+        if (!Array.isArray(response)) {
+          return [false, 'Não foi informado uma lista válida.'];
+        }
+
+        if (schema.minLength  && response.length < schema.minLength) {
+          return [false, `Informe ao menos ${schema.minLength} registro(s).`];
+        }
+
+        if (schema.maxLength  && response.length > schema.maxLength) {
+          return [false, `Informe no máximo ${schema.maxLength} registro(s).`];
+        }
+
         return [true, response]
       }
 
@@ -236,12 +259,12 @@ export abstract class ConsoleView {
     }
   }
 
-  async confirmAction(action: string): Promise<boolean> {
+  async confirmAction(action: string, exitMessage: string): Promise<boolean> {
     const question = await this.prompt(`Deseja ${action}? (S/N): `);
     const answer = question.trim().toUpperCase();
 
-    if (answer !== 'S' && answer !== 'SIM') {
-      this.display('Operação cancelada pelo usuário.');            
+    if (answer !== 'S' && answer !== 'SIM') {      
+        this.display(exitMessage);            
       return false;
     }
 

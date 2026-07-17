@@ -17,9 +17,9 @@ export class BookView extends ConsoleView {
   protected async update(){
     while (true) {
       this.display('')
-      this.display('________________________________________')
-      this.display('                LIVROS                  ')   
-      this.display('________________________________________\n')     
+      this.display('____________________________________________________________')
+      this.display('                           LIVROS                           ')   
+      this.display('____________________________________________________________\n')     
       this.display(" Informe o número da opção desejada:");
       this.display(" 1. Listar todo o acervo");
       this.display(" 2. Buscar livro por ID");
@@ -27,7 +27,7 @@ export class BookView extends ConsoleView {
       this.display(" 4. Atualizar livro");
       this.display(" 5. Excluir livro");    
       this.display(" 0. VOLTAR AO MENU PRINCIPAL");
-      this.display("________________________________________\n");
+      this.display("____________________________________________________________\n");
     
       const optionSelected = await this.prompt('Opção: ');         
 
@@ -84,7 +84,7 @@ export class BookView extends ConsoleView {
             authorsId.push(authorIdValidate);
             this.display(`Autor ${authorExists.nome} adicionado ao livro.`);
 
-            const confirmationAddAuthor = await this.confirmAction('adicionar novo autor para este livro');
+            const confirmationAddAuthor = await this.confirmAction('adicionar novo autor para este livro','Continuando...');
             if (!confirmationAddAuthor) {
               break;
             }            
@@ -110,7 +110,7 @@ export class BookView extends ConsoleView {
             return
           }
 
-          const confirmationCreate = await this.confirmAction('gravar o livro');
+          const confirmationCreate = await this.confirmAction('gravar o livro','Operação cancelada pelo usuário.');
           if (!confirmationCreate) {
             return;
           }
@@ -119,8 +119,11 @@ export class BookView extends ConsoleView {
           autores: authorsId
           });
 
-          this.display(
-              `\nLivro cadastrado com sucesso! ID: ${bookCreated.id} - #${bookCreated.codigo}: ${(bookCreated.titulo).toUpperCase()}`);
+          if (!bookCreated) {
+            break;
+          }
+
+          this.display(`\nLivro cadastrado com sucesso! ID: ${bookCreated.id} - #${bookCreated.codigo}: ${(bookCreated.titulo).toUpperCase()}`);
           break;
 
         case '4':
@@ -158,7 +161,7 @@ export class BookView extends ConsoleView {
             return;
           }
 
-          const confirmationDeleteBook = await this.confirmAction(`excluir o livro ${bookDelete.id} #${bookDelete.codigo} - ${(bookDelete.titulo).toUpperCase()}`);
+          const confirmationDeleteBook = await this.confirmAction(`excluir o livro ${bookDelete.id} #${bookDelete.codigo} - ${(bookDelete.titulo).toUpperCase()}`,'Operação cancelada pelo usuário.');
             if (!confirmationDeleteBook) {
               break;
             }  

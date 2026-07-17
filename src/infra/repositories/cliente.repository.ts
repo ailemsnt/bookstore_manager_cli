@@ -1,11 +1,12 @@
 import { Cliente, ClienteDetalhe, ClienteInput, ClienteUpdate } from "../../domain/customer";
+import { CustomerListDto } from "../../view/dto/customer-list.dto";
 
 export interface ClienteRepository {
-  findCustomerByName(title: string): Promise<Cliente | null>;
+  findCustomerByName(title: string): Promise<CustomerListDto[]>;
   
-  findCustomerById(id: number): Promise<ClienteDetalhe | null>;
+  findCustomerById(id: number): Promise<CustomerListDto | null>;
 
-  findAllCustomers(): Promise<ClienteDetalhe[]>;
+  findAllCustomers(): Promise<CustomerListDto[]>;
 
   createCustomer(customer: ClienteInput): Promise<Cliente>;
 
@@ -13,5 +14,5 @@ export interface ClienteRepository {
 
   deleteCustomer(id: number): Promise<void>;
 
-  canDeleteCostumer(id: number): Promise<boolean>;
+  canDeleteCustomer(id: number): Promise<boolean>;
 }

@@ -1,11 +1,11 @@
 import { formatInChar, formatOutChar, maskCpf } from "../@common/utils/common.utils";
 import { ConsoleView } from "../@common/view/console.view";
-import { CountryUseCase } from "../usecase/country.usecase";
 import { CustomerUseCase } from "../usecase/customer.usecase";
+import { MunicipalityUseCase } from "../usecase/municipality.usecase";
 import { CustomerFormDto, CustomerUpdateDto } from "./dto/customer-form.dto";
 
 export class CustomerView extends ConsoleView {
-  constructor(private readonly customerUc: CustomerUseCase, private readonly countryUc: CountryUseCase)
+  constructor(private readonly customerUc: CustomerUseCase, private readonly municipalityUc: MunicipalityUseCase)
   { 
     super(); 
   }
@@ -14,11 +14,11 @@ export class CustomerView extends ConsoleView {
     await this.update();
   }
 
-  private async selectCountry(): Promise<number> {
+  private async selectMunicipality(): Promise<number> {
     while (true) {
-      const countryNamePartial = await this.prompt('Informe o nome do município: (ao menos 3 letras) ');
+      const municipalityNamePartial = await this.prompt('Informe o nome do município: (ao menos 3 letras) ');
 
-      const countries = await this.countryUc.findCountryByName(countryNamePartial);
+      const countries = await this.municipalityUc.findMunicipalityByName(municipalityNamePartial);
 
       if (countries.length === 0) {
         this.display('Município não encontrado.');
@@ -33,22 +33,22 @@ export class CustomerView extends ConsoleView {
       });
       
       while (true) {
-        const countryId = await this.prompt('Informe o ID do município exibido na lista acima: ');
+        const municipalityId = await this.prompt('Informe o ID do município exibido na lista acima: ');
         
-        const countryIdValidate = Number(countryId);
-        if (Number.isNaN(countryIdValidate)) {
+        const municipalityIdValidate = Number(municipalityId);
+        if (Number.isNaN(municipalityIdValidate)) {
           this.display('ID do município informado inválido.');
           continue;
         } 
 
-        const countryExists = await this.countryUc.findCountryById(countryIdValidate);
-        if (!countryExists) {            
+        const municipalityExists = await this.municipalityUc.findMunicipalityById(municipalityIdValidate);
+        if (!municipalityExists) {            
           continue;
         } 
 
-        this.display(`Município selecionado: ${countryExists.nome} - ${countryExists.uf_sigla}`);
+        this.display(`Município selecionado: ${municipalityExists.nome} - ${municipalityExists.uf_sigla}`);
 
-        return countryIdValidate ;
+        return municipalityIdValidate ;
       }
     } 
   }
@@ -56,9 +56,9 @@ export class CustomerView extends ConsoleView {
   protected async update(){
     while (true) {
       this.display('')
-      this.display('________________________________________')
-      this.display('                CLIENTES                ')   
-      this.display('________________________________________\n')     
+      this.display('____________________________________________________________')
+      this.display('                          CLIENTES                          ')   
+      this.display('____________________________________________________________\n')     
       this.display(" Informe o número da opção desejada:");
       this.display(" 1. Listar todos os clientes");
       this.display(" 2. Buscar cliente por ID");
@@ -66,7 +66,7 @@ export class CustomerView extends ConsoleView {
       this.display(" 4. Atualizar cliente");
       this.display(" 5. Excluir cliente");    
       this.display(" 0. VOLTAR AO MENU PRINCIPAL");
-      this.display("________________________________________\n");
+      this.display("____________________________________________________________\n");
     
       const optionSelected = await this.prompt('Opção:');         
 
@@ -79,7 +79,7 @@ export class CustomerView extends ConsoleView {
           list.forEach((customer) => {
             this.display(
             `#${customer.id} - ${(customer.nome).toUpperCase()} • CPF: ${maskCpf(customer.cpf)}
-            Endereço: ${customer.endereco}, ${customer.numero}, ${customer.bairro} - ${customer.municipio} - ${customer.uf} • ${customer.cep}
+            Endereço: ${customer.endereco}, ${customer.numero}, ${customer.bairro} - ${customer.municipio.nome} - ${customer.municipio.uf.uf_sigla} • ${customer.cep}
             Contatos: ${customer.telefone} •  ${customer.email}
             Ativo: ${formatOutChar(customer.ativo)}`);         
           });
@@ -93,7 +93,7 @@ export class CustomerView extends ConsoleView {
 
           this.display(
             `#${customer.id} - ${(customer.nome).toUpperCase()} • CPF: ${maskCpf(customer.cpf)}
-            Endereço: ${customer.endereco}, ${customer.numero}, ${customer.bairro} - ${customer.municipio} - ${customer.uf} • ${customer.cep}
+            Endereço: ${customer.endereco}, ${customer.numero}, ${customer.bairro} - ${customer.municipio.nome} - ${customer.municipio.uf.uf_sigla} • ${customer.cep}
             Contatos: ${customer.telefone} •  ${customer.email}
             Ativo: ${formatOutChar(customer.ativo)}`);
           break;
@@ -102,7 +102,7 @@ export class CustomerView extends ConsoleView {
             this.display('Cadastrando cliente...');
             const customerDto = await this.promptInteractiveForm('Informe os dados do cliente',CustomerFormDto.schema(), CustomerFormDto);
           
-            const countryIdCostumer = await this.selectCountry();
+            const municipalityIdCustomer = await this.selectMunicipality();
 
             const customerOrError = await this.customerUc
             .search(customerDto.nome)
@@ -119,7 +119,7 @@ export class CustomerView extends ConsoleView {
               return
             }
             
-            const customerCreated = await this.customerUc.createCustomer({ nome: customerDto.nome, cpf: customerDto.cpf, endereco: customerDto.endereco, cep: customerDto.cep, numero: customerDto.numero,  bairro: customerDto.bairro, municipio_id: Number(countryIdCostumer), telefone: customerDto.telefone, email: customerDto.email, ativo: formatInChar(customerDto.ativo)});
+            const customerCreated = await this.customerUc.createCustomer({ nome: customerDto.nome, cpf: customerDto.cpf, endereco: customerDto.endereco, cep: customerDto.cep, numero: customerDto.numero,  bairro: customerDto.bairro, municipio_id: Number(municipalityIdCustomer), telefone: customerDto.telefone, email: customerDto.email, ativo: formatInChar(customerDto.ativo)});
 
             this.display(`Cliente cadastrado com sucesso! Nome: ${customerCreated.nome} • CPF:  ${maskCpf(customerCreated.cpf)}`);
           break;
@@ -151,15 +151,15 @@ export class CustomerView extends ConsoleView {
           this.display('Excluindo cliente...');
 
           const idDelete = await this.prompt('Informe o ID do cliente a ser excluído:');          
-          const costumerDelete = await this.customerUc.findCustomerById(Number(idDelete)); 
+          const customerDelete = await this.customerUc.findCustomerById(Number(idDelete)); 
 
-          const canDelete = await this.customerUc.canDeleteCostumer(Number(costumerDelete));    
+          const canDelete = await this.customerUc.canDeleteCustomer(Number(customerDelete));    
           if (!canDelete) {
             return;
           }
 
-          const confirmationDeleteCostumer = await this.confirmAction(`excluir o cliente #${costumerDelete.id} - ${costumerDelete.nome}  • CPF:  ${maskCpf(costumerDelete.cpf)}`);
-          if (!confirmationDeleteCostumer) {
+          const confirmationDeleteCustomer = await this.confirmAction(`excluir o cliente #${customerDelete.id} - ${customerDelete.nome}  • CPF:  ${maskCpf(customerDelete.cpf)}`,'Operação cancelada pelo usuário');
+          if (!confirmationDeleteCustomer) {
             break;
           }
 

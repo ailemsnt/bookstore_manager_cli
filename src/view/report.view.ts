@@ -18,21 +18,21 @@ export class ReportView extends ConsoleView {
   protected async update(){
     while (true) {
       this.display('')
-      this.display('________________________________________');
-      this.display('                RELATÓRIOS              ');   
-      this.display('________________________________________\n');     
+      this.display('____________________________________________________________');
+      this.display('                          RELATÓRIOS                        ');   
+      this.display('____________________________________________________________\n');     
       this.display(" Informe o número da opção desejada:");
-      this.display(" 1. Resumo de livros disponíveis para empréstimo");        
-      this.display(" 2. Resumo de livros atualmente emprestados"); 
-      this.display(" 3. Resumo de livros cadastrados por autor");
-      this.display(" 4. Resumo de quantidade de empréstimos por livro");
-      this.display(" 5. Resumo de clientes com empréstimo ativo");//--
-      this.display(" 6. Resumo de livros que não podem mais ser emprestados");
-      this.display(" 7. Ranking de assiduidade de clientes");
-      this.display(" 8. Ranking de populareidade de autores");
-      this.display(" 9. .....");          
+      this.display(" 1. Relatório de livros disponíveis para empréstimo");        
+      this.display(" 2. Relatório de livros atualmente emprestados"); 
+      this.display(" 3. Relatório de livros cadastrados por autor");
+      this.display(" 4. Relatório de quantidade de empréstimos por livro");
+      this.display(" 5. Relatório de clientes com empréstimo ativo");//--
+      // this.display(" 6. Relatório de livros baixados");
+      // this.display(" 7. Ranking de assiduidade de clientes");
+      // this.display(" 8. Ranking de popularidade de autores");
+      // this.display(" 9. .....");          
       this.display(" 0. VOLTAR AO MENU PRINCIPAL");
-      this.display("________________________________________\n");
+      this.display("____________________________________________________________\n");
     
       const optionSelected = await this.prompt('Opção:');         
 
@@ -65,6 +65,7 @@ export class ReportView extends ConsoleView {
           break;          
 
         case '2':
+
           this.display('\n================================================================================');
           this.display(`        RELATÓRIO DE LIVROS EMPRESTADOS - DATA GERAÇÃO ${formatDate(dataAtual)}`);  
           this.display('================================================================================');
@@ -94,12 +95,13 @@ export class ReportView extends ConsoleView {
           break;
 
         case '3':
+          const idAuthor = await this.prompt('Buscar por ID do autor: (Deixe em branco para listar TODOS) ');                                      
+          const author = idAuthor ? await this.authorUc.findAuthorById(Number(idAuthor)) : null;     
+
           this.display('\n================================================================================');
           this.display(`        RELATÓRIO DE LIVROS CASTRADOS POR AUTOR - DATA GERAÇÃO ${formatDate(dataAtual)}`);  
           this.display('================================================================================');
           
-          const idAuthor = await this.prompt('Buscar por ID do autor: (Deixe em branco para listar TODOS) ');                                      
-          const author = idAuthor ? await this.authorUc.findAuthorById(Number(idAuthor)) : null;          
 
           const listBooksByAuthor = await this.reportUc.listBooksByAuthor(author?.id);
 
@@ -153,18 +155,50 @@ export class ReportView extends ConsoleView {
           });
 
           this.display('================================================================================');
-          this.display(`   TOTAL: ${total} livros listados`);  
+          this.display(`   TOTAL: ${total} livro(s)listados`);  
           this.display('================================================================================\n');
           break;
 
-        case '5':
-          this.display('Buscando empréstimos por Data de devolução...');
+          case '5':
+
+          const idCustomer = await this.prompt('Buscar por ID do cliente: (Deixe em branco para listar TODOS) ');                                      
+          const customer = idCustomer ? await this.authorUc.findAuthorById(Number(idCustomer)) : null;          
+        
+          const listCustomerBorrow = await this.reportUc.listCustomerBorrowBooks(customer?.id);
+
+          this.display('\n================================================================================');
+          this.display(`   RELATÓRIO DE CLIENTES COM EMPRÉSTIMO ATIVO - DATA GERAÇÃO ${formatDate(dataAtual)}`);  
+          this.display('================================================================================');
+
+                    
+          listCustomerBorrow.forEach((borrow) => {
+              this.display(
+`\nCliente: #${borrow.cliente_id}: ${(borrow.cliente_nome).toUpperCase()}`);
+
+              total = 0;
+              borrow.livros.forEach((livro) => {
+                total++; 
+            
+                this.display(
+      `#${livro.id} - ${livro.codigo}: ${(livro.titulo).toUpperCase()}
+      Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}
+      Editora: ${livro.editora} • ${livro.edicao} • ${livro.ano_publicacao} • ISBN: ${livro.isbn} 
+      Data empréstimo: ${formatDate(borrow.data_emprestimo)} • Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} 
+      Devolução: ${livro.data_devolucao ? formatDate(livro.data_devolucao) : '- '} 
+      Status: ${livro.status}\n`)
+                    }); 
+                this.display('----------------------------------------');  
+                this.display(`   TOTAL: ${total} livro(s) emprestado(s)`);
+                this.display('--------------------------------------------------------------------------------');                                              
+          });
+            
+          this.display('================================================================================\n');
 
           break;  
-        case '6':
-          this.display('Iniciando empréstimo...');
+        // case '6':
+        //   this.display('Iniciando empréstimo...');
 
-          break; 
+        //   break; 
 
         case '0': 
           this.display('Voltando ao menu principal...');              

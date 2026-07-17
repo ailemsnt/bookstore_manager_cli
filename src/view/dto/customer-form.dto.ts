@@ -15,15 +15,15 @@ export class CustomerFormDto {
 
   static schema(): ConsoleFormSchema {
       return {
-        nome: { type: 'string', required: true, minLength: 3, maxLenght: 255 },
+        nome: { type: 'string', required: true, minLength: 3, maxLength: 255 },
         cpf: { type: 'string', required: true },
-        endereco: { type: 'string', required: true, minLength: 5, maxLenght: 100 },
-        numero: { type: 'string', required: true, maxLenght: 10 },
-        cep: { type: 'string', required: false, minLength: 8, maxLenght: 8 },
-        bairro: { type: 'string', required: true, minLength: 5, maxLenght: 60},
-        telefone: { type: 'string', required: true, minLength: 10, maxLenght: 15},
-        email: { type: 'string', required: true, minLength: 5, maxLenght: 100 },
-        ativo: { type: 'string', required: true, minLength: 1, maxLenght: 1}
+        endereco: { type: 'string', required: true, minLength: 5, maxLength: 100 },
+        numero: { type: 'string', required: true, maxLength: 10 },
+        cep: { type: 'string', required: false, minLength: 8, maxLength: 8 },
+        bairro: { type: 'string', required: true, minLength: 5, maxLength: 60},
+        telefone: { type: 'string', required: true, minLength: 10, maxLength: 15},
+        email: { type: 'string', required: true, minLength: 5, maxLength: 100 },
+        ativo: { type: 'string', required: true, minLength: 1, maxLength: 1}
       };
     }
 }
@@ -43,15 +43,15 @@ export class CustomerUpdateDto {
 
   static schema(): ConsoleFormSchema {
       return {
-        nome: { type: 'string', required: false, minLength: 3, maxLenght: 255 },
-        endereco: { type: 'string', required: false, minLength: 5, maxLenght: 100 },
-        numero: { type: 'string', required: false, maxLenght: 10 },
-        cep: { type: 'string', required: false, minLength: 8, maxLenght: 8 },
-        bairro: { type: 'string', required: false, minLength: 5, maxLenght: 60},
+        nome: { type: 'string', required: false, minLength: 3, maxLength: 255 },
+        endereco: { type: 'string', required: false, minLength: 5, maxLength: 100 },
+        numero: { type: 'string', required: false, maxLength: 10 },
+        cep: { type: 'string', required: false, minLength: 8, maxLength: 8 },
+        bairro: { type: 'string', required: false, minLength: 5, maxLength: 60},
         municipio_id: { type: 'number', required: false, minLength: 1},
-        telefone: { type: 'string', required: false, minLength: 10, maxLenght: 15},
-        email: { type: 'string', required: false, minLength: 5, maxLenght: 100 },
-        ativo: { type: 'string', required: false, minLength: 1, maxLenght: 1}
+        telefone: { type: 'string', required: false, minLength: 10, maxLength: 15},
+        email: { type: 'string', required: false, minLength: 5, maxLength: 100 },
+        ativo: { type: 'string', required: false, minLength: 1, maxLength: 1}
       };
     }
 }

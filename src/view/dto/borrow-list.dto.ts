@@ -1,5 +1,14 @@
 import { AuthorListDto } from "./author-list.dto";
-
+export class BorrowDto {
+  constructor(
+    public id: number, 
+    public cliente_id: number,
+    public cliente_nome: string,
+    public data_emprestimo: Date,
+    public livros: BorrowBookDto[], 
+    public canceled_at?: Date,
+  ) {}
+}
 export class BorrowBookDto {
   constructor(
     public id: number,
@@ -11,19 +20,10 @@ export class BorrowBookDto {
     public isbn: string,
     public data_prevista_devolucao: Date,        
     public autores: AuthorListDto[],
+    public data_devolucao?: Date,
     public cliente_nome?: string,
     public cliente_id?: number,
     public status?: string,
     public quantidade_emprestimo?: number
-  ) {}
-}
-
-export class BorrowDto {
-  constructor(
-    public id: number, 
-    public data_emprestimo: Date,
-    public livros: BorrowBookDto[], 
-    public cliente_id: number,
-    public cliente_nome: string,
   ) {}
 }

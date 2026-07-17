@@ -5,7 +5,7 @@ import { Municipio } from "../../../domain/municipio";
 export class MunicipioPostgresRepository implements MunicipioRepository{
   constructor(private readonly pool: Pool) {}
 
-  async findCountryByName(name: string): Promise<Municipio[]> {
+  async findMunicipalityByName(name: string): Promise<Municipio[]> {
     const { rows } = await this.pool.query(
       `SELECT m.id, m.nome, u.sigla AS uf_sigla
       FROM municipio m
@@ -22,7 +22,7 @@ export class MunicipioPostgresRepository implements MunicipioRepository{
     return rows;
   }
 
-  async findCountryById(id: number): Promise<Municipio | null> {
+  async findMunicipalityById(id: number): Promise<Municipio | null> {
     const { rows } = await this.pool.query(
       `SELECT m.id, m.nome, u.sigla AS uf_sigla
       FROM municipio m
