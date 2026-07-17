@@ -363,8 +363,8 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
             SELECT 1
             FROM emprestimo_livro el
             WHERE el.livro_id = l.id
-              AND (el.data_devolucao NOT IS NULL))
-            ) AS can_borrow;`,
+              AND (el.data_devolucao IS NOT NULL))
+            ) AS can_borrow`,
       [id]);
     
       return (rows[0].can_borrow);

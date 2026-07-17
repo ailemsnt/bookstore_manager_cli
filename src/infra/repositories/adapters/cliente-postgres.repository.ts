@@ -216,13 +216,15 @@ export class ClientePostgresRepository implements ClienteRepository{
 
   async canDeleteCustomer(id: number): Promise<boolean> {
     const { rows } = await this.pool.query(
-      `SELECT 1
+      `SELECT NOT EXISTS(
+      SELECT 1
       FROM cliente c
       LEFT JOIN emprestimo e ON e.cliente_id = c.id
-      WHERE c.id = 4 AND (c.deleted_at IS NOT NULL OR c.ativo <> 1 OR e.id IS NOT NULL)) AS can_delete`,
+      WHERE c.id = $1 AND (c.deleted_at IS NOT NULL OR c.ativo <> 1 OR e.id IS NOT NULL)) AS can_delete`,
         [id]
     );
 
-    return (rows.length === 0);
+    return (rows[0].can_delete);
   } 
+
 }

@@ -129,7 +129,7 @@ export class CustomerView extends ConsoleView {
           
           const idUpdate = await this.prompt('Informe o ID do cliente a ser atualizado:'); 
           await this.customerUc.findCustomerById(Number(idUpdate));  
-
+        
           const customerUpdateDto = await this.promptInteractiveForm('Informe os dados do cliente a serem alterados: ',CustomerUpdateDto.schema(), CustomerUpdateDto);
 
           const municipalityIdCustomerUpdate = await this.selectMunicipality();
@@ -155,7 +155,7 @@ export class CustomerView extends ConsoleView {
           const idDelete = await this.prompt('Informe o ID do cliente a ser excluído:');          
           const customerDelete = await this.customerUc.findCustomerById(Number(idDelete)); 
 
-          const canDelete = await this.customerUc.canDeleteCustomer(Number(customerDelete));    
+          const canDelete = await this.customerUc.canDeleteCustomer(Number(idDelete));    
           if (!canDelete) {
             return;
           }
