@@ -54,7 +54,7 @@ export class ReportView extends ConsoleView {
             const authors = book.autor.map((author) => author.nome).join(', ');
           
             this.display(
-              `${book.id} - #${book.codigo}: ${(book.titulo).toUpperCase()}
+              `#${book.id} - Cod. int. ${book.codigo}: ${(book.titulo).toUpperCase()}
               Autor(es): ${authors}
               Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}\n`);              
           });
@@ -82,7 +82,7 @@ export class ReportView extends ConsoleView {
             const authors = book.autores.map((author) => author.nome).join(', ');
           
             this.display(
-              `${book.id} - #${book.codigo}: ${(book.titulo).toUpperCase()}
+              `#${book.id} - Cod. int. ${book.codigo}: ${(book.titulo).toUpperCase()}
               Autor(es): ${authors}
               Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}
               Cliente: #${book.cliente_id} - ${book.cliente_nome}
@@ -116,7 +116,7 @@ export class ReportView extends ConsoleView {
             this.display(`Autor: #${author.id} ${(author.nome).toUpperCase()}
             Livro(os): `);
             author.livros.forEach((book) => {
-              this.display(`${book.id} - #${book.codigo}: ${book.titulo}              
+              this.display(`#${book.id} - Cod. int. ${book.codigo}: ${book.titulo}              
               Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}              
               Baixado: ${formatOutChar(book.baixado)}\n`);
             });
@@ -148,7 +148,7 @@ export class ReportView extends ConsoleView {
             const authors = book.autores.map((author) => author.nome).join(', ');
           
             this.display(
-              `${book.id} - #${book.codigo}: ${(book.titulo).toUpperCase()}
+              `#${book.id} - Cod. int. ${book.codigo}: ${(book.titulo).toUpperCase()}
               Autor(es): ${authors}
               Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}
               Quantidade de empréstimos no intervalo informado: ${book.quantidade_emprestimo}\n`);              
@@ -172,19 +172,17 @@ export class ReportView extends ConsoleView {
 
                     
           listCustomerBorrow.forEach((borrow) => {
-              this.display(
-`\nCliente: #${borrow.cliente_id}: ${(borrow.cliente_nome).toUpperCase()}`);
+              this.display(`Cliente: #${borrow.cliente_id}: ${(borrow.cliente_nome).toUpperCase()}`);
 
               total = 0;
               borrow.livros.forEach((livro) => {
                 total++; 
             
                 this.display(
-      `#${livro.id} - ${livro.codigo}: ${(livro.titulo).toUpperCase()}
+      `#${livro.id} - Cod. int. ${livro.codigo}: ${(livro.titulo).toUpperCase()}
       Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}
       Editora: ${livro.editora} • ${livro.edicao} • ${livro.ano_publicacao} • ISBN: ${livro.isbn} 
-      Data empréstimo: ${formatDate(borrow.data_emprestimo)} • Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} 
-      Devolução: ${livro.data_devolucao ? formatDate(livro.data_devolucao) : '- '} 
+      Empréstimo #${borrow.id} • Data empréstimo: ${formatDate(borrow.data_emprestimo)} • Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)}  
       Status: ${livro.status}\n`)
                     }); 
                 this.display('----------------------------------------');  

@@ -44,5 +44,8 @@ export interface ClienteDetalhe extends Cliente {
   municipio: string;
   uf: string;
 }
+export interface ClienteUpdate extends ClienteInput {
+  id: number;
+}
 
 export type ClienteCreate = Omit<Cliente, "id">;

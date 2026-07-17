@@ -6,6 +6,8 @@ export interface ClienteRepository {
   
   findCustomerById(id: number): Promise<CustomerListDto | null>;
 
+  findCustomerByCpf(name: string): Promise<CustomerListDto |null>;
+
   findAllCustomers(): Promise<CustomerListDto[]>;
 
   createCustomer(customer: ClienteInput): Promise<Cliente>;

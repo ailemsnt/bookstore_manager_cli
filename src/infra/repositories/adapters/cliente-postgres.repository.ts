@@ -1,4 +1,4 @@
-import { ClienteInput } from './../../../domain/customer';
+import { ClienteInput, ClienteUpdate } from './../../../domain/customer';
 import { Pool } from "pg";
 import { Cliente } from "../../../domain/customer";
 import { ClienteRepository } from "../cliente.repository";
@@ -52,19 +52,75 @@ export class ClientePostgresRepository implements ClienteRepository{
 
     return customers;
   }
-
+  
   async findCustomerById(id: number): Promise<CustomerListDto | null> {
-    const { rows } = await this.pool.query(
+    const result = await this.pool.query(
       `${sqlSelect} 
           WHERE c.id = $1 AND c.deleted_at is null`,
       [id],
     );
 
-    if (rows.length === 0) {
+    if (result.rowCount === 0) {
       return null;
     }
 
-    return rows[0];
+    const row = result.rows[0];
+    return{        
+      id: row.id,
+      nome: row.nome,
+      cpf: row.cpf,
+      endereco: row.endereco,
+      numero: row.numero,
+      bairro: row.bairro,
+      cep: row.cep,
+      telefone: row.telefone,
+      email: row.email,
+      ativo: row.ativo,
+      data_cadastro: row.data_cadastro,
+      municipio: {
+        id: row.municipio_id,
+        nome: row.municipio_nome,
+        uf: {
+          id: row.uf_id,
+          uf_sigla: row.uf_sigla
+        },                  
+      },            
+    };
+  }
+
+  async findCustomerByCpf(cpf: string): Promise<CustomerListDto | null> {
+    const result = await this.pool.query(
+      `${sqlSelect} 
+          WHERE c.cpf = $1 AND c.deleted_at is null`,
+      [cpf],
+    );
+
+    if (result.rowCount === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+    return{        
+      id: row.id,
+      nome: row.nome,
+      cpf: row.cpf,
+      endereco: row.endereco,
+      numero: row.numero,
+      bairro: row.bairro,
+      cep: row.cep,
+      telefone: row.telefone,
+      email: row.email,
+      ativo: row.ativo,
+      data_cadastro: row.data_cadastro,
+      municipio: {
+        id: row.municipio_id,
+        nome: row.municipio_nome,
+        uf: {
+          id: row.uf_id,
+          uf_sigla: row.uf_sigla
+        },                  
+      },            
+    };
   }
 
   async findAllCustomers(): Promise<CustomerListDto[]> {
@@ -115,15 +171,41 @@ export class ClientePostgresRepository implements ClienteRepository{
     return row;
   }
   
-  async updateCustomer(customer: Cliente): Promise<Cliente> {
-    const { rows: [row], } = await this.pool.query<Cliente>(
-      `UPDATE cliente SET nome = $1,endereco = $2, cep = $3, numero = $4, bairro = $5, municipio_id = $6, telefone = $7, email = $8, ativo = $9
-        WHERE id = $10 AND deleted_at is null RETURNING *`,
+  async updateCustomer(customer: ClienteUpdate): Promise<Cliente> {
+    const {
+      rows: [row],
+    } = await this.pool.query<Cliente>(
+      `UPDATE cliente 
+        SET 
+            nome = COALESCE(NULLIF($1, ''), nome),
+            endereco = COALESCE(NULLIF($2, ''), endereco),
+            cep = COALESCE(NULLIF($3, ''), cep),
+            numero = COALESCE(NULLIF($4, ''), numero),
+            bairro = COALESCE(NULLIF($5, ''), bairro),
+            municipio_id = COALESCE($6, municipio_id),
+            telefone = COALESCE(NULLIF($7, ''), telefone),
+            email = COALESCE(NULLIF($8, ''), email),
+            ativo = COALESCE(NULLIF($9, ''), ativo)
+
+        WHERE id = $10 
+        AND deleted_at IS NULL
+
+        RETURNING *`,
       [customer.nome, customer.endereco, customer.cep, customer.numero, customer.bairro, customer.municipio_id, customer.telefone, customer.email, customer.ativo, customer.id],
     );
 
     return row;
   }
+
+  // async updateCustomer(customer: Cliente): Promise<Cliente> {
+  //   const { rows: [row], } = await this.pool.query<Cliente>(
+  //     `UPDATE cliente SET nome = $1,endereco = $2, cep = $3, numero = $4, bairro = $5, municipio_id = $6, telefone = $7, email = $8, ativo = $9
+  //       WHERE id = $10 AND deleted_at is null RETURNING *`,
+  //     [customer.nome, customer.endereco, customer.cep, customer.numero, customer.bairro, customer.municipio_id, customer.telefone, customer.email, customer.ativo, customer.id],
+  //   );
+
+  //   return row;
+  // }
 
   async deleteCustomer(id: number): Promise<void> {
     await this.pool.query("UPDATE cliente SET deleted_at = NOW() WHERE id = $1", [id]);    

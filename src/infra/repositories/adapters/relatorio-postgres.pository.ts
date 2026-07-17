@@ -290,8 +290,9 @@ export class RelatorioPostgresRepository implements RelatorioRepository {
         INNER JOIN emprestimo e ON e.id = el.emprestimo_id
         INNER JOIN cliente c ON c.id = e.cliente_id
         WHERE 
-        ${sqlWhereCondition} 
-        (l.baixado = 0 AND l.deleted_at IS NULL AND c.deleted_at IS NULL AND e.canceled_at IS NULL)          
+        ${sqlWhereCondition}         
+        (l.baixado = 0 AND l.deleted_at IS NULL AND c.deleted_at IS NULL AND e.canceled_at IS NULL)  
+        AND (el.data_devolucao IS NULL)        
         ORDER BY a.nome, l.titulo ASC`;
 
     const result = await this.pool.query(sqlCustomer, paramsCustomer);
