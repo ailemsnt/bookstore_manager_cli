@@ -1,58 +1,82 @@
 import { initDatabase, pool } from './infra/database/database';
-import { LoginUseCase } from './usecase/login.usecase';
 import { UsuarioPostgresRepository } from './infra/repositories/adapters/usuario-postgres.repository';
+import { RelatorioPostgresRepository } from './infra/repositories/adapters/relatorio-postgres.pository';
+import { AutorPostgresRepository } from './infra/repositories/adapters/autor-postgres.repository';
+import { LivroPostgresRepository } from './infra/repositories/adapters/livro-postgres.repository';
+import { ClientePostgresRepository } from './infra/repositories/adapters/cliente-postgres.repository';
+import { EmprestimoPostgresRepository } from './infra/repositories/adapters/emprestimo-postgres.repository';
+import { MunicipioPostgresRepository } from './infra/repositories/adapters/municipio-postgres.repository';
+import { LoginService } from './services/login.service';
+import { AuthorService } from './services/author.service';
+import { BookService } from './services/book.service';
+import { CustomerService } from './services/customer.service';
+import { BorrowService } from './services/borrow.service';
+import { MunicipalityService } from './services/municipality.service';
+import { ReportService } from './services/report.service';
+import { ReportView } from './view/report.view';
+import { BorrowView } from './view/borrow.view';
+import { BookView } from './view/book.view';
 import { MainView } from './view/main.view';
 import { AuthorView } from './view/author.view';
-import { AuthorUseCase } from './usecase/author.usecase';
-import { AutorPostgresRepository } from './infra/repositories/adapters/autor-postgres.repository';
-import { BookUseCase } from './usecase/book.usecase';
-import { LivroPostgresRepository } from './infra/repositories/adapters/livro-postgres.repository';
-import { BookView } from './view/book.view';
-import { ClientePostgresRepository } from './infra/repositories/adapters/cliente-postgres.repository';
 import { CustomerView } from './view/customer.view';
-import { CustomerUseCase } from './usecase/customer.usecase';
-import { BorrowUseCase } from './usecase/borrow.usecase';
-import { EmprestimoPostgresRepository } from './infra/repositories/adapters/emprestimo-postgres.repository';
-import { BorrowView } from './view/borrow.view';
-import { MunicipioPostgresRepository } from './infra/repositories/adapters/municipio-postgres.repository';
-import { ReportUseCase } from './usecase/report.usecase';
-import { RelatorioPostgresRepository } from './infra/repositories/adapters/relatorio-postgres.pository';
-import { ReportView } from './view/report.view';
-import { MunicipalityUseCase } from './usecase/municipality.usecase';
 
 async function bootstrap() {
   await initDatabase();
 
-  const loginUseCase = new LoginUseCase(new UsuarioPostgresRepository(pool));
+  const loginService = new LoginService(new UsuarioPostgresRepository(pool));
 
-  const authorUseCase = new AuthorUseCase(new AutorPostgresRepository(pool));
-  const authorView = new AuthorView(authorUseCase);
+  const authorService = new AuthorService(new AutorPostgresRepository(pool));
+  const authorView = new AuthorView(authorService);
 
-  const bookUseCase = new BookUseCase(new LivroPostgresRepository(pool), authorUseCase);
-  const bookView = new BookView(bookUseCase, authorUseCase);
+  const bookService = new BookService(
+    new LivroPostgresRepository(pool),
+    authorService,
+  );
+  const bookView = new BookView(bookService, authorService);
 
-  const municipalityUseCase = new MunicipalityUseCase(new MunicipioPostgresRepository(pool));
+  const municipalityService = new MunicipalityService(
+    new MunicipioPostgresRepository(pool),
+  );
 
-  const customerUseCase = new CustomerUseCase(new ClientePostgresRepository(pool));
-  const customerView = new CustomerView(customerUseCase,municipalityUseCase);
+  const customerService = new CustomerService(
+    new ClientePostgresRepository(pool),
+  );
+  const customerView = new CustomerView(customerService, municipalityService);
 
-  const borrowUseCase = new BorrowUseCase(new EmprestimoPostgresRepository(pool));
-  const borrowView = new BorrowView(borrowUseCase, bookUseCase, customerUseCase);
-  
-  const reportUseCase = new ReportUseCase(new RelatorioPostgresRepository(pool));
-  const reportView = new ReportView(reportUseCase, authorUseCase);
+  const borrowService = new BorrowService(
+    new EmprestimoPostgresRepository(pool),
+  );
+  const borrowView = new BorrowView(
+    borrowService,
+    bookService,
+    customerService,
+  );
 
-  const mainView = new MainView(loginUseCase, authorView, bookView, customerView, borrowView, bookUseCase, reportView, authorUseCase);
+  const reportService = new ReportService(
+    new RelatorioPostgresRepository(pool),
+  );
+  const reportView = new ReportView(reportService, authorService);
 
-  await mainView.start()
+  const mainView = new MainView(
+    loginService,
+    authorView,
+    bookView,
+    customerView,
+    borrowView,
+    bookService,
+    reportView,
+    authorService,
+  );
+
+  await mainView.start();
 }
 
 bootstrap()
   .then(() => {
-    process.exit(0)
+    process.exit(0);
   })
   .catch((e: unknown) => {
-    console.log('UNHANDLED REJECTION')
-    console.error(e)
-    process.exit(1)
-  })
+    console.log('UNHANDLED REJECTION');
+    console.error(e);
+    process.exit(1);
+  });

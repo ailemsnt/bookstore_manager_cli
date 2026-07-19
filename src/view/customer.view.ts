@@ -1,13 +1,19 @@
-import { formatInChar, formatOutChar, maskCpf } from "../@common/utils/common.utils";
-import { ConsoleView } from "../@common/view/console.view";
-import { CustomerUseCase } from "../usecase/customer.usecase";
-import { MunicipalityUseCase } from "../usecase/municipality.usecase";
-import { CustomerFormDto, CustomerUpdateDto } from "./dto/customer-form.dto";
+import {
+  formatInChar,
+  formatOutChar,
+  maskCpf,
+} from '../@common/utils/common.utils';
+import { ConsoleView } from '../@common/view/console.view';
+import { CustomerService } from '../services/customer.service';
+import { MunicipalityService } from '../services/municipality.service';
+import { CustomerFormDto, CustomerUpdateDto } from './dto/customer-form.dto';
 
 export class CustomerView extends ConsoleView {
-  constructor(private readonly customerUc: CustomerUseCase, private readonly municipalityUc: MunicipalityUseCase)
-  { 
-    super(); 
+  constructor(
+    private readonly customerSrv: CustomerService,
+    private readonly municipalitySrv: MunicipalityService,
+  ) {
+    super();
   }
 
   async start(): Promise<void> {
@@ -16,9 +22,13 @@ export class CustomerView extends ConsoleView {
 
   private async selectMunicipality(): Promise<number> {
     while (true) {
-      const municipalityNamePartial = await this.prompt('Informe o nome do município: (ao menos 3 letras) ');
+      const municipalityNamePartial = await this.prompt(
+        'Informe o nome do município: (ao menos 3 letras) ',
+      );
 
-      const countries = await this.municipalityUc.findMunicipalityByName(municipalityNamePartial);
+      const countries = await this.municipalitySrv.findMunicipalityByName(
+        municipalityNamePartial,
+      );
 
       if (countries.length === 0) {
         this.display('Município não encontrado.');
@@ -29,151 +39,242 @@ export class CustomerView extends ConsoleView {
       this.display('ID     | Nome - UF');
 
       countries.forEach((m) => {
-        this.display(`#${m.id} | ${m.nome} - ${m.uf_sigla}`);
+        this.display(`#${String(m.id)} | ${m.nome} - ${m.uf_sigla}`);
       });
-      
+      this.display('');
+
       while (true) {
-        const municipalityId = await this.prompt('Informe o ID do município exibido na lista acima: ');
-        
+        const municipalityId = await this.prompt(
+          'Informe o ID do município exibido na lista acima: ',
+        );
+
         const municipalityIdValidate = Number(municipalityId);
         if (Number.isNaN(municipalityIdValidate)) {
           this.display('ID do município informado inválido.');
           continue;
-        } 
+        }
 
-        const municipalityExists = await this.municipalityUc.findMunicipalityById(municipalityIdValidate);
-        if (!municipalityExists) {            
+        const municipalityExists =
+          await this.municipalitySrv.findMunicipalityById(
+            municipalityIdValidate,
+          );
+        if (!municipalityExists) {
           continue;
-        } 
+        }
 
-        this.display(`Município selecionado: ${municipalityExists.nome} - ${municipalityExists.uf_sigla}`);
+        this.display(
+          `Município selecionado: ${municipalityExists.nome} - ${municipalityExists.uf_sigla}`,
+        );
 
-        return municipalityIdValidate ;
+        return municipalityIdValidate;
       }
-    } 
+    }
   }
 
-  protected async update(){
+  private async findAllCustomers(): Promise<void> {
+    this.display('Listando clientes...');
+
+    const list = await this.customerSrv.findAllCustomers();
+
+    list.forEach((customer) => {
+      this.display(
+        `#${String(customer.id)} - ${customer.nome.toUpperCase()} • CPF: ${maskCpf(customer.cpf)}`,
+      );
+      this.display(
+        `Endereço: ${customer.endereco}, ${customer.numero}, ${customer.bairro} - ${customer.municipio.nome} - ${customer.municipio.uf.uf_sigla} • ${customer.cep}`,
+      );
+      this.display(`Contatos: ${customer.telefone} •  ${customer.email}`);
+      this.display(`Ativo: ${formatOutChar(customer.ativo)}\n`);
+    });
+    this.display(' ');
+  }
+
+  private async findCustomerById(): Promise<void> {
+    this.display('Buscando cliente por ID...');
+
+    const id = await this.prompt('Informe o ID do cliente:');
+    const customer = await this.customerSrv.findCustomerById(Number(id));
+
+    this.display(
+      `#${customer.id} - ${customer.nome.toUpperCase()} • CPF: ${maskCpf(customer.cpf)}`,
+    );
+    this.display(
+      `Endereço: ${customer.endereco}, ${customer.numero}, ${customer.bairro} - ${customer.municipio.nome} - ${customer.municipio.uf.uf_sigla} • ${customer.cep}`,
+    );
+    this.display(`Contatos: ${customer.telefone} •  ${customer.email}`);
+    this.display(`Ativo: ${formatOutChar(customer.ativo)}`);
+  }
+
+  private async createCustomer(): Promise<void> {
+    this.display('Cadastrando cliente...');
+    const customerDto = await this.promptInteractiveForm(
+      'Informe os dados do cliente',
+      CustomerFormDto.schema(),
+      CustomerFormDto,
+    );
+
+    const municipalityIdCustomer = await this.selectMunicipality();
+
+    const customerOrError = await this.customerSrv
+      .findCustomerByCpf(customerDto.cpf)
+      .catch((error: unknown) => error as Error);
+
+    if (customerOrError instanceof Error) {
+      this.reportTechnicalError(customerOrError);
+      await this.prompt('Pressione ENTER para sair...');
+      return;
+    }
+
+    if (customerOrError) {
+      this.display(`Cliente já cadastrado!`);
+      return;
+    }
+
+    const customerCreated = await this.customerSrv.createCustomer({
+      nome: customerDto.nome,
+      cpf: customerDto.cpf,
+      endereco: customerDto.endereco,
+      cep: customerDto.cep,
+      numero: customerDto.numero,
+      bairro: customerDto.bairro,
+      municipio_id: municipalityIdCustomer,
+      telefone: customerDto.telefone,
+      email: customerDto.email,
+      ativo: formatInChar(customerDto.ativo),
+    });
+
+    this.display(
+      `Cliente cadastrado com sucesso! Nome: ${customerCreated.nome} • CPF:  ${maskCpf(customerCreated.cpf)}`,
+    );
+  }
+
+  private async updateCustomer(): Promise<void> {
+    this.display('Atualizando cliente...');
+
+    const idUpdate = await this.prompt(
+      'Informe o ID do cliente a ser atualizado:',
+    );
+    await this.customerSrv.findCustomerById(Number(idUpdate));
+
+    const customerUpdateDto = await this.promptInteractiveForm(
+      'Informe os dados do cliente a serem alterados: ',
+      CustomerUpdateDto.schema(),
+      CustomerUpdateDto,
+    );
+
+    const municipalityIdCustomerUpdate = await this.selectMunicipality();
+
+    const customerUpdateOrError = await this.customerSrv
+      .search(customerUpdateDto.nome)
+      .catch((error: unknown) => error as Error);
+
+    if (customerUpdateOrError instanceof Error) {
+      this.reportTechnicalError(customerUpdateDto);
+      await this.prompt('Pressione ENTER para sair...');
+      return;
+    }
+
+    const customerUpdated = await this.customerSrv.updateCustomer({
+      id: Number(idUpdate),
+      nome: customerUpdateDto.nome,
+      endereco: customerUpdateDto.endereco,
+      cep: customerUpdateDto.cep,
+      numero: customerUpdateDto.numero,
+      bairro: customerUpdateDto.bairro,
+      municipio_id: Number(municipalityIdCustomerUpdate),
+      telefone: customerUpdateDto.telefone,
+      email: customerUpdateDto.email,
+      ativo: formatInChar(customerUpdateDto.ativo),
+      cpf: '',
+    });
+
+    this.display(
+      `Cliente alterado com sucesso! Nome: ${customerUpdated.nome} • CPF:  ${maskCpf(customerUpdated.cpf)}`,
+    );
+  }
+
+  private async deleteCustomer(): Promise<void> {
+    this.display('Excluindo cliente...');
+
+    const idDelete = await this.prompt(
+      'Informe o ID do cliente a ser excluído:',
+    );
+    const customerDelete = await this.customerSrv.findCustomerById(
+      Number(idDelete),
+    );
+
+    const canDelete = await this.customerSrv.canDeleteCustomer(
+      Number(idDelete),
+    );
+    if (!canDelete) {
+      return;
+    }
+
+    const confirmationDeleteCustomer = await this.confirmAction(
+      `excluir o cliente #${String(customerDelete.id)} - ${customerDelete.nome}  • CPF:  ${maskCpf(customerDelete.cpf)}`,
+      'Operação cancelada pelo usuário',
+    );
+    if (!confirmationDeleteCustomer) {
+      return;
+    }
+
+    await this.customerSrv.deleteCustomer(Number(idDelete));
+    this.display('Cliente excluído com sucesso!');
+  }
+
+  protected async update() {
     while (true) {
-      this.display('')
-      this.display('____________________________________________________________')
-      this.display('                          CLIENTES                          ')   
-      this.display('____________________________________________________________\n')     
-      this.display(" Informe o número da opção desejada:");
-      this.display(" 1. Listar todos os clientes");
-      this.display(" 2. Buscar cliente por ID");
-      this.display(" 3. Cadastrar cliente");
-      this.display(" 4. Atualizar cliente");
-      this.display(" 5. Excluir cliente");    
-      this.display(" 0. VOLTAR AO MENU PRINCIPAL");
-      this.display("____________________________________________________________\n");
-    
-      const optionSelected = await this.prompt('Opção:');         
+      this.display('');
+      this.display(
+        '____________________________________________________________',
+      );
+      this.display(
+        '                          CLIENTES                          ',
+      );
+      this.display(
+        '____________________________________________________________\n',
+      );
+      this.display(' Informe o número da opção desejada:');
+      this.display(' 1. Listar todos os clientes');
+      this.display(' 2. Buscar cliente por ID');
+      this.display(' 3. Cadastrar cliente');
+      this.display(' 4. Atualizar cliente');
+      this.display(' 5. Excluir cliente');
+      this.display(' 0. VOLTAR AO MENU PRINCIPAL');
+      this.display(
+        '____________________________________________________________\n',
+      );
+
+      const optionSelected = await this.prompt('Opção:');
 
       switch (optionSelected) {
         case '1':
-          this.display('Listando clientes...');
-          
-          const list = await this.customerUc.findAllCustomers();
-
-          list.forEach((customer) => {
-            this.display(
-            `#${customer.id} - ${(customer.nome).toUpperCase()} • CPF: ${maskCpf(customer.cpf)}
-            Endereço: ${customer.endereco}, ${customer.numero}, ${customer.bairro} - ${customer.municipio.nome} - ${customer.municipio.uf.uf_sigla} • ${customer.cep}
-            Contatos: ${customer.telefone} •  ${customer.email}
-            Ativo: ${formatOutChar(customer.ativo)}`);         
-          });
-          break;          
-
-        case '2':
-          this.display('Buscando cliente por ID...');
-
-          const id = await this.prompt('Informe o ID do cliente:');          
-          const customer = await this.customerUc.findCustomerById(Number(id));          
-
-          this.display(
-            `#${customer.id} - ${(customer.nome).toUpperCase()} • CPF: ${maskCpf(customer.cpf)}
-            Endereço: ${customer.endereco}, ${customer.numero}, ${customer.bairro} - ${customer.municipio.nome} - ${customer.municipio.uf.uf_sigla} • ${customer.cep}
-            Contatos: ${customer.telefone} •  ${customer.email}
-            Ativo: ${formatOutChar(customer.ativo)}`);
+          await this.findAllCustomers();
           break;
 
-          case '3':                  
-            this.display('Cadastrando cliente...');
-            const customerDto = await this.promptInteractiveForm('Informe os dados do cliente',CustomerFormDto.schema(), CustomerFormDto);
-          
-            const municipalityIdCustomer = await this.selectMunicipality();
+        case '2':
+          await this.findCustomerById();
+          break;
 
-            const customerOrError = await this.customerUc
-            .findCustomerByCpf(customerDto.cpf)
-            .catch((error: unknown) => error as Error)
-
-            if (customerOrError instanceof Error) {
-              this.reportTechnicalError(customerOrError)
-              await this.prompt('Pressione ENTER para sair...')
-              return
-            }
-            
-            if (customerOrError) {
-              this.display(`Cliente já cadastrado!`);
-              return
-            }
-            
-            const customerCreated = await this.customerUc.createCustomer({ nome: customerDto.nome, cpf: customerDto.cpf, endereco: customerDto.endereco, cep: customerDto.cep, numero: customerDto.numero,  bairro: customerDto.bairro, municipio_id: Number(municipalityIdCustomer), telefone: customerDto.telefone, email: customerDto.email, ativo: formatInChar(customerDto.ativo)});
-
-            this.display(`Cliente cadastrado com sucesso! Nome: ${customerCreated.nome} • CPF:  ${maskCpf(customerCreated.cpf)}`);
+        case '3':
+          await this.createCustomer();
           break;
 
         case '4':
-          this.display('Atualizando cliente...');
-          
-          const idUpdate = await this.prompt('Informe o ID do cliente a ser atualizado:'); 
-          await this.customerUc.findCustomerById(Number(idUpdate));  
-        
-          const customerUpdateDto = await this.promptInteractiveForm('Informe os dados do cliente a serem alterados: ',CustomerUpdateDto.schema(), CustomerUpdateDto);
-
-          const municipalityIdCustomerUpdate = await this.selectMunicipality();
-
-          const customerUpdateOrError = await this.customerUc
-          .search(customerUpdateDto.nome)
-          .catch((error: unknown) => error as Error)
-
-          if (customerUpdateOrError instanceof Error) {
-            this.reportTechnicalError(customerUpdateDto)
-            await this.prompt('Pressione ENTER para sair...')
-            return
-          }
-        
-          const customerUpdated = await this.customerUc.updateCustomer( {id: Number(idUpdate), nome: customerUpdateDto.nome, endereco: customerUpdateDto.endereco, cep: customerUpdateDto.cep, numero: customerUpdateDto.numero,  bairro: customerUpdateDto.bairro, municipio_id: Number(municipalityIdCustomerUpdate), telefone: customerUpdateDto.telefone, email: customerUpdateDto.email, ativo: formatInChar(customerUpdateDto.ativo), cpf: ""});           
-
-          this.display(`Cliente alterado com sucesso! Nome: ${customerUpdated.nome} • CPF:  ${maskCpf(customerUpdated.cpf)}`);
+          await this.updateCustomer();
           break;
 
         case '5':
-          this.display('Excluindo cliente...');
-
-          const idDelete = await this.prompt('Informe o ID do cliente a ser excluído:');          
-          const customerDelete = await this.customerUc.findCustomerById(Number(idDelete)); 
-
-          const canDelete = await this.customerUc.canDeleteCustomer(Number(idDelete));    
-          if (!canDelete) {
-            return;
-          }
-
-          const confirmationDeleteCustomer = await this.confirmAction(`excluir o cliente #${customerDelete.id} - ${customerDelete.nome}  • CPF:  ${maskCpf(customerDelete.cpf)}`,'Operação cancelada pelo usuário');
-          if (!confirmationDeleteCustomer) {
-            break;
-          }
-
-          await this.customerUc.deleteCustomer(Number(idDelete));
-          this.display('Cliente excluído com sucesso!');
+          await this.deleteCustomer();
           break;
 
-        case '0': 
-          this.display('Voltando ao menu principal...');              
-          return
+        case '0':
+          this.display('Voltando ao menu principal...');
+          return;
         default:
-          this.display('Opção inválida. Por favor, selecione uma opção válida.');
+          this.display(
+            'Opção inválida. Por favor, selecione uma opção válida.',
+          );
           break;
       }
     }

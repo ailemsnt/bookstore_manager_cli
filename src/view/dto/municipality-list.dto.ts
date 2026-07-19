@@ -1,14 +1,14 @@
 export class MunicipalityListDto {
-  constructor (
+  constructor(
     public id: number,
     public nome: string,
-    public uf: UfListDto
-  ){}
+    public uf: UfListDto,
+  ) {}
 }
 
 export class UfListDto {
-  constructor (
+  constructor(
     public id: number,
     public uf_sigla: string,
-  ){}
+  ) {}
 }

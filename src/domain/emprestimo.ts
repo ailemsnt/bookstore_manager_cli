@@ -1,11 +1,11 @@
-import { Autor } from "./autor";
+import { Autor } from './autor';
 
 export interface Emprestimo {
-  id: number; 
+  id: number;
   cliente_id: number;
   cliente_nome: string;
   data_emprestimo: Date;
-  livros: EmprestimoLivro[]; 
+  livros: EmprestimoLivro[];
   canceled_at?: Date;
 }
 export interface EmprestimoLivro {
@@ -23,6 +23,6 @@ export interface EmprestimoLivro {
 }
 
 export interface EmprestimoRetorno {
-  id: number,
+  id: number;
   cliente_id: number;
 }

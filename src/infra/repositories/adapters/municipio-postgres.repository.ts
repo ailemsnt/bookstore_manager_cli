@@ -1,8 +1,8 @@
-import { Pool } from "pg";
-import { MunicipioRepository } from "../municipio.repository";
-import { Municipio } from "../../../domain/municipio";
+import { Pool } from 'pg';
+import { Municipio } from '../../../domain/municipio';
+import { MunicipioRepository } from '../municipio.repository';
 
-export class MunicipioPostgresRepository implements MunicipioRepository{
+export class MunicipioPostgresRepository implements MunicipioRepository {
   constructor(private readonly pool: Pool) {}
 
   async findMunicipalityByName(name: string): Promise<Municipio[]> {

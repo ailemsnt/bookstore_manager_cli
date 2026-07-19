@@ -1,18 +1,23 @@
-import { Session } from "../infra/database/session";
-import { ConsoleView } from "../@common/view/console.view";
-import { BorrowUseCase } from "../usecase/borrow.usecase";
-import { formatDate, maskCpf } from "../@common/utils/common.utils";
-import { BookUseCase } from "../usecase/book.usecase";
-import { CustomerUseCase } from "../usecase/customer.usecase";
-import { BorrowFilterDto } from "./dto/borrow-filter.dto";
-import { BorrowFormDto } from "./dto/borrow-form.dto";
+import { formatDate, maskCpf } from '../@common/utils/common.utils';
+import { Session } from '../infra/database/session';
+import { BookService } from '../services/book.service';
+import { BorrowService } from '../services/borrow.service';
+import { CustomerService } from '../services/customer.service';
+import { BorrowFilterDto } from './dto/borrow-filter.dto';
+import { BorrowFormDto } from './dto/borrow-form.dto';
+import { ConsoleView } from '../@common/view/console.view';
 
 export class BorrowView extends ConsoleView {
-  constructor(private readonly borrowUc: BorrowUseCase, private readonly bookUc: BookUseCase, private readonly customerUc: CustomerUseCase )
-  { 
-    super(); 
+  private readonly userId = Session.getUserId();
+  private readonly filter = new BorrowFilterDto();
+
+  constructor(
+    private readonly borrowSrv: BorrowService,
+    private readonly bookSrv: BookService,
+    private readonly customerSrv: CustomerService,
+  ) {
+    super();
   }
-  
 
   async start(): Promise<void> {
     await this.update();
@@ -20,416 +25,569 @@ export class BorrowView extends ConsoleView {
 
   private async selectBook(): Promise<number> {
     while (true) {
-      const bookTitlePartial = await this.prompt('Informe o título do livro: (ao menos 3 letras) ');
+      const bookTitlePartial = await this.prompt(
+        'Informe o título do livro: (ao menos 3 letras) ',
+      );
 
-      const books = await this.bookUc.search(bookTitlePartial);
+      const books = await this.bookSrv.search(bookTitlePartial);
 
       if (!books) {
         this.display('Livro não encontrado.');
         continue;
       }
 
-      this.display('Livros encontrados:');       
-      this.display('____________________________________________________________');
+      this.display('Livros encontrados:');
+      this.display(
+        '____________________________________________________________',
+      );
       this.display('');
       books.forEach((b) => {
-        this.display(`#${b.id} - Cod. int.:${b.codigo} • ISBN ${b.isbn}
-Título: ${(b.titulo).toUpperCase()}`);
+        this.display(`#${String(b.id)} - Cod. int.:${b.codigo} • ISBN ${b.isbn}`);
+        this.display(`Título: ${b.titulo.toUpperCase()}`);
       });
       this.display('');
 
       while (true) {
-        const bookId = await this.prompt('\nInforme o ID do livro exibido na lista acima: ');
-        
+        const bookId = await this.prompt(
+          '\nInforme o ID do livro exibido na lista acima: ',
+        );
+
         const bookIdValidate = Number(bookId);
         if (Number.isNaN(bookIdValidate)) {
           this.display('ID do livro informado inválido.\n');
           continue;
-        } 
+        }
 
-        const bookExists = await this.bookUc.findBookById(bookIdValidate);
-        if (!bookExists) {            
+        const bookExists = await this.bookSrv.findBookById(bookIdValidate);
+        if (!bookExists) {
           continue;
-        } 
+        }
 
-        this.display(`Livro selecionado: #${bookExists.id} - ${bookExists.codigo} - ${bookExists.titulo}\n`);
+        this.display(
+          `Livro selecionado: #${String(bookExists.id)} - ${bookExists.codigo} - ${bookExists.titulo}\n`,
+        );
 
         return bookIdValidate;
       }
-    } 
+    }
   }
 
   private async selectCustomer(): Promise<number> {
     while (true) {
-      const customerNamePartial = await this.prompt('Informe o nome do cliente: (ao menos 3 letras) ');
+      const customerNamePartial = await this.prompt(
+        'Informe o nome do cliente: (ao menos 3 letras) ',
+      );
 
-      const customers = await this.customerUc.search(customerNamePartial);
+      const customers = await this.customerSrv.search(customerNamePartial);
 
       if (customers.length === 0) {
         this.display('Cliente não encontrado.');
         continue;
       }
 
-      this.display('Clientes encontrados:');      
-      this.display('____________________________________________________________');
+      this.display('Clientes encontrados:');
+      this.display(
+        '____________________________________________________________',
+      );
       customers.forEach((customer) => {
-        this.display(`#${customer.id} - ${(customer.nome).toUpperCase()} • CPF: ${maskCpf(customer.cpf)}`);
+        this.display(
+          `#${String(customer.id)} - ${customer.nome.toUpperCase()} • CPF: ${maskCpf(customer.cpf)}`,
+        );
       });
       this.display('');
 
       while (true) {
-        const customerId = await this.prompt('Informe o ID do cliente exibido na lista acima: ');
-        
+        const customerId = await this.prompt(
+          'Informe o ID do cliente exibido na lista acima: ',
+        );
+
         const customerIdValidate = Number(customerId);
         if (Number.isNaN(customerIdValidate)) {
           this.display('ID do livro informado inválido.');
           continue;
-        } 
+        }
 
-        const customerExists = await this.customerUc.findCustomerById(customerIdValidate);
-        if (!customerExists) {            
+        const customerExists =
+          await this.customerSrv.findCustomerById(customerIdValidate);
+        if (!customerExists) {
           continue;
-        } 
+        }
 
-        this.display(`Cliente selecionado: #${customerExists.id} - ${customerExists.nome} - ${maskCpf(customerExists.cpf)}`);
+        this.display(
+          `Cliente selecionado: #${customerExists.id} - ${customerExists.nome} - ${maskCpf(customerExists.cpf)}`,
+        );
 
         return customerIdValidate;
       }
-    } 
+    }
   }
 
-  protected async update(){
-    const userId = Session.getUserId();
-    const filter = new BorrowFilterDto();  
-      while (true) {
-        this.display('')
-        this.display('____________________________________________________________')
-        this.display('                EMPRÉSTIMOS             ')   
-        this.display('____________________________________________________________\n')     
-        this.display(" Informe o número da opção desejada:");
-        this.display(" 1. Listar empréstimos em aberto");        
-        this.display(" 2. Buscar empréstimos");//Livro ou cliente       
-        this.display(" 3. Realizar empréstimo");          
-        this.display(" 4. Cancelar empréstimo"); 
-        this.display(" 5. Registrar devolução");   
-        this.display(" 0. VOLTAR AO MENU PRINCIPAL");
-        this.display("____________________________________________________________\n");
-      
-        const optionSelected = await this.prompt('Opção: ');  
-  
-        switch (optionSelected) {
-          case '1':
-            this.display('Listando empréstimos em aberto...');
+  private async findBorrowById(): Promise<void> {
+    this.display('\nPesquisando por Empréstimo...');
 
-            filter.status = 1;  
-            const listBorrowOpened = await this.borrowUc.findBorrowFilter(filter);
+    const id = await this.prompt('Informe o ID do empréstimo: ');
+    const borrowById = await this.borrowSrv.findBorrowById(Number(id));
 
-            listBorrowOpened.forEach((borrow) => {
-              this.display(
-`------------------------------------
-Empréstimo ID: #${borrow.id} Data empréstimo: ${formatDate(borrow.data_emprestimo)}
-Cliente: #${borrow.cliente_id}: ${(borrow.cliente_nome).toUpperCase()}
+    if (!borrowById) {
+      return;
+    }
 
-Livro(s) aguardando devolução:`);
+    this.display('');
+    this.display(
+      `Empréstimo ID: #${borrowById.id} Data empréstimo: ${formatDate(borrowById.data_emprestimo)}`,
+    );
+    this.display(
+      `Cliente: #${borrowById.cliente_id}: ${borrowById.cliente_nome.toUpperCase()}\n`,
+    );
+    this.display(`Livro(s):`);
+    borrowById.livros.forEach((livro) => {
+      this.display(
+        `#${String(livro.id)} - ${livro.codigo}: ${livro.titulo.toUpperCase()}`,
+      );
+      this.display(
+        `Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}`,
+      );
+      this.display(
+        `Editora: ${livro.editora} • ${livro.edicao} • ${String(livro.ano_publicacao)} • ISBN: ${livro.isbn}`,
+      );
+      this.display(
+        `Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Devolução: ${livro.data_devolucao ? formatDate(livro.data_devolucao) : '- '}`,
+      );
+      this.display(`Status: ${livro.status}\n`);
+    });
+    this.display('');
+  }
 
-              borrow.livros.forEach((livro) => {
-                this.display(
-`#${livro.id} - ${livro.codigo}: ${(livro.titulo).toUpperCase()}
-Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}
-Editora: ${livro.editora} • ${livro.edicao} • ${livro.ano_publicacao} • ISBN: ${livro.isbn} 
-Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} 
-Status: ${livro.status}\n`)
-              });
-            }); 
-            this.display("____________________________________________________________\n");           
-            break;          
-  
-          case '2':
-            this.display('Buscando empréstimos...');
-            this.display(" Informe o número da opção desejada:");
-            this.display(" 1. Pesquisar por Empréstimo"); 
-            this.display(" 2. Pesquisar por Livro"); 
-            this.display(" 3. Pesquisar por Cliente");
-            
-            const optionSelected = await this.prompt('Opção: '); 
+  private async findBorrowBybook(): Promise<void> {
+    this.display('\nPesquisando por livro...');
 
-            switch (optionSelected) {
-              case '1':
-                this.display('\nPesquisando por Empréstimo...');
+    const bookId = await this.selectBook();
 
-                const id = await this.prompt('Informe o ID do empréstimo: ');          
-                const borrowById = await this.borrowUc.findBorrowById(Number(id));               
+    if (!bookId) {
+      return;
+    }
 
-                if (!borrowById) {
-                  return;
-                }
-              
-                this.display(
-`------------------------------------
-Empréstimo ID: #${borrowById.id} Data empréstimo: ${formatDate(borrowById.data_emprestimo)}
-Cliente: #${borrowById.cliente_id}: ${(borrowById.cliente_nome).toUpperCase()}
+    this.filter.livroId = Number(bookId);
+    const borrowByBookId = await this.borrowSrv.findBorrowFilter(this.filter);
 
-Livro(s):`);
-                borrowById.livros.forEach((livro) => {
-                  this.display(
-`#${livro.id} - ${livro.codigo}: ${(livro.titulo).toUpperCase()}
-Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}
-Editora: ${livro.editora} • ${livro.edicao} • ${livro.ano_publicacao} • ISBN: ${livro.isbn} 
-Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Devolução: ${livro.data_devolucao ? formatDate(livro.data_devolucao) : '- '}
-Status: ${livro.status}\n`)
-                });                 
-                this.display("____________________________________________________________\n");
-                break;
-              case '2':
-                this.display('\nPesquisando por livro...');
+    if (!borrowByBookId) {
+      return;
+    }
 
-                const bookId = await this.selectBook();
+    borrowByBookId.forEach((borrow) => {
+      this.display('----------');
+      this.display(
+        `Empréstimo ID: #${String(borrow.id)} Data empréstimo: ${formatDate(borrow.data_emprestimo)}`,
+      );
+      this.display(
+        `Cliente: #${String(borrow.cliente_id)}: ${borrow.cliente_nome.toUpperCase()}\n`,
+      );
+      this.display('Livro(s):');
 
-                if (!bookId) {
-                  return;
-                }                
+      borrow.livros.forEach((livro) => {
+        this.display(
+          `#${String(livro.id)} - ${livro.codigo}: ${livro.titulo.toUpperCase()}`,
+        );
+        this.display(
+          `Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}`,
+        );
+        this.display(
+          `Editora: ${livro.editora} • ${livro.edicao} • ${String(livro.ano_publicacao)} • ISBN: ${livro.isbn} `,
+        );
+        this.display(
+          `Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Devolução: ${livro.data_devolucao ? formatDate(livro.data_devolucao) : '- '}`,
+        );
+        this.display(`Status: ${livro.status}\n`);
+      });
+    });
+    this.display('');
+  }
 
-                filter.livroId = Number(bookId);  
-                const borrowByBookId = await this.borrowUc.findBorrowFilter(filter);                
+  private async findBorrowByCustomer(): Promise<void> {
+    this.display('\nPesquisando por cliente...');
 
-                if (!borrowByBookId) {
-                  return;
-                }
+    const customerId = await this.selectCustomer();
 
-                borrowByBookId.forEach((borrow) => {
-                  this.display(
-`------------------------------------
-Empréstimo ID: #${borrow.id} Data empréstimo: ${formatDate(borrow.data_emprestimo)}
-Cliente: #${borrow.cliente_id}: ${(borrow.cliente_nome).toUpperCase()}
+    if (!customerId) {
+      return;
+    }
 
-Livro(s):`);
-                  borrow.livros.forEach((livro) => {
-                  this.display(
-`#${livro.id} - ${livro.codigo}: ${(livro.titulo).toUpperCase()}
-Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}
-Editora: ${livro.editora} • ${livro.edicao} • ${livro.ano_publicacao} • ISBN: ${livro.isbn} 
-Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Devolução: ${livro.data_devolucao ? formatDate(livro.data_devolucao) : '- '}
-Status: ${livro.status}\n`)
-                  });
-                });
-                this.display("____________________________________________________________\n");
-                break;
-              case '3':
-                this.display('\nPesquisando por cliente...');
+    this.filter.clienteId = Number(customerId);
+    const borrowByCustomerId = await this.borrowSrv.findBorrowFilter(
+      this.filter,
+    );
 
-                const customerId = await this.selectCustomer();
+    if (!borrowByCustomerId) {
+      return;
+    }
 
-                if (!customerId) {
-                  return;
-                }                
+    borrowByCustomerId.forEach((borrow) => {
+      this.display('----------');
+      this.display(
+        `Empréstimo ID: #${String(borrow.id)} Data empréstimo: ${formatDate(borrow.data_emprestimo)}`,
+      );
+      this.display(
+        `Cliente: #${String(borrow.cliente_id)}: ${borrow.cliente_nome.toUpperCase()}\n`,
+      );
+      this.display('Livro(s):');
 
-                filter.clienteId = Number(customerId);  
-                const borrowByCustomerId = await this.borrowUc.findBorrowFilter(filter);                
+      borrow.livros.forEach((livro) => {
+        this.display(
+          `#${String(livro.id)} - ${livro.codigo}: ${livro.titulo.toUpperCase()}`,
+        );
+        this.display(
+          `Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}`,
+        );
+        this.display(
+          `Editora: ${livro.editora} • ${livro.edicao} • ${String(livro.ano_publicacao)} • ISBN: ${livro.isbn}`,
+        );
+        this.display(
+          `Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Status: ${livro.status}\n`,
+        );
+      });
+    });
 
-                if (!borrowByCustomerId) {
-                  return;
-                }
+    this.display('');
+  }
 
-                borrowByCustomerId.forEach((borrow) => {
-                  this.display(
-`------------------------------------
-Empréstimo ID: #${borrow.id} Data empréstimo: ${formatDate(borrow.data_emprestimo)}
-Cliente: #${borrow.cliente_id}: ${(borrow.cliente_nome).toUpperCase()}
+  private async findActiveBorrow(): Promise<void> {
+    this.display('Listando empréstimos em aberto...');
 
-Livro(s):`);
-                  borrow.livros.forEach((livro) => {
-                  this.display(
-`#${livro.id} - ${livro.codigo}: ${(livro.titulo).toUpperCase()}
-Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}
-Editora: ${livro.editora} • ${livro.edicao} • ${livro.ano_publicacao} • ISBN: ${livro.isbn} 
-Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Status: ${livro.status}\n`)
-                  });
-                });
-                this.display("____________________________________________________________\n");                
-                break;  
-              default:  
-                this.display('Opção inválida. Por favor, selecione uma opção válida.');
-                break;  
-            }
-            
-            break;  
-            
-          case '3':
-            this.display('Cadastrando empréstimo...');
-            const borrowDto = await this.promptInteractiveForm('Informe os dados do empréstimo: ',BorrowFormDto.schema(), BorrowFormDto);
-            
-            const booksId: number[] = [];
+    this.filter.status = 1;
+    const listBorrowOpened = await this.borrowSrv.findBorrowFilter(this.filter);
 
-            while (true) {
-              const bookId = await this.prompt('Informe o ID do livro: ');
-              const bookIdValidate = Number(bookId);
-              if (Number.isNaN(bookIdValidate)) {
-                this.display('ID do livro informado inválido.');
-                continue;
-              } 
-  
-              const bookExists = await this.bookUc.findBookById(bookIdValidate);
-              if (!bookExists) {            
-                continue;
-              }
-              
-              const canBorrowBook = await this.borrowUc.canBorrowBook(bookIdValidate);
-              if (!canBorrowBook) {
-                return
-              }
+    listBorrowOpened.forEach((borrow) => {
+      this.display('----------');
+      this.display(
+        `Empréstimo ID: #${String(borrow.id)} Data empréstimo: ${formatDate(borrow.data_emprestimo)}`,
+      );
+      this.display(
+        `Cliente: #${String(borrow.cliente_id)}: ${borrow.cliente_nome.toUpperCase()}\n`,
+      );
 
-              booksId.push(bookIdValidate);
-              this.display(`Livro ${(bookExists.titulo).toUpperCase()} adicionado ao empréstimo.`);             
+      this.display(`Livro(s) aguardando devolução:`);
 
-              if (booksId.length === 5) {
-                this.display(`Atingido a quantidade máxima de livros por empréstimo.`);
-                break;
-              }
+      borrow.livros.forEach((livro) => {
+        this.display(
+          `#${String(livro.id)} - ${livro.codigo}: ${livro.titulo.toUpperCase()}`,
+        );
+        this.display(
+          `Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}`,
+        );
+        this.display(
+          `Editora: ${livro.editora} • ${livro.edicao} • ${String(livro.ano_publicacao)} • ISBN: ${livro.isbn} `,
+        );
+        this.display(
+          `Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} `,
+        );
+        this.display(`Status: ${livro.status}\n`);
+      });
+    });
+    this.display('');
+  }
 
-              const confirmationAddBook = await this.confirmAction('adicionar novo livro para este empréstimo','Continuando...');
-              if (!confirmationAddBook) {
-                break;
-              }    
-            }
-  
-            // const borrowOrError = await this.borrowUc
-            // .search(borrowDto.id)
-            // .catch((error: unknown) => error as Error)
-  
-            // if (bookOrError instanceof Error) {
-            //   this.reportTechnicalError(bookOrError)
-            //   await this.prompt('Pressione ENTER para sair...')
-            //   return
-            // }
-            
-            // if (bookOrError) {
-            //   this.display(`Livro já cadastrado!`);
-            //   return
-            // }
-            
-            if (booksId.length === 0) {
-              this.display('O empréstimo deve possuir ao menos um livro!');
-              return
-            }
-  
-            const confirmationCreate = await this.confirmAction('gravar o empréstimo','Operação cancelada pelo usuário.');
-            if (!confirmationCreate) {
-              return;
-            }
-            
-            const borrowCreated = await this.borrowUc.createBorrow({ cliente_id: Number(borrowDto.cliente_id)}, booksId, Number(userId));
-  
-            if (!borrowCreated) {
-              break;
-            }
-  
-            this.display(`\nEmpréstimo cadastrado com sucesso!`);          
-  
-            break; 
-          
-          case '4':
-            this.display('Cancelamento de empréstimo...'); 
+  private async findAllBorrows(): Promise<void> {
+    this.display('Buscando empréstimos...');
+    this.display(' Informe o número da opção desejada:');
+    this.display(' 1. Pesquisar por Empréstimo');
+    this.display(' 2. Pesquisar por Livro');
+    this.display(' 3. Pesquisar por Cliente');
 
-            this.display('\nPesquisando por Empréstimo...');
+    const optionSelected = await this.prompt('Opção: ');
 
-                const id = await this.prompt('Informe o ID do empréstimo: ');          
-                const borrowById = await this.borrowUc.findBorrowById(Number(id));               
+    switch (optionSelected) {
+      case '1':
+        await this.findBorrowById();
 
-                if (!borrowById) {
-                  return;
-                }
-              
-                this.display(
-`------------------------------------
-Empréstimo ID: #${borrowById.id} Data empréstimo: ${formatDate(borrowById.data_emprestimo)}
-Cliente: #${borrowById.cliente_id}: ${(borrowById.cliente_nome).toUpperCase()}
+        break;
 
-Livro(s):`);
-                borrowById.livros.forEach((livro) => {
-                  this.display(
-`#${livro.id} - ${livro.codigo}: ${(livro.titulo).toUpperCase()}
-Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}
-Editora: ${livro.editora} • ${livro.edicao} • ${livro.ano_publicacao} • ISBN: ${livro.isbn} 
-Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Devolução: ${livro.data_devolucao ? formatDate(livro.data_devolucao) : '- '}
-Status: ${livro.status}\n`)
-                });                 
-                this.display("____________________________________________________________\n");
-  
-              const canCancelBorrow = await this.borrowUc.canCancelBorrow(borrowById.id);
-              if (!canCancelBorrow) {
-                break;  
-              }
+      case '2':
+        await this.findBorrowBybook();
 
-              const confirmationCancelBorrow = await this.confirmAction('cancelar todo o empréstimo, mesmo sendo ação irreversível','Operação cancelada pelo usuário.');
-              if (!confirmationCancelBorrow) {
-                break;
-              } 
+        break;
 
-              const borrowCanceled = await this.borrowUc.cancelBorrow(borrowById.id);
-              
-              if (!borrowCanceled) {
-                break;
-              }
-              
-              this.display(`\nEmpréstimo cancelado com sucesso!`); 
+      case '3':
+        await this.findBorrowByCustomer();
 
-            break; 
+        break;
 
-          case '5':
-            this.display('Registrando devolução...');  
+      default:
+        this.display('Opção inválida. Por favor, selecione uma opção válida.');
+        break;
+    }
+  }
 
-            this.display('\nPesquisando por Empréstimo...');
+  private async createBorrow(): Promise<void> {
+    this.display('Cadastrando empréstimo...');
+    const borrowDto = await this.promptInteractiveForm(
+      'Informe os dados do empréstimo: ',
+      BorrowFormDto.schema(),
+      BorrowFormDto,
+    );
 
-                const returnId = await this.prompt('Informe o ID do empréstimo: ');          
-                const returnById = await this.borrowUc.findBorrowById(Number(returnId));               
+    const booksId: number[] = [];
 
-                if (!returnById) {
-                  return;
-                }
-              
-                this.display(
-`------------------------------------
-Empréstimo ID: #${returnById.id} Data empréstimo: ${formatDate(returnById.data_emprestimo)}
-Cliente: #${returnById.cliente_id}: ${(returnById.cliente_nome).toUpperCase()}
+    while (true) {
+      const bookId = await this.prompt('Informe o ID do livro: ');
+      const bookIdValidate = Number(bookId);
+      if (Number.isNaN(bookIdValidate)) {
+        this.display('ID do livro informado inválido.');
+        continue;
+      }
 
-Livro(s):`);
-                returnById.livros.forEach((livro) => {
-                  this.display(
-`#${livro.id} - ${livro.codigo}: ${(livro.titulo).toUpperCase()}
-Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}
-Editora: ${livro.editora} • ${livro.edicao} • ${livro.ano_publicacao} • ISBN: ${livro.isbn} 
-Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Devolução: ${livro.data_devolucao ? formatDate(livro.data_devolucao) : '- '}
-Status: ${livro.status}\n`)
-                });                 
-                this.display("____________________________________________________________\n");
-  
-              const canReturnBorrow = await this.borrowUc.canReturnBorrow(returnById.id);
-              if (!canReturnBorrow) {
-                break;  
-              }
+      const bookExists = await this.bookSrv.findBookById(bookIdValidate);
+      if (!bookExists) {
+        continue;
+      }
 
-              this.display(`\nATENÇÃO! Confira os livros recebidos antes de finalizar a devolução!`);  
-              const confirmationReturnBorrow = await this.confirmAction('devolver todos os livros deste empréstimo','Operação cancelada pelo usuário.');
-              if (!confirmationReturnBorrow) {
-                break;
-              } 
+      const canBorrowBook = await this.borrowSrv.canBorrowBook(bookIdValidate);
+      if (!canBorrowBook) {
+        return;
+      }
 
-              const borrowReturned = await this.borrowUc.cancelBorrow(returnById.id);
-              
-              if (!borrowReturned) {
-                break;
-              }
-              
-              this.display(`\nDevolução dos livros realizada com sucesso!`);   
-            break; 
-          
-            case '0': 
-              this.display('Voltando ao menu principal...');              
-              return
-          default:
-            this.display('Opção inválida. Por favor, selecione uma opção válida.');
-            break;
-        }
+      booksId.push(bookIdValidate);
+      this.display(
+        `Livro ${bookExists.titulo.toUpperCase()} adicionado ao empréstimo.`,
+      );
+
+      if (booksId.length === 5) {
+        this.display(
+          `Atingido a quantidade máxima de 5 livros por empréstimo.`,
+        );
+        break;
+      }
+
+      const confirmationAddBook = await this.confirmAction(
+        'adicionar novo livro para este empréstimo',
+        'Continuando...',
+      );
+      if (!confirmationAddBook) {
+        break;
       }
     }
+
+    // const borrowOrError = await this.borrowSrv
+    // .search(borrowDto.id)
+    // .catch((error: unknown) => error as Error)
+
+    // if (bookOrError instanceof Error) {
+    //   this.reportTechnicalError(bookOrError)
+    //   await this.prompt('Pressione ENTER para sair...')
+    //   return
+    // }
+
+    // if (bookOrError) {
+    //   this.display(`Livro já cadastrado!`);
+    //   return
+    // }
+
+    if (booksId.length === 0) {
+      this.display('O empréstimo deve possuir ao menos um livro!');
+      return;
+    }
+
+    const confirmationCreate = await this.confirmAction(
+      'gravar o empréstimo',
+      'Operação cancelada pelo usuário.',
+    );
+    if (!confirmationCreate) {
+      return;
+    }
+
+    const borrowCreated = await this.borrowSrv.createBorrow(
+      { cliente_id: borrowDto.cliente_id },
+      booksId,
+      Number(this.userId),
+    );
+
+    if (!borrowCreated) {
+      return;
+    }
+
+    this.display(`\nEmpréstimo cadastrado com sucesso!`);
+  }
+
+  private async cancelBorrow(): Promise<void> {
+    this.display('Cancelamento de empréstimo...');
+
+    this.display('\nPesquisando por Empréstimo...');
+
+    const id = await this.prompt('Informe o ID do empréstimo: ');
+    const borrowById = await this.borrowSrv.findBorrowById(Number(id));
+
+    if (!borrowById) {
+      return;
+    }
+
+    this.display('--------');
+    this.display(
+      `Empréstimo ID: #${borrowById.id} Data empréstimo: ${formatDate(borrowById.data_emprestimo)}`,
+    );
+    this.display(
+      `Cliente: #${borrowById.cliente_id}: ${borrowById.cliente_nome.toUpperCase()}\n`,
+    );
+    this.display('Livro(s):');
+
+    borrowById.livros.forEach((livro) => {
+      this.display(
+        `#${String(livro.id)} - ${livro.codigo}: ${livro.titulo.toUpperCase()}`,
+      );
+      this.display(
+        `Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}`,
+      );
+      this.display(
+        `Editora: ${livro.editora} • ${livro.edicao} • ${String(livro.ano_publicacao)} • ISBN: ${livro.isbn} `,
+      );
+      this.display(
+        `Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Devolução: ${livro.data_devolucao ? formatDate(livro.data_devolucao) : '- '}`,
+      );
+      this.display(`Status: ${livro.status}\n`);
+    });
+
+    this.display('');
+
+    const canCancelBorrow = await this.borrowSrv.canCancelBorrow(borrowById.id);
+    if (!canCancelBorrow) {
+      return;
+    }
+
+    const confirmationCancelBorrow = await this.confirmAction(
+      'cancelar todo o empréstimo, mesmo sendo ação irreversível',
+      'Operação cancelada pelo usuário.',
+    );
+    if (!confirmationCancelBorrow) {
+      return;
+    }
+
+    const borrowCanceled = await this.borrowSrv.cancelBorrow(borrowById.id);
+
+    if (!borrowCanceled) {
+      return;
+    }
+
+    this.display(`\nEmpréstimo cancelado com sucesso!`);
+  }
+
+  private async deleteBorrow(): Promise<void> {
+    this.display('Registrando devolução...');
+
+    this.display('\nPesquisando por Empréstimo...');
+
+    const returnId = await this.prompt('Informe o ID do empréstimo: ');
+    const returnById = await this.borrowSrv.findBorrowById(Number(returnId));
+
+    if (!returnById) {
+      return;
+    }
+
+    this.display('----------');
+    this.display(
+      `Empréstimo ID: #${returnById.id} Data empréstimo: ${formatDate(returnById.data_emprestimo)}`,
+    );
+    this.display(
+      `Cliente: #${returnById.cliente_id}: ${returnById.cliente_nome.toUpperCase()}\n`,
+    );
+    this.display('Livro(s):');
+
+    returnById.livros.forEach((livro) => {
+      this.display(
+        `#${String(livro.id)} - ${livro.codigo}: ${livro.titulo.toUpperCase()}`,
+      );
+      this.display(
+        `Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}`,
+      );
+      this.display(
+        `Editora: ${livro.editora} • ${livro.edicao} • ${String(livro.ano_publicacao)} • ISBN: ${livro.isbn}`,
+      );
+      this.display(
+        `Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Devolução: ${livro.data_devolucao ? formatDate(livro.data_devolucao) : '- '}`,
+      );
+      this.display(`Status: ${livro.status}\n`);
+    });
+
+    this.display('');
+
+    const canReturnBorrow = await this.borrowSrv.canReturnBorrow(returnById.id);
+    if (!canReturnBorrow) {
+      return;
+    }
+
+    this.display(
+      `\nATENÇÃO! Confira os livros recebidos antes de finalizar a devolução!`,
+    );
+    const confirmationReturnBorrow = await this.confirmAction(
+      'devolver todos os livros deste empréstimo',
+      'Operação cancelada pelo usuário.',
+    );
+    if (!confirmationReturnBorrow) {
+      return;
+    }
+
+    const borrowReturned = await this.borrowSrv.cancelBorrow(returnById.id);
+
+    if (!borrowReturned) {
+      return;
+    }
+
+    this.display(`\nDevolução dos livros realizada com sucesso!`);
+  }
+
+  protected async update() {
+    while (true) {
+      this.display('');
+      this.display(
+        '____________________________________________________________',
+      );
+      this.display('                EMPRÉSTIMOS             ');
+      this.display(
+        '____________________________________________________________\n',
+      );
+      this.display(' Informe o número da opção desejada:');
+      this.display(' 1. Listar empréstimos em aberto');
+      this.display(' 2. Buscar empréstimos'); //Livro ou cliente
+      this.display(' 3. Realizar empréstimo');
+      this.display(' 4. Cancelar empréstimo');
+      this.display(' 5. Registrar devolução');
+      this.display(' 0. VOLTAR AO MENU PRINCIPAL');
+      this.display(
+        '____________________________________________________________\n',
+      );
+
+      const optionSelected = await this.prompt('Opção: ');
+
+      switch (optionSelected) {
+        case '1':
+          await this.findActiveBorrow();
+          break;
+
+        case '2':
+          await this.findAllBorrows();
+          break;
+
+        case '3':
+          await this.createBorrow();
+
+          break;
+
+        case '4':
+          await this.cancelBorrow();
+
+          break;
+
+        case '5':
+          await this.deleteBorrow();
+
+          break;
+
+        case '0':
+          this.display('Voltando ao menu principal...');
+          return;
+        default:
+          this.display(
+            'Opção inválida. Por favor, selecione uma opção válida.',
+          );
+          break;
+      }
+    }
+  }
 }

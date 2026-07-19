@@ -1,4 +1,4 @@
-import { Municipio } from "../../domain/municipio";
+import { Municipio } from '../../domain/municipio';
 
 export interface MunicipioRepository {
   findMunicipalityByName(name: string): Promise<Municipio[]>;

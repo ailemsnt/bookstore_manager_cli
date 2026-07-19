@@ -14,8 +14,8 @@ export interface Cliente {
 }
 
 export interface ClienteUpdate {
-  id: number
-  nome: string;  
+  id: number;
+  nome: string;
   endereco: string;
   cep: string;
   numero: string;
@@ -48,4 +48,4 @@ export interface ClienteUpdate extends ClienteInput {
   id: number;
 }
 
-export type ClienteCreate = Omit<Cliente, "id">;
+export type ClienteCreate = Omit<Cliente, 'id'>;
