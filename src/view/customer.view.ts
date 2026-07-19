@@ -132,7 +132,17 @@ export class CustomerView extends ConsoleView {
     const idUpdate = await this.prompt(
       'Informe o ID do cliente a ser atualizado:',
     );
-    await this.customerSrv.findCustomerById(Number(idUpdate));
+    const customerFound = await this.customerSrv.findCustomerById(Number(idUpdate));
+
+    if (!customerFound) {
+      return;
+    }
+
+    const customerActive = await this.customerSrv.isCustomerActiveOrDeleted(Number(idUpdate));
+
+    if (!customerActive) {
+      return;
+    }
 
     const customerUpdateDto = await this.promptInteractiveForm(
       'Informe os dados do cliente a serem alterados: ',
@@ -166,7 +176,7 @@ export class CustomerView extends ConsoleView {
       municipio_id: customerUpdateDto.municipio_id,
       telefone: customerUpdateDto.telefone,
       email: customerUpdateDto.email,
-      ativo: formatInChar(customerUpdateDto.ativo)
+      ativo: customerUpdateDto.ativo
     });
 
     this.display(
@@ -188,6 +198,12 @@ export class CustomerView extends ConsoleView {
       Number(idDelete),
     );
     if (!canDelete) {
+      return;
+    }
+
+    const customerActive = await this.customerSrv.isCustomerActiveOrDeleted(Number(idDelete));
+
+    if (!customerActive) {
       return;
     }
 

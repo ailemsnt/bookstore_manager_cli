@@ -1,9 +1,8 @@
 import {
   Cliente,
-  ClienteUpdate,
 } from '../domain/customer';
 import { ClienteRepository } from '../infra/repositories/cliente.repository';
-import { CustomerFormDto } from '../view/dto/customer-form.dto';
+import { CustomerFormDto, CustomerUpdateDto } from '../view/dto/customer-form.dto';
 import { CustomerListDto } from '../view/dto/customer-list.dto';
 
 export class CustomerService {
@@ -62,7 +61,7 @@ export class CustomerService {
     return customer;
   }
 
-  async updateCustomer(customer: ClienteUpdate): Promise<Cliente> {
+  async updateCustomer(customer: CustomerUpdateDto): Promise<Cliente> {
     const updatedCustomer = await this.repository.updateCustomer(customer);
     if (!updatedCustomer) {
       throw new Error('Erro ao atualizar cliente');

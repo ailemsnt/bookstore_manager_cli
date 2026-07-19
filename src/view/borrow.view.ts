@@ -330,6 +330,12 @@ export class BorrowView extends ConsoleView {
       return;
     }
 
+    const customerActive = await this.customerSrv.isCustomerActiveOrDeleted(borrowDto.cliente_id);
+
+    if (!customerActive) {
+      return;
+    }
+
     const booksId: number[] = [];
 
     while (true) {
@@ -482,6 +488,12 @@ export class BorrowView extends ConsoleView {
     const returnById = await this.borrowSrv.findBorrowById(Number(returnId));
 
     if (!returnById) {
+      return;
+    }
+
+    const customerActive = await this.customerSrv.isCustomerActiveOrDeleted(returnById.cliente_id);
+
+    if (!customerActive) {
       return;
     }
 

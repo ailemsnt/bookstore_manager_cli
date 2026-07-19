@@ -2,7 +2,7 @@ import {
   Cliente,
   ClienteUpdate,
 } from '../../domain/customer';
-import { CustomerFormDto } from '../../view/dto/customer-form.dto';
+import { CustomerFormDto, CustomerUpdateDto } from '../../view/dto/customer-form.dto';
 import { CustomerListDto } from '../../view/dto/customer-list.dto';
 
 export interface ClienteRepository {
@@ -16,7 +16,7 @@ export interface ClienteRepository {
 
   createCustomer(customer: CustomerFormDto): Promise<Cliente>;
 
-  updateCustomer(book: ClienteUpdate): Promise<Cliente>;
+  updateCustomer(book: CustomerUpdateDto): Promise<Cliente>;
 
   deleteCustomer(id: number): Promise<boolean>;
 
