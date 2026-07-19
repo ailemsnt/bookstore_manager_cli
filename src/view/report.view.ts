@@ -241,12 +241,9 @@ export class ReportView extends ConsoleView {
       return;
     }
 
-    listCustomerBorrow.forEach((borrow, index) => {
-      if (index > 0) {
-        this.display('----------');
-      }
+    listCustomerBorrow.forEach((borrow, index) => {      
       this.display(
-        `Cliente: #${String(borrow.cliente_id)}: ${borrow.cliente_nome.toUpperCase()}`,
+        `\nCliente: #${String(borrow.cliente_id)}: ${borrow.cliente_nome.toUpperCase()}`,
       );
 
       borrow.livros.forEach((livro) => {
@@ -267,7 +264,7 @@ export class ReportView extends ConsoleView {
 
       this.display('----------------------------------------');
       this.display(
-        `   TOTAL: ${String(listCustomerBorrow.length)} livro(s) emprestado(s)`,
+        `   TOTAL: ${String(borrow.livros.length)} livro(s) emprestado(s)`,
       );
       this.display(
         '--------------------------------------------------------------------------------',

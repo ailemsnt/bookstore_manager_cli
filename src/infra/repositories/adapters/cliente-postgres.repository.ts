@@ -228,14 +228,12 @@ export class ClientePostgresRepository implements ClienteRepository {
   //   return row;
   // }
 
-  async deleteCustomer(id: number): Promise<void> {
-    await this.pool.query(
+  async deleteCustomer(id: number): Promise<boolean> {
+    const result = await this.pool.query(
       'UPDATE cliente SET deleted_at = NOW() WHERE id = $1',
       [id],
     );
-    // if (result.rowCount === 0) {
-    //   throw new Error(`Autor com id ${id} não encontrado`);
-    // }
+    return (result.rowCount ?? 0) > 0;
   }
 
   async canDeleteCustomer(id: number): Promise<boolean> {

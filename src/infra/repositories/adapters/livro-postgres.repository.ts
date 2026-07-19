@@ -284,11 +284,12 @@ export class LivroPostgresRepository implements LivroRepository {
     }
   }
 
-  async deleteBook(id: number): Promise<void> {
-    await this.pool.query(
+  async deleteBook(id: number): Promise<boolean> {
+    const result = await this.pool.query(
       'UPDATE livro SET deleted_at = NOW() WHERE id = $1',
       [id],
     );
+    return (result.rowCount ?? 0) > 0;
   }
 
   async canDeleteBook(id: number): Promise<boolean> {

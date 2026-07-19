@@ -111,7 +111,7 @@ export class BookService {
     return updatedBook;
   }
 
-  async deleteBook(id: number): Promise<void> {
+  async deleteBook(id: number): Promise<boolean> {
     return this.repository.deleteBook(id);
   }
 

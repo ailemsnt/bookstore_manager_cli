@@ -37,7 +37,7 @@ export class CustomerService {
   async findAllCustomers(): Promise<CustomerListDto[]> {
     const customers = await this.repository.findAllCustomers();
     if (customers.length === 0) {
-      throw new Error('Nenhum livro encontrado');
+      throw new Error('Nenhum cliente encontrado');
     }
     return customers;
   }
@@ -58,8 +58,12 @@ export class CustomerService {
     return updatedCustomer;
   }
 
-  async deleteCustomer(id: number): Promise<void> {
-    return this.repository.deleteCustomer(id);
+  async deleteCustomer(id: number): Promise<boolean> {
+    const costumerDeleted = this.repository.deleteCustomer(id);
+    if (!costumerDeleted) {
+      throw new Error('Erro ao excluir o cliente');
+    }
+    return costumerDeleted;
   }
 
   async canDeleteCustomer(id: number): Promise<boolean> {
