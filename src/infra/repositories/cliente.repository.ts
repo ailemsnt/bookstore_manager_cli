@@ -1,12 +1,16 @@
-import { Cliente, ClienteDetalhe, ClienteInput, ClienteUpdate } from "../../domain/customer";
-import { CustomerListDto } from "../../view/dto/customer-list.dto";
+import {
+  Cliente,
+  ClienteInput,
+  ClienteUpdate,
+} from '../../domain/customer';
+import { CustomerListDto } from '../../view/dto/customer-list.dto';
 
 export interface ClienteRepository {
   findCustomerByName(title: string): Promise<CustomerListDto[]>;
-  
+
   findCustomerById(id: number): Promise<CustomerListDto | null>;
 
-  findCustomerByCpf(name: string): Promise<CustomerListDto |null>;
+  findCustomerByCpf(name: string): Promise<CustomerListDto | null>;
 
   findAllCustomers(): Promise<CustomerListDto[]>;
 

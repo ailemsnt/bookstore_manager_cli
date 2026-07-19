@@ -1,5 +1,5 @@
-import 'dotenv/config'
-import { Pool } from "pg";
+import 'dotenv/config';
+import { Pool } from 'pg';
 
 export const pool = new Pool({
   user: process.env.DB_USER,
@@ -11,13 +11,13 @@ export const pool = new Pool({
   min: 2,
 });
 
-pool.on("error", (err, client) => {
-  console.error("Unexpected error on idle client", err);
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err);
   process.exit(-1);
 });
 
 export async function initDatabase() {
-  console.log("Iniciando banco de dados...");
-  await pool.query("SELECT 1");
-  console.log("Banco de dados iniciado com sucesso!");
+  console.log('Iniciando banco de dados...');
+  await pool.query('SELECT 1');
+  console.log('Banco de dados iniciado com sucesso!');
 }

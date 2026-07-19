@@ -1,10 +1,10 @@
-import { Pool } from "pg";
-import { Emprestimo, EmprestimoRetorno } from "../../../domain/emprestimo";
-import { EmprestimoRepository } from "../emprestimo.repository";
-import { BorrowDto } from "../../../view/dto/borrow-list.dto";
-import { BorrowFilterDto } from "../../../view/dto/borrow-filter.dto";
-import { BorrowFormDto } from "../../../view/dto/borrow-form.dto";
-import { getStatusBorrowBook } from "../../../view/utils/view-utils";
+import { Pool } from 'pg';
+import { Emprestimo, EmprestimoRetorno } from '../../../domain/emprestimo';
+import { EmprestimoRepository } from '../emprestimo.repository';
+import { BorrowDto } from '../../../view/dto/borrow-list.dto';
+import { BorrowFilterDto } from '../../../view/dto/borrow-filter.dto';
+import { BorrowFormDto } from '../../../view/dto/borrow-form.dto';
+import { getStatusBorrowBook } from '../../../view/utils/view-utils';
 
 const sqlSelect = `SELECT e.id as emprestimo_id, e.cliente_id, e.data_emprestimo,
     e.canceled_at, c.nome as nome_cliente,  c.cpf,
@@ -19,19 +19,18 @@ INNER JOIN livro l on l.id = el.livro_id
 INNER JOIN livro_autor la on la.livro_id = l.id
 INNER JOIN autor a on a.id = la.autor_id `;
 
-
-function createConditionByStatus(status?: number) : string {
+function createConditionByStatus(status?: number): string {
   switch (status) {
-    case 0: //0 - todos exceto os cancelados 
-      return ' AND (e.canceled_at IS NULL)'; 
+    case 0: //0 - todos exceto os cancelados
+      return ' AND (e.canceled_at IS NULL)';
     case 1: //1 - em aberto
       return ' AND (el.data_devolucao IS NULL) AND (e.canceled_at IS NULL)';
     case 2: //2 - cancelado
       return ' AND (e.canceled_at IS NOT NULL)';
     case 3: //3 - devolvido
-      return ' AND (el.data_devolucao IS NOT NULL) AND (e.canceled_at IS NULL)'; 
+      return ' AND (el.data_devolucao IS NOT NULL) AND (e.canceled_at IS NULL)';
     case 4: //4 - atrasado
-      return ' AND ((el.data_devolucao IS NULL) AND (DATE(el.data_prevista_devolucao) < CURRENT_DATE)) AND (e.canceled_at IS NULL)';           
+      return ' AND ((el.data_devolucao IS NULL) AND (DATE(el.data_prevista_devolucao) < CURRENT_DATE)) AND (e.canceled_at IS NULL)';
     default:
       return ' '; //todos
   }
@@ -39,11 +38,11 @@ function createConditionByStatus(status?: number) : string {
 export class EmprestimoPostgresRepository implements EmprestimoRepository {
   constructor(private readonly pool: Pool) {}
 
-  async findBorrowById(id: number): Promise<BorrowDto | null>{
+  async findBorrowById(id: number): Promise<BorrowDto | null> {
     const result = await this.pool.query(
       `${sqlSelect} 
       WHERE e.id = $1 AND ((c.deleted_at is null) and (l.deleted_at is null))      
-      ORDER BY e.data_emprestimo DESC`, 
+      ORDER BY e.data_emprestimo DESC`,
       [id],
     );
 
@@ -51,86 +50,99 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
       return null;
     }
 
-    const borrows = result.rows.reduce<Map<number, BorrowDto>>(
-      (acc, row) => {
-        const borrow = acc.get(row.emprestimo_id);
+    const borrows = result.rows.reduce<Map<number, BorrowDto>>((acc, row) => {
+      const borrow = acc.get(row.emprestimo_id);
 
-        if (!borrow) {
-          acc.set(row.emprestimo_id, {
-            id: row.emprestimo_id, 
-            cliente_id: row.cliente_id,
-            cliente_nome: row.nome_cliente,
-            data_emprestimo: row.data_emprestimo,
-            canceled_at: row.data_cancelamento,
-            livros: [
-              {
-                id: row.livro_id,
-                codigo: row.codigo,
-                titulo: row.titulo,
-                edicao: row.edicao,
-                editora: row.editora,
-                ano_publicacao: row.ano_publicacao,
-                isbn: row.isbn,
-                data_prevista_devolucao: row.data_prevista_devolucao,
-                data_devolucao: row.data_devolucao,
-                autores: [
-                  {
-                    id: row.autor_id,
-                    nome: row.nome_autor
-                  }
-                ],
-                status: getStatusBorrowBook(row.data_prevista_devolucao, row.data_devolucao, row.data_cancelamento)
-              }
-            ],           
-          });
-          return acc;
-        }
+      if (!borrow) {
+        acc.set(row.emprestimo_id, {
+          id: row.emprestimo_id,
+          cliente_id: row.cliente_id,
+          cliente_nome: row.nome_cliente,
+          data_emprestimo: row.data_emprestimo,
+          canceled_at: row.data_cancelamento,
+          livros: [
+            {
+              id: row.livro_id,
+              codigo: row.codigo,
+              titulo: row.titulo,
+              edicao: row.edicao,
+              editora: row.editora,
+              ano_publicacao: row.ano_publicacao,
+              isbn: row.isbn,
+              data_prevista_devolucao: row.data_prevista_devolucao,
+              data_devolucao: row.data_devolucao,
+              autores: [
+                {
+                  id: row.autor_id,
+                  nome: row.nome_autor,
+                },
+              ],
+              status: getStatusBorrowBook(
+                row.data_prevista_devolucao,
+                row.data_devolucao,
+                row.data_cancelamento,
+              ),
+            },
+          ],
+        });
+        return acc;
+      }
 
-        const bookExists = borrow.livros.find((livro) => livro.id === row.livro_id);
-        if (!bookExists) {        
-          borrow.livros.push({
-            id: row.livro_id,
-            codigo: row.codigo,
-            titulo: row.titulo,
-            editora: row.editora,
-            edicao: row.edicao,
-            ano_publicacao: row.ano_publicacao,
-            isbn: row.isbn,
-            data_prevista_devolucao: row.data_prevista_devolucao,
-            data_devolucao: row.data_devolucao,
-            autores: [
-              {
-                id: row.autor_id,
-                nome: row.nome_autor,
-              }
-            ],
-            status: getStatusBorrowBook(row.data_prevista_devolucao, row.data_devolucao, borrow.canceled_at) 
-          });
-        }
-
-        if (bookExists) {
-          const authorExists = bookExists.autores.some((autor) => autor.id === row.autor_id);
-          if (!authorExists) {
-            bookExists.autores.push({
+      const bookExists = borrow.livros.find(
+        (livro) => livro.id === row.livro_id,
+      );
+      if (!bookExists) {
+        borrow.livros.push({
+          id: row.livro_id,
+          codigo: row.codigo,
+          titulo: row.titulo,
+          editora: row.editora,
+          edicao: row.edicao,
+          ano_publicacao: row.ano_publicacao,
+          isbn: row.isbn,
+          data_prevista_devolucao: row.data_prevista_devolucao,
+          data_devolucao: row.data_devolucao,
+          autores: [
+            {
               id: row.autor_id,
               nome: row.nome_autor,
-            });
-          }
-        }
+            },
+          ],
+          status: getStatusBorrowBook(
+            row.data_prevista_devolucao,
+            row.data_devolucao,
+            borrow.canceled_at,
+          ),
+        });
+      }
 
-        return acc;
-      },
-      new Map<number, BorrowDto>(),
-    );
+      if (bookExists) {
+        const authorExists = bookExists.autores.some(
+          (autor) => autor.id === row.autor_id,
+        );
+        if (!authorExists) {
+          bookExists.autores.push({
+            id: row.autor_id,
+            nome: row.nome_autor,
+          });
+        }
+      }
+
+      return acc;
+    }, new Map<number, BorrowDto>());
 
     return borrows.values().next().value ?? null;
   }
 
-  async findBorrowFilter(filters : BorrowFilterDto): Promise<Emprestimo[]> {
-    const params: (number)[] = [];
-    const sqlWhereStatus = createConditionByStatus(filters.status);   
-    const sqlWhereCustomer = filters.clienteId ? ` AND e.cliente_id = $${params.push(filters.clienteId)}`: ''; 
-    const sqlWhereBook = filters.livroId ? ` AND l.id = $${params.push(filters.livroId)}`: '';
+  async findBorrowFilter(filters: BorrowFilterDto): Promise<Emprestimo[]> {
+    const params: number[] = [];
+    const sqlWhereStatus = createConditionByStatus(filters.status);
+    const sqlWhereCustomer = filters.clienteId
+      ? ` AND e.cliente_id = $${params.push(filters.clienteId)}`
+      : '';
+    const sqlWhereBook = filters.livroId
+      ? ` AND l.id = $${params.push(filters.livroId)}`
+      : '';
 
     const result = await this.pool.query(
       `${sqlSelect} 
@@ -139,7 +151,7 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
       ${sqlWhereCustomer}
       ${sqlWhereBook}
       ORDER BY e.data_emprestimo DESC`,
-      params
+      params,
     );
 
     if (result.rowCount === 0) {
@@ -152,7 +164,7 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
 
         if (!borrow) {
           acc[row.emprestimo_id] = {
-            id: row.emprestimo_id, 
+            id: row.emprestimo_id,
             cliente_id: row.cliente_id,
             cliente_nome: row.nome_cliente,
             data_emprestimo: row.data_emprestimo,
@@ -171,18 +183,24 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
                 autores: [
                   {
                     id: row.autor_id,
-                    nome: row.nome_autor
-                  }
+                    nome: row.nome_autor,
+                  },
                 ],
-                status: getStatusBorrowBook(row.data_prevista_devolucao, row.data_devolucao, row.data_cancelamento)
-              }
-            ],           
+                status: getStatusBorrowBook(
+                  row.data_prevista_devolucao,
+                  row.data_devolucao,
+                  row.data_cancelamento,
+                ),
+              },
+            ],
           };
           return acc;
         }
 
-        const bookExists = borrow.livros.find((livro) => livro.id === row.livro_id);
-        if (!bookExists) {        
+        const bookExists = borrow.livros.find(
+          (livro) => livro.id === row.livro_id,
+        );
+        if (!bookExists) {
           borrow.livros.push({
             id: row.livro_id,
             codigo: row.codigo,
@@ -197,14 +215,20 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
               {
                 id: row.autor_id,
                 nome: row.nome_autor,
-              }
+              },
             ],
-            status: getStatusBorrowBook(row.data_prevista_devolucao, row.data_devolucao, borrow.canceled_at) 
+            status: getStatusBorrowBook(
+              row.data_prevista_devolucao,
+              row.data_devolucao,
+              borrow.canceled_at,
+            ),
           });
         }
 
         if (bookExists) {
-          const authorExists = bookExists.autores.some((autor) => autor.id === row.autor_id);
+          const authorExists = bookExists.autores.some(
+            (autor) => autor.id === row.autor_id,
+          );
           if (!authorExists) {
             bookExists.autores.push({
               id: row.autor_id,
@@ -241,7 +265,7 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
 
         if (!borrow) {
           acc[row.emprestimo_id] = {
-            id: row.emprestimo_id, 
+            id: row.emprestimo_id,
             cliente_id: row.cliente_id,
             cliente_nome: row.nome_cliente,
             data_emprestimo: row.data_emprestimo,
@@ -260,18 +284,24 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
                 autores: [
                   {
                     id: row.autor_id,
-                    nome: row.nome_autor
-                  }
+                    nome: row.nome_autor,
+                  },
                 ],
-                status: getStatusBorrowBook(row.data_prevista_devolucao, row.data_devolucao, row.data_cancelamento)
-              }
-            ],           
+                status: getStatusBorrowBook(
+                  row.data_prevista_devolucao,
+                  row.data_devolucao,
+                  row.data_cancelamento,
+                ),
+              },
+            ],
           };
           return acc;
         }
 
-        const bookExists = borrow.livros.find((livro) => livro.id === row.livro_id);
-        if (!bookExists) {        
+        const bookExists = borrow.livros.find(
+          (livro) => livro.id === row.livro_id,
+        );
+        if (!bookExists) {
           borrow.livros.push({
             id: row.livro_id,
             codigo: row.codigo,
@@ -286,14 +316,20 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
               {
                 id: row.autor_id,
                 nome: row.nome_autor,
-              }
+              },
             ],
-            status: getStatusBorrowBook(row.data_prevista_devolucao, row.data_devolucao, borrow.canceled_at) 
+            status: getStatusBorrowBook(
+              row.data_prevista_devolucao,
+              row.data_devolucao,
+              borrow.canceled_at,
+            ),
           });
         }
 
         if (bookExists) {
-          const authorExists = bookExists.autores.some((autor) => autor.id === row.autor_id);
+          const authorExists = bookExists.autores.some(
+            (autor) => autor.id === row.autor_id,
+          );
           if (!authorExists) {
             bookExists.autores.push({
               id: row.autor_id,
@@ -310,7 +346,11 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
     return Object.values(borrows);
   }
 
-  async createBorrow(borrow: BorrowFormDto, livrosId: number[], userId: number): Promise<EmprestimoRetorno | null> {
+  async createBorrow(
+    borrow: BorrowFormDto,
+    livrosId: number[],
+    userId: number,
+  ): Promise<EmprestimoRetorno | null> {
     const queryInsert = await this.pool.connect();
 
     try {
@@ -318,10 +358,10 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
       const borrowResult = await queryInsert.query(
         `INSERT INTO emprestimo (cliente_id, usuario_id) 
         VALUES ($1, $2)  RETURNING id, cliente_id `,
-        [borrow.cliente_id, userId]
+        [borrow.cliente_id, userId],
       );
 
-      const borrowRow = borrowResult.rows[0];      
+      const borrowRow = borrowResult.rows[0];
 
       const placeholders = [];
       const params = [];
@@ -339,11 +379,10 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
       await queryInsert.query('COMMIT');
 
       return {
-        id: borrowRow.id,            
-        cliente_id: borrowRow.cliente_id
-      }
-
-    } catch(error) {
+        id: borrowRow.id,
+        cliente_id: borrowRow.cliente_id,
+      };
+    } catch (error) {
       await queryInsert.query('ROLLBACK');
       throw error;
     } finally {
@@ -353,7 +392,7 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
 
   async canBorrowBook(id: number): Promise<boolean> {
     const { rows } = await this.pool.query(
-    `SELECT EXISTS (
+      `SELECT EXISTS (
       SELECT 1
       FROM livro l
       WHERE l.id = $1
@@ -365,14 +404,15 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
             WHERE el.livro_id = l.id
               AND (el.data_devolucao IS NOT NULL))
             ) AS can_borrow`,
-      [id]);
-    
-      return (rows[0].can_borrow);
+      [id],
+    );
+
+    return rows[0].can_borrow;
   }
 
   async canReturnBorrow(id: number): Promise<boolean> {
     const { rows } = await this.pool.query(
-    `SELECT EXISTS (
+      `SELECT EXISTS (
       SELECT 1
       FROM emprestimo e
       INNER JOIN emprestimo_livro el 
@@ -381,9 +421,10 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
         AND e.canceled_at IS NULL
         AND el.data_devolucao IS NULL
       ) AS can_return;`,
-      [id]);
-    
-      return (rows[0].can_return);
+      [id],
+    );
+
+    return rows[0].can_return;
   }
 
   async canCancelBorrow(id: number): Promise<boolean> {
@@ -399,10 +440,10 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
               WHERE el.emprestimo_id = e.id
                 AND (el.data_devolucao IS NOT NULL))
               ) as can_cancel`,
-        [id]
+      [id],
     );
 
-    return (rows[0].can_cancel);
+    return rows[0].can_cancel;
   }
 
   async cancelBorrow(id: number): Promise<boolean> {
@@ -413,18 +454,17 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
 
       await queryUpdate.query(
         `UPDATE emprestimo_livro set data_devolucao = NOW() WHERE emprestimo_id = $1`,
-        [id]
+        [id],
       );
 
       const result = await queryUpdate.query(
         `UPDATE emprestimo set canceled_at = NOW() WHERE id = $1	AND canceled_at IS NULL`,
-        [id]
+        [id],
       );
 
       await queryUpdate.query('COMMIT');
 
-      return (result.rowCount !== 0);
-
+      return result.rowCount !== 0;
     } catch (error) {
       await queryUpdate.query('ROLLBACK');
       throw error;
@@ -435,9 +475,9 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
 
   async returnBorrow(id: number): Promise<boolean> {
     const { rows } = await this.pool.query(
-        `UPDATE emprestimo_livro set data_devolucao = NOW() WHERE emprestimo_id = $1`,
-        [id]
-      );
-    return (rows.length === 0);
+      `UPDATE emprestimo_livro set data_devolucao = NOW() WHERE emprestimo_id = $1`,
+      [id],
+    );
+    return rows.length === 0;
   }
 }

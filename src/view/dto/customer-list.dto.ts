@@ -1,4 +1,4 @@
-import { MunicipalityListDto } from "./municipality-list.dto";
+import { MunicipalityListDto } from './municipality-list.dto';
 export class CustomerListDto {
   constructor(
     public id: number,
@@ -12,6 +12,6 @@ export class CustomerListDto {
     public email: string,
     public ativo: number,
     public municipio: MunicipalityListDto,
-    public data_cadastro?: Date
-  ){}
+    public data_cadastro?: Date,
+  ) {}
 }

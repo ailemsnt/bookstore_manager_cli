@@ -1,4 +1,4 @@
-import { Autor } from "./autor";
+import { Autor } from './autor';
 
 export interface Livro {
   id: number;
@@ -12,7 +12,7 @@ export interface Livro {
   autores: Autor[];
 }
 export interface LivroInput {
-  id?: number,
+  id?: number;
   titulo: string;
   editora: string;
   edicao: string;
@@ -23,7 +23,7 @@ export interface LivroInput {
   autores: number[];
 }
 export interface LivroUpdate {
-  id?: number,
+  id?: number;
   titulo: string;
   editora: string;
   edicao: string;
@@ -32,5 +32,4 @@ export interface LivroUpdate {
   autores: number[];
 }
 
-
-export type LivroCreate = Omit<Livro, "id">;
+export type LivroCreate = Omit<Livro, 'id'>;

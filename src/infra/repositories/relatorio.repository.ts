@@ -1,15 +1,19 @@
-import { Livro } from "../../domain/livro";
-import { BorrowBookDto, BorrowDto } from "../../view/dto/borrow-list.dto";
-import { AuthorReportDto } from "../../view/dto/report-list.dto";
+import { BookListDto } from '../../view/dto/book-list.dto';
+import { BorrowBookDto, BorrowDto } from '../../view/dto/borrow-list.dto';
+import { AuthorReportDto } from '../../view/dto/report-list.dto';
 
 export interface RelatorioRepository {
-  listAvailableBooks (): Promise<Livro[]>;
 
-  listUnavailableBooks (): Promise<BorrowBookDto[]>;
+  listAvailableBooks(): Promise<BookListDto[]> 
 
-  listBooksByAuthor (idAuthor?: number): Promise<AuthorReportDto[]>;
-  
-  listBorrowsCountByBooks (dataIni?: Date, dataFim?: Date): Promise<BorrowBookDto[]>;
+  listUnavailableBooks(): Promise<BorrowBookDto[]>;
 
-  listCustomerBorrowBooks (idCliente?: number): Promise<BorrowDto[]>;
+  listBooksByAuthor(idAuthor?: number): Promise<AuthorReportDto[]>;
+
+  listBorrowsCountByBooks(
+    dataIni?: Date,
+    dataFim?: Date,
+  ): Promise<BorrowBookDto[]>;
+
+  listCustomerBorrowBooks(idCliente?: number): Promise<BorrowDto[]>;
 }

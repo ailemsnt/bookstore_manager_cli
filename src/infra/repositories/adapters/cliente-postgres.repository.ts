@@ -1,7 +1,7 @@
 import { ClienteInput, ClienteUpdate } from './../../../domain/customer';
-import { Pool } from "pg";
-import { Cliente } from "../../../domain/customer";
-import { ClienteRepository } from "../cliente.repository";
+import { Pool } from 'pg';
+import { Cliente } from '../../../domain/customer';
+import { ClienteRepository } from '../cliente.repository';
 import { CustomerListDto } from '../../../view/dto/customer-list.dto';
 
 const sqlSelect = `SELECT c.id, c.nome, c.cpf, c.endereco,
@@ -12,7 +12,7 @@ const sqlSelect = `SELECT c.id, c.nome, c.cpf, c.endereco,
           FROM cliente c
           INNER JOIN municipio m ON m.id = c.municipio_id
           INNER JOIN uf u on u.id = m.uf_id `;
-export class ClientePostgresRepository implements ClienteRepository{
+export class ClientePostgresRepository implements ClienteRepository {
   constructor(private readonly pool: Pool) {}
 
   async findCustomerByName(name: string): Promise<CustomerListDto[]> {
@@ -27,8 +27,7 @@ export class ClientePostgresRepository implements ClienteRepository{
       return [];
     }
 
-    const customers = result.rows.map(
-      (row): CustomerListDto => ({        
+    const customers = result.rows.map((row): CustomerListDto => ({
       id: row.id,
       nome: row.nome,
       cpf: row.cpf,
@@ -45,14 +44,14 @@ export class ClientePostgresRepository implements ClienteRepository{
         nome: row.municipio_nome,
         uf: {
           id: row.uf_id,
-          uf_sigla: row.uf_sigla
-        },                  
-      },            
+          uf_sigla: row.uf_sigla,
+        },
+      },
     }));
 
     return customers;
   }
-  
+
   async findCustomerById(id: number): Promise<CustomerListDto | null> {
     const result = await this.pool.query(
       `${sqlSelect} 
@@ -65,7 +64,7 @@ export class ClientePostgresRepository implements ClienteRepository{
     }
 
     const row = result.rows[0];
-    return{        
+    return {
       id: row.id,
       nome: row.nome,
       cpf: row.cpf,
@@ -82,9 +81,9 @@ export class ClientePostgresRepository implements ClienteRepository{
         nome: row.municipio_nome,
         uf: {
           id: row.uf_id,
-          uf_sigla: row.uf_sigla
-        },                  
-      },            
+          uf_sigla: row.uf_sigla,
+        },
+      },
     };
   }
 
@@ -100,7 +99,7 @@ export class ClientePostgresRepository implements ClienteRepository{
     }
 
     const row = result.rows[0];
-    return{        
+    return {
       id: row.id,
       nome: row.nome,
       cpf: row.cpf,
@@ -117,9 +116,9 @@ export class ClientePostgresRepository implements ClienteRepository{
         nome: row.municipio_nome,
         uf: {
           id: row.uf_id,
-          uf_sigla: row.uf_sigla
-        },                  
-      },            
+          uf_sigla: row.uf_sigla,
+        },
+      },
     };
   }
 
@@ -127,14 +126,14 @@ export class ClientePostgresRepository implements ClienteRepository{
     const result = await this.pool.query(
       `${sqlSelect} 
           WHERE c.deleted_at is null 
-          ORDER BY c.nome ASC`);
-    
+          ORDER BY c.nome ASC`,
+    );
+
     if (result.rowCount === 0) {
       return [];
     }
 
-    const customers = result.rows.map(
-      (row): CustomerListDto => ({        
+    const customers = result.rows.map((row): CustomerListDto => ({
       id: row.id,
       nome: row.nome,
       cpf: row.cpf,
@@ -151,12 +150,12 @@ export class ClientePostgresRepository implements ClienteRepository{
         nome: row.municipio_nome,
         uf: {
           id: row.uf_id,
-          uf_sigla: row.uf_sigla
-        },                  
-      },            
+          uf_sigla: row.uf_sigla,
+        },
+      },
     }));
 
-    return customers;     
+    return customers;
   }
 
   async createCustomer(customer: ClienteInput): Promise<Cliente> {
@@ -165,12 +164,23 @@ export class ClientePostgresRepository implements ClienteRepository{
     } = await this.pool.query<Cliente>(
       `INSERT INTO cliente (nome, cpf, endereco, cep, numero, bairro, municipio_id, telefone, email, ativo) 
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)  RETURNING *`,
-      [customer.nome, customer.cpf, customer.endereco, customer.cep, customer.numero, customer.bairro, customer.municipio_id, customer.telefone, customer.email, customer.ativo]
+      [
+        customer.nome,
+        customer.cpf,
+        customer.endereco,
+        customer.cep,
+        customer.numero,
+        customer.bairro,
+        customer.municipio_id,
+        customer.telefone,
+        customer.email,
+        customer.ativo,
+      ],
     );
 
     return row;
   }
-  
+
   async updateCustomer(customer: ClienteUpdate): Promise<Cliente> {
     const {
       rows: [row],
@@ -191,7 +201,18 @@ export class ClientePostgresRepository implements ClienteRepository{
         AND deleted_at IS NULL
 
         RETURNING *`,
-      [customer.nome, customer.endereco, customer.cep, customer.numero, customer.bairro, customer.municipio_id, customer.telefone, customer.email, customer.ativo, customer.id],
+      [
+        customer.nome,
+        customer.endereco,
+        customer.cep,
+        customer.numero,
+        customer.bairro,
+        customer.municipio_id,
+        customer.telefone,
+        customer.email,
+        customer.ativo,
+        customer.id,
+      ],
     );
 
     return row;
@@ -208,7 +229,10 @@ export class ClientePostgresRepository implements ClienteRepository{
   // }
 
   async deleteCustomer(id: number): Promise<void> {
-    await this.pool.query("UPDATE cliente SET deleted_at = NOW() WHERE id = $1", [id]);    
+    await this.pool.query(
+      'UPDATE cliente SET deleted_at = NOW() WHERE id = $1',
+      [id],
+    );
     // if (result.rowCount === 0) {
     //   throw new Error(`Autor com id ${id} não encontrado`);
     // }
@@ -221,10 +245,9 @@ export class ClientePostgresRepository implements ClienteRepository{
       FROM cliente c
       LEFT JOIN emprestimo e ON e.cliente_id = c.id
       WHERE c.id = $1 AND (c.deleted_at IS NOT NULL OR c.ativo <> 1 OR e.id IS NOT NULL)) AS can_delete`,
-        [id]
+      [id],
     );
 
-    return (rows[0].can_delete);
-  } 
-
+    return rows[0].can_delete;
+  }
 }

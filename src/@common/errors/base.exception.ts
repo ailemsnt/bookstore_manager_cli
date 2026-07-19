@@ -2,12 +2,12 @@
   | string
   | Record<string | number | symbol, unknown>
   | Record<string | number | symbol, unknown>[] */
-export type ErrorCause = unknown
+export type ErrorCause = unknown;
 
 export interface BaseExceptionConstructorOptions {
-  code?: string
-  cause: ErrorCause
-  messagePrefix?: string
+  code?: string;
+  cause: ErrorCause;
+  messagePrefix?: string;
 }
 
 /**
@@ -17,61 +17,61 @@ export interface BaseExceptionConstructorOptions {
  *
  */
 export class BaseException extends Error {
-  protected code?: string
+  protected code?: string;
 
   constructor(options?: BaseExceptionConstructorOptions) {
-    super()
-    this.name = this.constructor.name
+    super();
+    this.name = this.constructor.name;
     if (!options) {
-      return this
+      return this;
     }
 
-    this.code = options.code
+    this.code = options.code;
 
     if (options.cause instanceof Error) {
-      this.stack = options.cause.stack
+      this.stack = options.cause.stack;
     }
 
-    this.message = `${options.messagePrefix ?? ''}${BaseException.formatCause(options.cause)}`
+    this.message = `${options.messagePrefix ?? ''}${BaseException.formatCause(options.cause)}`;
   }
 
   protected static formatCause(cause: ErrorCause): string {
     if (typeof cause === 'string') {
-      return cause
+      return cause;
     }
 
     if (cause instanceof Error) {
-      return `Cause - ${cause.name}: ${cause.message}`
+      return `Cause - ${cause.name}: ${cause.message}`;
     }
 
     try {
-      return JSON.stringify(cause, null, 2)
+      return JSON.stringify(cause, null, 2);
     } catch {
-      return 'unidentifiable cause'
+      return 'unidentifiable cause';
     }
   }
 
   static isError(error: unknown): error is BaseException {
-    return error instanceof BaseException
+    return error instanceof BaseException;
   }
 
   static fromError(
     error: Error,
-    options?: Omit<BaseExceptionConstructorOptions, 'cause'>
+    options?: Omit<BaseExceptionConstructorOptions, 'cause'>,
   ) {
     return new BaseException({
       cause: error,
-      ...options
-    })
+      ...options,
+    });
   }
 
   static fromUnknown(
     unknown: unknown,
-    options?: Omit<BaseExceptionConstructorOptions, 'cause'>
+    options?: Omit<BaseExceptionConstructorOptions, 'cause'>,
   ) {
     return new BaseException({
       cause: unknown,
-      ...options
-    })
+      ...options,
+    });
   }
 }

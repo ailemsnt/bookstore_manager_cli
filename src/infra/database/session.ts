@@ -1,4 +1,4 @@
-import { Usuario } from "../../domain/usuario";
+import { Usuario } from '../../domain/usuario';
 
 export class Session {
   static currentUser: Usuario | null = null;

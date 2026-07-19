@@ -1,5 +1,5 @@
-import { Livro, LivroInput } from "../../domain/livro";
-import { BookListDto } from "../../view/dto/book-list.dto";
+import { Livro } from '../../domain/livro';
+import { BookListDto } from '../../view/dto/book-list.dto';
 
 export interface LivroRepository {
   findBookByTitle(title: string): Promise<BookListDto[]>;
@@ -8,9 +8,12 @@ export interface LivroRepository {
 
   findAllBooks(): Promise<Livro[]>;
 
-  findBookByInternalCodeIsbn(internalCode: string, isbn: number): Promise<Livro |null>;
+  findBookByInternalCodeIsbn(
+    internalCode: string,
+    isbn: number,
+  ): Promise<Livro | null>;
 
-  createBook(book: Omit<Livro, "id">): Promise<Livro | null> ;
+  createBook(book: Omit<Livro, 'id'>): Promise<Livro | null>;
 
   updateBook(book: Livro): Promise<Livro>;
 

@@ -1,5 +1,5 @@
 export class BorrowFilterDto {
-  constructor (
+  constructor(
     public status?: number,
     public clienteId?: number,
     public livroId?: number,
