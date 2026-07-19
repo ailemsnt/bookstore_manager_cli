@@ -1,42 +1,52 @@
 import { getCurrentDate } from '../../@common/utils/common.utils';
+import { EmprestimoStatus } from '../../domain/emprestimo';
 
 export function getStatusBorrowBook(
   dueAt: Date,
   returnedAt?: Date,
   canceledBorrowAt?: Date,
-): string {
+): EmprestimoStatus {
+  if (canceledBorrowAt) {
+    return EmprestimoStatus.CANCELADO;
+  }
+
+  if (returnedAt) {  
+    return EmprestimoStatus.DEVOLVIDO;
+  }
   const currentDate = getCurrentDate();
   currentDate.setHours(0, 0, 0, 0);
 
   const expectedReturnDate = new Date(dueAt);
   expectedReturnDate.setHours(0, 0, 0, 0);
 
-  if (canceledBorrowAt) {
-    return `**Empréstimo CANCELADO!**`;
+  if (expectedReturnDate < currentDate) {
+    return EmprestimoStatus.ATRASADO;
   }
 
-  if (returnedAt) {
-    const returnDate = new Date(returnedAt);
-    returnDate.setHours(0, 0, 0, 0);
-
-    const overdueDays = Math.floor(
-      (returnDate.getTime() - expectedReturnDate.getTime()) /
-        (1000 * 60 * 60 * 24),
-    );
-
-    return overdueDays > 0
-      ? `*Devolvido com ${String(overdueDays)} dia(s) de atraso*`
-      : 'Devolvido em dia';
-  }
-
-  const overdueDays = Math.floor(
-    (currentDate.getTime() - expectedReturnDate.getTime()) /
-      (1000 * 60 * 60 * 24),
-  );
-
-  return overdueDays > 0 ? `**Em atraso há ${String(overdueDays)} dia(s)**` : 'Em dia';
+  return EmprestimoStatus.ABERTO;  
 }
 
 export function cleanCpf(cpf: string): number {
   return Number(cpf.replace(/\D/g, ''));
+}
+
+export function getBorrowStatusDescription(
+  status?: EmprestimoStatus,
+): string {
+  switch (status) {
+    case EmprestimoStatus.ABERTO:
+      return 'Aberto';
+
+    case EmprestimoStatus.CANCELADO:
+      return 'CANCELADO';
+
+    case EmprestimoStatus.DEVOLVIDO:
+      return 'Devolvido';
+
+    case EmprestimoStatus.ATRASADO:
+      return '*ATRASADO*';
+
+    default:
+      return 'Não informado';
+  }
 }

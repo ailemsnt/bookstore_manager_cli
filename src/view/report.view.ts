@@ -6,6 +6,7 @@ import {
 import { ConsoleView } from '../@common/view/console.view';
 import { AuthorService } from '../services/author.service';
 import { ReportService } from '../services/report.service';
+import { getBorrowStatusDescription } from './utils/view-utils';
 
 export class ReportView extends ConsoleView {
   constructor(
@@ -96,7 +97,7 @@ export class ReportView extends ConsoleView {
         Autor(es): ${authors}
         Editora: ${book.editora} • ${book.edicao} • ${String(book.ano_publicacao)} • ISBN: ${book.isbn}
         Cliente: #${book.cliente_id} - ${book.cliente_nome}
-        Previsão devolução: ${formatDate(book.data_prevista_devolucao)} • Status: ${book.status}\n`,
+        Previsão devolução: ${formatDate(book.data_prevista_devolucao)} • Status: ${getBorrowStatusDescription(book.status)}\n`,
       );
     });
 
@@ -259,7 +260,7 @@ export class ReportView extends ConsoleView {
         this.display(
           `Empréstimo #${String(borrow.id)} • Data empréstimo: ${formatDate(borrow.data_emprestimo)} • Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)}`,
         );
-        this.display(`Status: ${livro.status}\n`);
+        this.display(`Status: ${getBorrowStatusDescription(livro.status)}\n`);
       });
 
       this.display('----------------------------------------');

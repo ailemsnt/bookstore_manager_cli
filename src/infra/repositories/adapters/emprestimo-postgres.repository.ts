@@ -1,5 +1,6 @@
+import { Devolucao } from './../../../../dist/domain/devolucao.d';
 import { Pool } from 'pg';
-import { Emprestimo, EmprestimoRetorno } from '../../../domain/emprestimo';
+import { Emprestimo, EmprestimoRetorno, EmprestimoStatus } from '../../../domain/emprestimo';
 import { EmprestimoRepository } from '../emprestimo.repository';
 import { BorrowDto } from '../../../view/dto/borrow-list.dto';
 import { BorrowFilterDto } from '../../../view/dto/borrow-filter.dto';
@@ -19,20 +20,20 @@ INNER JOIN livro l on l.id = el.livro_id
 INNER JOIN livro_autor la on la.livro_id = l.id
 INNER JOIN autor a on a.id = la.autor_id `;
 
-function createConditionByStatus(status?: number): string {
+function createConditionByStatus(status?: EmprestimoStatus): string {
   switch (status) {
-    case 0: //0 - todos exceto os cancelados
+    case EmprestimoStatus.TODOS: 
       return ' AND (e.canceled_at IS NULL)';
-    case 1: //1 - em aberto
+    case EmprestimoStatus.ABERTO: 
       return ' AND (el.data_devolucao IS NULL) AND (e.canceled_at IS NULL)';
-    case 2: //2 - cancelado
+    case EmprestimoStatus.CANCELADO: 
       return ' AND (e.canceled_at IS NOT NULL)';
-    case 3: //3 - devolvido
+    case EmprestimoStatus.DEVOLVIDO: 
       return ' AND (el.data_devolucao IS NOT NULL) AND (e.canceled_at IS NULL)';
-    case 4: //4 - atrasado
+    case EmprestimoStatus.ATRASADO:
       return ' AND ((el.data_devolucao IS NULL) AND (DATE(el.data_prevista_devolucao) < CURRENT_DATE)) AND (e.canceled_at IS NULL)';
     default:
-      return ' '; //todos
+      return ' ';
   }
 }
 export class EmprestimoPostgresRepository implements EmprestimoRepository {

@@ -112,7 +112,11 @@ export class BookService {
   }
 
   async deleteBook(id: number): Promise<boolean> {
-    return this.repository.deleteBook(id);
+    const bookDeleted = this.repository.deleteBook(id);
+    if (!bookDeleted) {
+      throw new Error('Erro ao excluir o livro');
+    }
+    return bookDeleted;
   }
 
   async canDeleteBook(id: number): Promise<boolean> {

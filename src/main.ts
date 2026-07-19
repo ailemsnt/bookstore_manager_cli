@@ -28,8 +28,7 @@ async function bootstrap() {
   const authorService = new AuthorService(new AutorPostgresRepository(pool));
   const authorView = new AuthorView(authorService);
 
-  const bookService = new BookService(
-    new LivroPostgresRepository(pool),
+  const bookService = new BookService(new LivroPostgresRepository(pool),
     authorService,
   );
   const bookView = new BookView(bookService, authorService);

@@ -7,6 +7,7 @@ import { BorrowFilterDto } from './dto/borrow-filter.dto';
 import { BorrowFormDto } from './dto/borrow-form.dto';
 import { ConsoleView } from '../@common/view/console.view';
 import { BorrowDto } from './dto/borrow-list.dto';
+import { getBorrowStatusDescription } from './utils/view-utils';
 
 export class BorrowView extends ConsoleView {
   private readonly filter = new BorrowFilterDto();
@@ -153,7 +154,7 @@ export class BorrowView extends ConsoleView {
       this.display(
         `Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Devolução: ${livro.data_devolucao ? formatDate(livro.data_devolucao) : '- '}`,
       );
-      this.display(`Status: ${livro.status}\n`);
+      this.display(`Status: ${getBorrowStatusDescription(livro.status)}\n`);
     });
     this.display('');
   }
@@ -197,7 +198,7 @@ export class BorrowView extends ConsoleView {
         this.display(
           `Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Devolução: ${livro.data_devolucao ? formatDate(livro.data_devolucao) : '- '}`,
         );
-        this.display(`Status: ${livro.status}\n`);
+        this.display(`Status: ${getBorrowStatusDescription(livro.status)}\n`);
       });
     });
     this.display('');
@@ -242,7 +243,7 @@ export class BorrowView extends ConsoleView {
           `Editora: ${livro.editora} • ${livro.edicao} • ${String(livro.ano_publicacao)} • ISBN: ${livro.isbn}`,
         );
         this.display(
-          `Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Status: ${livro.status}\n`,
+          `Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Status: ${getBorrowStatusDescription(livro.status)}\n`,
         );
       });
     });
@@ -280,7 +281,7 @@ export class BorrowView extends ConsoleView {
         this.display(
           `Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} `,
         );
-        this.display(`Status: ${livro.status}\n`);
+        this.display(`Status: ${getBorrowStatusDescription(livro.status)}\n`);
       });
     });
     this.display('');
@@ -353,6 +354,7 @@ export class BorrowView extends ConsoleView {
 
       const canBorrowBook = await this.borrowSrv.canBorrowBook(bookIdValidate);
       if (!canBorrowBook) {
+        this.display('Não é possível emprestar este livro pois ele não está mais disponível.');
         return;
       }
 
@@ -376,21 +378,6 @@ export class BorrowView extends ConsoleView {
         break;
       }
     }
-
-    // const borrowOrError = await this.borrowSrv
-    // .search(borrowDto.id)
-    // .catch((error: unknown) => error as Error)
-
-    // if (bookOrError instanceof Error) {
-    //   this.reportTechnicalError(bookOrError)
-    //   await this.prompt('Pressione ENTER para sair...')
-    //   return
-    // }
-
-    // if (bookOrError) {
-    //   this.display(`Livro já cadastrado!`);
-    //   return
-    // }
 
     if (booksId.length === 0) {
       this.display('O empréstimo deve possuir ao menos um livro!');
@@ -452,7 +439,7 @@ export class BorrowView extends ConsoleView {
       this.display(
         `Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Devolução: ${livro.data_devolucao ? formatDate(livro.data_devolucao) : '- '}`,
       );
-      this.display(`Status: ${livro.status}\n`);
+      this.display(`Status: ${getBorrowStatusDescription(livro.status)}\n`);
     });
 
     this.display('');
@@ -519,13 +506,14 @@ export class BorrowView extends ConsoleView {
       this.display(
         `Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)} • Devolução: ${livro.data_devolucao ? formatDate(livro.data_devolucao) : '- '}`,
       );
-      this.display(`Status: ${livro.status}\n`);
+      this.display(`Status: ${getBorrowStatusDescription(livro.status)}\n`);
     });
 
     this.display('');
 
     const canReturnBorrow = await this.borrowSrv.canReturnBorrow(returnById.id);
-    if (!canReturnBorrow) {
+    if (!canReturnBorrow) {     
+      this.display( 'Não é possível realizar a devolução dos livros. Verifique o status do empréstimo.');         
       return;
     }
 
