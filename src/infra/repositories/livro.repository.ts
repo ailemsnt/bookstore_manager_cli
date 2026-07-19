@@ -17,7 +17,7 @@ export interface LivroRepository {
 
   updateBook(book: Livro): Promise<Livro>;
 
-  deleteBook(id: number): Promise<void>;
+  deleteBook(id: number): Promise<boolean>;
 
   canDeleteBook(id: number): Promise<boolean>;
 

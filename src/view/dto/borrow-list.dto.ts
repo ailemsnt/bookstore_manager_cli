@@ -1,3 +1,4 @@
+import { EmprestimoStatus } from '../../domain/emprestimo';
 import { AuthorListDto } from './author-list.dto';
 export class BorrowDto {
   constructor(
@@ -23,7 +24,7 @@ export class BorrowBookDto {
     public data_devolucao?: Date,
     public cliente_nome?: string,
     public cliente_id?: number,
-    public status?: string,
+    public status?: EmprestimoStatus,
     public quantidade_emprestimo?: number,
   ) {}
 }

@@ -27,11 +27,7 @@ export class BorrowService {
 
   async canBorrowBook(id: number): Promise<boolean> {
     const canBorrow = await this.repository.canBorrowBook(id);
-    if (!canBorrow) {
-      throw new Error(
-        'Não é possível emprestar este livro pois ele não está mais disponível.',
-      );
-    }
+  
     return canBorrow;
   }
 
@@ -57,11 +53,7 @@ export class BorrowService {
 
   async canReturnBorrow(id: number): Promise<boolean> {
     const canReturnBorrow = await this.repository.canReturnBorrow(id);
-    if (!canReturnBorrow) {
-      throw new Error(
-        'Não é possível realizar a devolução dos livros. Verifique o status do empréstimo.',
-      );
-    }
+    
     return canReturnBorrow;
   }
 
