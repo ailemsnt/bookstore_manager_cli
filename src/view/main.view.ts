@@ -2,18 +2,18 @@ import { ReportView } from './report.view';
 import { BookView } from './book.view';
 import { AuthorView } from './author.view';
 import { ConsoleView } from "../@common/view/console.view"
-import { LoginUseCase } from "../usecase/login.usecase"
+import { LoginService } from "../services/login.service"
 import { LoginUserDto } from "./dto/login-user-form.dto"
 import { CustomerView } from './customer.view';
 import { Session } from "../infra/database/session";
 import { BorrowView } from './borrow.view';
-import { BookUseCase } from '../usecase/book.usecase';
-import { AuthorUseCase } from '../usecase/author.usecase';
+import { BookService } from '../services/book.service';
+import { AuthorService } from '../services/author.service';
 
 export class MainView extends ConsoleView {
-  constructor(private readonly loginUc: LoginUseCase, private readonly authorView: AuthorView, 
+  constructor(private readonly loginSrv: LoginService, private readonly authorView: AuthorView, 
               private readonly bookView: BookView, private readonly customerView: CustomerView,
-              private readonly borrowView: BorrowView, private readonly bookUc: BookUseCase, private readonly reportView: ReportView, private readonly authorUc: AuthorUseCase) {
+              private readonly borrowView: BorrowView, private readonly bookSrv: BookService, private readonly reportView: ReportView, private readonly authorSrv: AuthorService) {
     super(true)
   }
 
@@ -30,7 +30,7 @@ export class MainView extends ConsoleView {
       LoginUserDto
     )
 
-    const userOrError = await this.loginUc
+    const userOrError = await this.loginSrv
       .search(loginUserDto.login, loginUserDto.senha)
       .catch((error: unknown) => error as Error)
 
@@ -73,27 +73,32 @@ export class MainView extends ConsoleView {
         case '1':
           this.display('Acessando autores...');     
           await this.authorView.start();
-          break
+          break;
+
         case '2':
           this.display('Acessando livros...');          
           await this.bookView.start();
           break;
+
         case '3':
           this.display('Acessando clientes...');
           await this.customerView.start();
           break;
+
         case '4':
           this.display('Acessando empréstimos e devoluções...');
           await this.borrowView.start();
-          break;        
+          break; 
+
         case '5':
           this.display('Acessando relatórios...');
           await this.reportView.start();  
           break;
+
         case '0':
           this.display('Saindo do sistema...');
-          this.exit()
-          return
+          this.exit();         
+
         default:
           this.display('Opção inválida. Por favor, selecione uma opção válida.');
           break;

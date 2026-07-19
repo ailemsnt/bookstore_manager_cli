@@ -1,7 +1,7 @@
 import { Autor } from "../domain/autor";
 import { AutorRepository } from "../infra/repositories/autor.repository";
 
-export class AuthorUseCase {
+export class AuthorService {
   constructor(private readonly repository: AutorRepository) {}
 
   async search(name: string): Promise<Autor | null> {

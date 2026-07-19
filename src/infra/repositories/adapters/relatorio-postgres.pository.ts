@@ -1,7 +1,7 @@
-import { getStatusBorrowBook } from '../../../@common/utils/common.utils';
 import { BookListDto } from '../../../view/dto/book-list.dto';
 import { BorrowBookDto, BorrowDto } from '../../../view/dto/borrow-list.dto';
 import { AuthorReportDto } from '../../../view/dto/report-list.dto';
+import { getStatusBorrowBook } from '../../../view/utils/view-utils';
 import { RelatorioRepository } from '../relatorio.repository';
 import { Livro } from './../../../domain/livro';
 import { Pool } from 'pg';

@@ -3,7 +3,7 @@ import { RelatorioRepository } from "../infra/repositories/relatorio.repository"
 import { BorrowBookDto, BorrowDto } from "../view/dto/borrow-list.dto";
 import { AuthorReportDto } from "../view/dto/report-list.dto";
 
-export class ReportUseCase {
+export class ReportService {
   constructor(private readonly repository: RelatorioRepository
   ) {}
   

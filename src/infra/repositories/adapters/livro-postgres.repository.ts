@@ -52,7 +52,7 @@ export class LivroPostgresRepository implements LivroRepository {
             codigo: row.codigo,
             baixado: row.baixado,
             isbn: row.isbn,
-            autor: [
+            autores: [
               {
                 id: row.autor_id,
                 nome: row.nome_autor
@@ -62,7 +62,7 @@ export class LivroPostgresRepository implements LivroRepository {
           return acc;
         }
 
-        book.autor.push({        
+        book.autores.push({        
           id: row.autor_id,
           nome: row.nome_autor                                        
         });
@@ -102,7 +102,7 @@ export class LivroPostgresRepository implements LivroRepository {
             codigo: row.codigo,
             baixado: row.baixado,
             isbn: row.isbn,
-            autor: [
+            autores: [
               {
                 id: row.autor_id,
                 nome: row.nome_autor
@@ -112,7 +112,7 @@ export class LivroPostgresRepository implements LivroRepository {
           return acc;
         }
 
-        book.autor.push({        
+        book.autores.push({        
           id: row.autor_id,
           nome: row.nome_autor                                        
         });
@@ -158,7 +158,7 @@ export class LivroPostgresRepository implements LivroRepository {
             codigo: row.codigo,
             baixado: row.baixado,
             isbn: row.isbn,
-            autor: [
+            autores: [
               {
                 id: row.autor_id,
                 nome: row.nome_autor
@@ -168,7 +168,7 @@ export class LivroPostgresRepository implements LivroRepository {
           return acc;
         }
 
-        book.autor.push({        
+        book.autores.push({        
           id: row.autor_id,
           nome: row.nome_autor                                        
         });
@@ -200,7 +200,7 @@ export class LivroPostgresRepository implements LivroRepository {
       const params = [];
       let i = 1;
 
-      for (const author of book.autor) {
+      for (const author of book.autores) {
         placeholders.push(`($${i}, $${i + 1})`);
         params.push(author.id, bookRow.id);
         i += 2;
@@ -219,7 +219,7 @@ export class LivroPostgresRepository implements LivroRepository {
         codigo: bookRow.codigo,
         baixado: bookRow.baixado,
         isbn: bookRow.isbn,
-        autor: book.autor
+        autores: book.autores
       }
 
     } catch(error) {
@@ -252,7 +252,7 @@ export class LivroPostgresRepository implements LivroRepository {
       const params = [];
       let i = 1;
 
-      for (const author of book.autor) {
+      for (const author of book.autores) {
         placeholders.push(`($${i}, $${i + 1})`);
         params.push(author.id, bookRow.id);
         i += 2;
@@ -271,7 +271,7 @@ export class LivroPostgresRepository implements LivroRepository {
         codigo: bookRow.codigo,
         baixado: bookRow.baixado,
         isbn: bookRow.isbn,
-        autor: book.autor
+        autores: book.autores
       }
 
     } catch(error) {

@@ -1,18 +1,184 @@
-import { AuthorUseCase } from './../usecase/author.usecase';
-import { formatDate, formatOutChar } from "../@common/utils/common.utils";
+import { AuthorService } from '../services/author.service';
+import { formatDate, formatOutChar, getCurrentDate } from "../@common/utils/common.utils";
 import { ConsoleView } from "../@common/view/console.view";
-import { ReportUseCase } from "../usecase/report.usecase";
+import { ReportService } from "../services/report.service";
 
-let total = 0;
-const dataAtual = new(Date);
 export class ReportView extends ConsoleView {
-  constructor(private readonly reportUc: ReportUseCase, private readonly authorUc: AuthorUseCase)
+  constructor(private readonly reportSrv: ReportService, private readonly authorSrv: AuthorService)
   { 
     super(); 
   }
   
   async start(): Promise<void> {
     await this.update();
+  }
+
+  private async listAvailableBooks(): Promise<void> {
+    this.display('\n================================================================================');
+    this.display(`   RELATÓRIO DE LIVROS DISPONÍVEIS PARA EMPRÉSTIMO - DATA GERAÇÃO ${formatDate(getCurrentDate())}`);  
+    this.display('================================================================================');
+
+    const listAvailable = await this.reportSrv.listAvailableBooks();
+
+    if (!listAvailable || listAvailable.length === 0) {
+      this.display('\n     SEM REGISTROS PARA EXIBIR\n '); 
+      this.display('================================================================================\n');
+      return;
+    }
+
+    listAvailable.forEach((book, index) => {     
+
+      if (index > 0) {
+        this.display('----------');  
+      }
+      const authors = book.autores.map((author) => author.nome).join(', ');
+    
+      this.display(`#${book.id} - Cod. int. ${book.codigo}: ${(book.titulo).toUpperCase()}`);
+      this.display(`Autor(es): ${authors}`);
+      this.display(`Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}\n`);              
+    });
+
+    this.display('================================================================================');
+    this.display(`   TOTAL: ${listAvailable.length } livros disponíveis`);  
+    this.display('================================================================================\n');
+  }
+
+  private async listUnavailableBooks(): Promise<void> {
+    this.display('\n================================================================================');
+    this.display(`        RELATÓRIO DE LIVROS EMPRESTADOS - DATA GERAÇÃO ${formatDate(getCurrentDate())}`);  
+    this.display('================================================================================');
+
+    const listUnavailable = await this.reportSrv.listUnavailableBooks();
+    
+    if (!listUnavailable || listUnavailable.length === 0) {
+      this.display('\n     SEM REGISTROS PARA EXIBIR\n '); 
+      this.display('================================================================================\n');
+      return;
+    }
+
+    listUnavailable.forEach((book, index) => {  
+
+      if (index > 0) {
+        this.display('----------');  
+      }
+      const authors = book.autores.map((author) => author.nome).join(', ');
+    
+      this.display(
+        `#${book.id} - Cod. int. ${book.codigo}: ${(book.titulo).toUpperCase()}
+        Autor(es): ${authors}
+        Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}
+        Cliente: #${book.cliente_id} - ${book.cliente_nome}
+        Previsão devolução: ${formatDate(book.data_prevista_devolucao)} • Status: ${book.status}\n`);              
+    });
+
+    this.display('================================================================================');
+    this.display(`   TOTAL: ${listUnavailable.length} livros emprestados`);  
+    this.display('================================================================================\n');
+  }
+
+  private async listBooksByAuthor(): Promise<void> {
+    const idAuthor = await this.prompt('Buscar por ID do autor: (Deixe em branco para listar TODOS) ');                                      
+    const author = idAuthor ? await this.authorSrv.findAuthorById(Number(idAuthor)) : null;     
+
+    this.display('\n================================================================================');
+    this.display(`        RELATÓRIO DE LIVROS CASTRADOS POR AUTOR - DATA GERAÇÃO ${formatDate(getCurrentDate())}`);  
+    this.display('================================================================================');
+    
+    const listBooksByAuthor = await this.reportSrv.listBooksByAuthor(author?.id);
+
+    if (!listBooksByAuthor || listBooksByAuthor.length === 0) {
+      this.display('\n     SEM REGISTROS PARA EXIBIR\n '); 
+      this.display('================================================================================\n');
+      return;
+    }
+    
+    listBooksByAuthor.forEach((author, index) => {          
+
+      if (index > 0) {
+        this.display('----------');  
+      }
+    
+      this.display(`Autor: #${author.id} ${(author.nome).toUpperCase()}
+      Livro(os): `);
+      author.livros.forEach((book) => {
+        this.display(`#${book.id} - Cod. int. ${book.codigo}: ${book.titulo}              
+        Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}              
+        Baixado: ${formatOutChar(book.baixado)}\n`);
+      });
+    });
+
+    this.display('================================================================================');
+    this.display(`   TOTAL: ${listBooksByAuthor.length} autores listados`);  
+    this.display('================================================================================\n');
+  }
+
+  private async listBorrowsCountByBooks(): Promise<void> {
+    this.display('\n================================================================================');
+    this.display(`    RELATÓRIO DE QUANTIDADE DE EMPRÉSTIMOS POR LIVRO - DATA GERAÇÃO ${formatDate(getCurrentDate())}`);  
+    this.display('================================================================================');
+
+    const listBorrowBooks = await this.reportSrv.listBorrowsCountByBooks();
+
+    if (!listBorrowBooks || listBorrowBooks.length === 0) {
+      this.display('\n     SEM REGISTROS PARA EXIBIR\n '); 
+      this.display('================================================================================\n');
+      return;
+    }
+
+    listBorrowBooks.forEach((book, index) => {         
+
+      if (index > 0) {
+        this.display('----------');  
+      }
+      const authors = book.autores.map((author) => author.nome).join(', ');
+    
+      this.display(`#${book.id} - Cod. int. ${book.codigo}: ${(book.titulo).toUpperCase()}`);
+      this.display(`Autor(es): ${authors}`);
+      this.display(`Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}`);
+      this.display(`Quantidade de empréstimos no intervalo informado: ${book.quantidade_emprestimo}\n`);              
+    });
+
+    this.display('================================================================================');
+    this.display(`   TOTAL: ${listBorrowBooks.length} livro(s)listados`);  
+    this.display('================================================================================\n');
+  }
+
+  private async listCustomerBorrowBooks(): Promise<void> {
+    const idCustomer = await this.prompt('Buscar por ID do cliente: (Deixe em branco para listar TODOS) ');                                      
+    const customer = idCustomer ? await this.authorSrv.findAuthorById(Number(idCustomer)) : null;          
+  
+    const listCustomerBorrow = await this.reportSrv.listCustomerBorrowBooks(customer?.id);
+
+    this.display('\n================================================================================');
+    this.display(`   RELATÓRIO DE CLIENTES COM EMPRÉSTIMO ATIVO - DATA GERAÇÃO ${formatDate(getCurrentDate())}`);  
+    this.display('================================================================================');
+
+    if (!listCustomerBorrow || listCustomerBorrow.length === 0) {
+      this.display('\n     SEM REGISTROS PARA EXIBIR\n '); 
+      this.display('================================================================================\n');
+      return;
+    }
+
+    listCustomerBorrow.forEach((borrow, index) => {
+      if (index > 0) {
+        this.display('----------');  
+      }
+      this.display(`Cliente: #${borrow.cliente_id}: ${(borrow.cliente_nome).toUpperCase()}`);
+
+      borrow.livros.forEach((livro) => {            
+        this.display(`#${livro.id} - Cod. int. ${livro.codigo}: ${(livro.titulo).toUpperCase()}`);
+        this.display(`Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}`);
+        this.display(`Editora: ${livro.editora} • ${livro.edicao} • ${livro.ano_publicacao} • ISBN: ${livro.isbn} `);
+        this.display(`Empréstimo #${borrow.id} • Data empréstimo: ${formatDate(borrow.data_emprestimo)} • Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)}`);  
+        this.display(`Status: ${livro.status}\n`);
+      }); 
+
+      this.display('----------------------------------------');  
+      this.display(`   TOTAL: ${listCustomerBorrow.length} livro(s) emprestado(s)`);
+      this.display('--------------------------------------------------------------------------------');                                              
+    });
+
+    this.display('================================================================================\n');
   }
 
   protected async update(){
@@ -26,11 +192,7 @@ export class ReportView extends ConsoleView {
       this.display(" 2. Relatório de livros atualmente emprestados"); 
       this.display(" 3. Relatório de livros cadastrados por autor");
       this.display(" 4. Relatório de quantidade de empréstimos por livro");
-      this.display(" 5. Relatório de clientes com empréstimo ativo");//--
-      // this.display(" 6. Relatório de livros baixados");
-      // this.display(" 7. Ranking de assiduidade de clientes");
-      // this.display(" 8. Ranking de popularidade de autores");
-      // this.display(" 9. .....");          
+      this.display(" 5. Relatório de clientes com empréstimo ativo");           
       this.display(" 0. VOLTAR AO MENU PRINCIPAL");
       this.display("____________________________________________________________\n");
     
@@ -38,160 +200,23 @@ export class ReportView extends ConsoleView {
 
       switch (optionSelected) {
         case '1':            
-          this.display('\n================================================================================');
-          this.display(`   RELATÓRIO DE LIVROS DISPONÍVEIS PARA EMPRÉSTIMO - DATA GERAÇÃO ${formatDate(dataAtual)}`);  
-          this.display('================================================================================');
-
-          const listAvailable = await this.reportUc.listAvailableBooks();
-          
-          total = 0;
-          listAvailable.forEach((book) => {
-            total++; 
-
-            if (total > 1) {
-              this.display('----------------------------------------');  
-            }
-            const authors = book.autor.map((author) => author.nome).join(', ');
-          
-            this.display(
-              `#${book.id} - Cod. int. ${book.codigo}: ${(book.titulo).toUpperCase()}
-              Autor(es): ${authors}
-              Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}\n`);              
-          });
-          this.display('================================================================================');
-          this.display(`   TOTAL: ${total} livros disponíveis`);  
-          this.display('================================================================================\n');
-
+          await this.listAvailableBooks();
           break;          
 
-        case '2':
-
-          this.display('\n================================================================================');
-          this.display(`        RELATÓRIO DE LIVROS EMPRESTADOS - DATA GERAÇÃO ${formatDate(dataAtual)}`);  
-          this.display('================================================================================');
-
-          const listUnavaliable = await this.reportUc.listUnavailableBooks();
-          
-          total = 0;
-          listUnavaliable.forEach((book) => {
-            total++; 
-
-            if (total > 1) {
-              this.display('----------------------------------------');  
-            }
-            const authors = book.autores.map((author) => author.nome).join(', ');
-          
-            this.display(
-              `#${book.id} - Cod. int. ${book.codigo}: ${(book.titulo).toUpperCase()}
-              Autor(es): ${authors}
-              Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}
-              Cliente: #${book.cliente_id} - ${book.cliente_nome}
-              Previsão devolução: ${formatDate(book.data_prevista_devolucao)} • Status: ${book.status}\n`);              
-          });
-          this.display('================================================================================');
-          this.display(`   TOTAL: ${total} livros emprestados`);  
-          this.display('================================================================================\n');
-
+        case '2':          
+          await this.listUnavailableBooks();
           break;
 
         case '3':
-          const idAuthor = await this.prompt('Buscar por ID do autor: (Deixe em branco para listar TODOS) ');                                      
-          const author = idAuthor ? await this.authorUc.findAuthorById(Number(idAuthor)) : null;     
-
-          this.display('\n================================================================================');
-          this.display(`        RELATÓRIO DE LIVROS CASTRADOS POR AUTOR - DATA GERAÇÃO ${formatDate(dataAtual)}`);  
-          this.display('================================================================================');
-          
-
-          const listBooksByAuthor = await this.reportUc.listBooksByAuthor(author?.id);
-
-          total = 0;
-          listBooksByAuthor.forEach((author) => {
-            total++; 
-
-            if (total > 1) {
-              this.display('----------------------------------------');  
-            }
-          
-            this.display(`Autor: #${author.id} ${(author.nome).toUpperCase()}
-            Livro(os): `);
-            author.livros.forEach((book) => {
-              this.display(`#${book.id} - Cod. int. ${book.codigo}: ${book.titulo}              
-              Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}              
-              Baixado: ${formatOutChar(book.baixado)}\n`);
-            });
-          });
-
-          this.display('================================================================================');
-          this.display(`   TOTAL: ${total} autores listados`);  
-          this.display('================================================================================\n');
-
+          await this.listBooksByAuthor();        
           break;
 
         case '4':
-          this.display('\n================================================================================');
-          this.display(`    RELATÓRIO DE QUANTIDADE DE EMPRÉSTIMOS POR LIVRO - DATA GERAÇÃO ${formatDate(dataAtual)}`);  
-          this.display('================================================================================');
-          
-          // const idAuthor = await this.prompt('Buscar por ID do autor: (Deixe em branco para listar TODOS) ');                                      
-          // const author = idAuthor ? await this.authorUc.findAuthorById(Number(idAuthor)) : null;          
-   //parametro datas
-          const listBorrowBooks = await this.reportUc.listBorrowsCountByBooks();
-
-          total = 0;
-          listBorrowBooks.forEach((book) => {
-            total++; 
-
-            if (total > 1) {
-              this.display('----------------------------------------');  
-            }
-            const authors = book.autores.map((author) => author.nome).join(', ');
-          
-            this.display(
-              `#${book.id} - Cod. int. ${book.codigo}: ${(book.titulo).toUpperCase()}
-              Autor(es): ${authors}
-              Editora: ${book.editora} • ${book.edicao} • ${book.ano_publicacao} • ISBN: ${book.isbn}
-              Quantidade de empréstimos no intervalo informado: ${book.quantidade_emprestimo}\n`);              
-          });
-
-          this.display('================================================================================');
-          this.display(`   TOTAL: ${total} livro(s)listados`);  
-          this.display('================================================================================\n');
+          await this.listBorrowsCountByBooks();          
           break;
 
-          case '5':
-
-          const idCustomer = await this.prompt('Buscar por ID do cliente: (Deixe em branco para listar TODOS) ');                                      
-          const customer = idCustomer ? await this.authorUc.findAuthorById(Number(idCustomer)) : null;          
-        
-          const listCustomerBorrow = await this.reportUc.listCustomerBorrowBooks(customer?.id);
-
-          this.display('\n================================================================================');
-          this.display(`   RELATÓRIO DE CLIENTES COM EMPRÉSTIMO ATIVO - DATA GERAÇÃO ${formatDate(dataAtual)}`);  
-          this.display('================================================================================');
-
-                    
-          listCustomerBorrow.forEach((borrow) => {
-              this.display(`Cliente: #${borrow.cliente_id}: ${(borrow.cliente_nome).toUpperCase()}`);
-
-              total = 0;
-              borrow.livros.forEach((livro) => {
-                total++; 
-            
-                this.display(
-      `#${livro.id} - Cod. int. ${livro.codigo}: ${(livro.titulo).toUpperCase()}
-      Autor(es): ${livro.autores.map((autor) => autor.nome).join(', ')}
-      Editora: ${livro.editora} • ${livro.edicao} • ${livro.ano_publicacao} • ISBN: ${livro.isbn} 
-      Empréstimo #${borrow.id} • Data empréstimo: ${formatDate(borrow.data_emprestimo)} • Data prevista devolução: ${formatDate(livro.data_prevista_devolucao)}  
-      Status: ${livro.status}\n`)
-                    }); 
-                this.display('----------------------------------------');  
-                this.display(`   TOTAL: ${total} livro(s) emprestado(s)`);
-                this.display('--------------------------------------------------------------------------------');                                              
-          });
-            
-          this.display('================================================================================\n');
-
+        case '5':
+          await this.listCustomerBorrowBooks();          
           break;  
         // case '6':
         //   this.display('Iniciando empréstimo...');

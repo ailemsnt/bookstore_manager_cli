@@ -1,14 +1,104 @@
 import { ConsoleView } from "../@common/view/console.view";
-import { AuthorUseCase } from "../usecase/author.usecase";
+import { AuthorService } from "../services/author.service";
 import { AuthorFormDto } from "./dto/author-form.dto";
 export class AuthorView extends ConsoleView {
-  constructor(private readonly authorUc: AuthorUseCase)
+  constructor(private readonly authorSrv: AuthorService)
   { 
     super(); 
   }
 
   async start(): Promise<void> {
     await this.update();
+  }
+
+  private async listAllAuthors() : Promise<void> {
+    this.display('Listando autores...');
+          
+    const list = await this.authorSrv.findAllAuthors();
+
+    list.forEach((author) => {
+      this.display(`#${author.id} ${(author.nome).toUpperCase()}`);
+    });
+  }
+
+  private async listAuthorById(): Promise<void> {
+    this.display('Buscando autor por ID...');
+
+    const id = await this.prompt('Informe o ID do autor: ');          
+    const author = await this.authorSrv.findAuthorById(Number(id));          
+
+    this.display(`#${author.id} - ${(author.nome).toUpperCase()}`);
+  }
+
+  private async createAuthor(): Promise<void>{
+    this.display('Cadastrando autor...');
+    const authorDto = await this.promptInteractiveForm('Informe o nome do autor ',AuthorFormDto.schema(), AuthorFormDto);
+  
+    const authorOrError = await this.authorSrv
+    .search(authorDto.nome)
+    .catch((error: unknown) => error as Error)
+
+    if (authorOrError instanceof Error) {
+      this.reportTechnicalError(authorOrError)
+      await this.prompt('Pressione ENTER para sair...')
+      return
+    }
+    
+    if (authorOrError) {
+      this.display(`Autor já cadastrado!`);
+      return
+    }
+
+    const confirmationCreate = await this.confirmAction('gravar o autor','Operação cancelada pelo usuário.');
+    if (!confirmationCreate) {
+      return;
+    }
+
+    const authorCreated = await this.authorSrv.createAuthor({ nome: authorDto.nome});
+
+    this.display(`Autor cadastrado com sucesso! ID: ${authorCreated.id} - Nome: ${(authorCreated.nome).toUpperCase()}`);
+  }
+
+  private async updateAuthor(): Promise<void>{
+    this.display('Atualizando autor...');
+          
+    const idUpdate = await this.prompt('Informe o ID do autor a ser atualizado: '); 
+    const authorUpdate = await this.authorSrv.findAuthorById(Number(idUpdate));
+    
+    this.display(`Autor encontrado: ${authorUpdate.nome}`);
+
+    const nameUpdate = await this.prompt('Informe o novo nome do autor: ');
+    const confirmationUpdate = await this.confirmAction('gravar o autor','Operação cancelada pelo usuário.');
+    if (!confirmationUpdate) {
+      return;
+    }
+    
+    const authorUpdated = await this.authorSrv.updateAuthor(Number(idUpdate), nameUpdate);
+
+    this.display(`Autor ID: ${authorUpdated.id} - Nome: ${authorUpdated.nome} atualizado com sucesso!`);
+  }
+
+
+  private async deleteAuthor(): Promise<void> {
+    this.display('Excluindo autor...');
+
+    const idDelete = await this.prompt('Informe o ID do autor a ser excluído:');
+    
+    const authorDelete = await this.authorSrv.findAuthorById(Number(idDelete)); 
+    
+    this.display(`Autor encontrado: ${authorDelete.nome}`);
+
+    const canDelete = await this.authorSrv.canDeleteAuthor(Number(idDelete));    
+    if (!canDelete) {
+      return;
+    }
+
+    const confirmationDelete = await this.confirmAction('excluir o autor','Operação cancelada pelo usuário.');
+    if (!confirmationDelete) {
+      return;
+    }
+    await this.authorSrv.deleteAuthor(Number(idDelete));
+    this.display('Autor excluído com sucesso!');
   }
 
   protected async update(){
@@ -31,92 +121,23 @@ export class AuthorView extends ConsoleView {
 
       switch (optionSelected) {
         case '1':
-          this.display('Listando autores...');
-          
-          const list = await this.authorUc.findAllAuthors();
-
-          list.forEach((author) => {
-            this.display(`ID: #${author.id} - Nome: ${(author.nome).toUpperCase()}\n`);
-          });
+          await this.listAllAuthors();
           break;          
 
         case '2':
-          this.display('Buscando autor por ID...');
-
-          const id = await this.prompt('Informe o ID do autor: ');          
-          const author = await this.authorUc.findAuthorById(Number(id));          
-
-          this.display(`ID: ${author.id} - Nome: ${(author.nome).toUpperCase()}`);
+          await this.listAuthorById();
           break;
 
         case '3':
-          this.display('Cadastrando autor...');
-          const authorDto = await this.promptInteractiveForm('Informe o nome do autor ',AuthorFormDto.schema(), AuthorFormDto);
-
-          const authorOrError = await this.authorUc
-          .search(authorDto.nome)
-          .catch((error: unknown) => error as Error)
-
-          if (authorOrError instanceof Error) {
-            this.reportTechnicalError(authorOrError)
-            await this.prompt('Pressione ENTER para sair...')
-            return
-          }
-          
-          if (authorOrError) {
-            this.display(`Autor já cadastrado!`);
-            return
-          }
-
-          const confirmationCreate = await this.confirmAction('gravar o autor','Operação cancelada pelo usuário.');
-          if (!confirmationCreate) {
-            return;
-          }
-
-          const authorCreated = await this.authorUc.createAuthor({ nome: authorDto.nome});
-
-          this.display(`Autor cadastrado com sucesso! ID: ${authorCreated.id} - Nome: ${(authorCreated.nome).toUpperCase()}`); 
+          await this.createAuthor(); 
           break;
 
         case '4':
-          this.display('Atualizando autor...');
-          
-          const idUpdate = await this.prompt('Informe o ID do autor a ser atualizado: '); 
-          const authorUpdate = await this.authorUc.findAuthorById(Number(idUpdate));
-          
-          this.display(`Autor encontrado: ${authorUpdate.nome}`);
-
-          const nameUpdate = await this.prompt('Informe o novo nome do autor: ');
-          const confirmationUpdate = await this.confirmAction('gravar o autor','Operação cancelada pelo usuário.');
-          if (!confirmationUpdate) {
-            return;
-          }
-          
-          const authorUpdated = await this.authorUc.updateAuthor(Number(idUpdate), nameUpdate);
-
-          this.display(`Autor ID: ${authorUpdated.id} - Nome: ${authorUpdated.nome} atualizado com sucesso!`);
+          await this.updateAuthor();
           break;
 
         case '5':
-          this.display('Excluindo autor...');
-
-          const idDelete = await this.prompt('Informe o ID do autor a ser excluído:');
-          
-          const authorDelete = await this.authorUc.findAuthorById(Number(idDelete)); 
-          
-          this.display(`Autor encontrado: ${authorDelete.nome}`);
-
-          const canDelete = await this.authorUc.canDeleteAuthor(Number(idDelete));    
-          if (!canDelete) {
-            return;
-          }
-
-          const confirmationDelete = await this.confirmAction('excluir o autor','Operação cancelada pelo usuário.');
-          if (!confirmationDelete) {
-            return;
-          }
-          await this.authorUc.deleteAuthor(Number(idDelete));
-          this.display('Autor excluído com sucesso!');
+          await this.deleteAuthor();
           break;
 
         case '0': 

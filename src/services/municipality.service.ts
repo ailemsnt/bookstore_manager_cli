@@ -1,7 +1,7 @@
 import { Municipio } from "../domain/municipio";
 import { MunicipioRepository } from "../infra/repositories/municipio.repository";
 
-export class MunicipalityUseCase {
+export class MunicipalityService {
   constructor(private readonly repository: MunicipioRepository) {}
   
   async findMunicipalityByName(name: string): Promise<Municipio[]> {

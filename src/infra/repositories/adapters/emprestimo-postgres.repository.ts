@@ -1,10 +1,10 @@
 import { Pool } from "pg";
 import { Emprestimo, EmprestimoRetorno } from "../../../domain/emprestimo";
 import { EmprestimoRepository } from "../emprestimo.repository";
-import { getStatusBorrowBook } from "../../../@common/utils/common.utils";
 import { BorrowDto } from "../../../view/dto/borrow-list.dto";
 import { BorrowFilterDto } from "../../../view/dto/borrow-filter.dto";
 import { BorrowFormDto } from "../../../view/dto/borrow-form.dto";
+import { getStatusBorrowBook } from "../../../view/utils/view-utils";
 
 const sqlSelect = `SELECT e.id as emprestimo_id, e.cliente_id, e.data_emprestimo,
     e.canceled_at, c.nome as nome_cliente,  c.cpf,

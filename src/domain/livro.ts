@@ -9,7 +9,7 @@ export interface Livro {
   codigo: string;
   baixado: number;
   isbn: string;
-  autor: Autor[];
+  autores: Autor[];
 }
 export interface LivroInput {
   id?: number,

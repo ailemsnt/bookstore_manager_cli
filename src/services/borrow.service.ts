@@ -4,7 +4,7 @@ import { BorrowFilterDto } from "../view/dto/borrow-filter.dto";
 import { BorrowFormDto } from "../view/dto/borrow-form.dto";
 import { BorrowDto } from "../view/dto/borrow-list.dto";
 
-export class BorrowUseCase {
+export class BorrowService {
   constructor(private readonly repository: EmprestimoRepository) {}
 
   async findBorrowFilter(filters: BorrowFilterDto): Promise<Emprestimo[]>  {

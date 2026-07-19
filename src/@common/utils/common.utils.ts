@@ -55,34 +55,6 @@ export function formatDate(data: Date | string): string {
   return `${day}/${month}/${year}`;
 }
 
-export function getStatusBorrowBook(dataPrevistaEntrega: Date, dataDevolucao?: Date, dataCancelamento?: Date): string {
-  const dataAtual = new Date();
-  dataAtual.setHours(0, 0, 0, 0);
-
-  const prevista = new Date(dataPrevistaEntrega);
-  prevista.setHours(0, 0, 0, 0);
-
-  if (dataCancelamento) {   
-    return `**Empréstimo CANCELADO!**`
-  }
-
-  if (dataDevolucao) {
-    const devolvida = new Date(dataDevolucao);
-    devolvida.setHours(0, 0, 0, 0);
-
-    const diasAtraso = Math.floor(
-    (devolvida.getTime() - prevista.getTime()) / (1000 * 60 * 60 * 24));
-
-    return (diasAtraso > 0
-    ? `*Devolvido com ${diasAtraso} dia(s) de atraso*`
-    : 'Devolvido em dia');
-  }
-
-  const diasAtraso = Math.floor(
-    (dataAtual.getTime() - prevista.getTime()) / (1000 * 60 * 60 * 24)
-  );
-
-  return (diasAtraso > 0
-    ? `**Em atraso há ${diasAtraso} dia(s)**`
-    : 'Em dia');
+export function getCurrentDate() : Date {
+  return new Date();
 }

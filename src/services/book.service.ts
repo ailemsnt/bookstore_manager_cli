@@ -1,11 +1,11 @@
-import { Autor } from './../domain/autor';
+import { Autor } from '../domain/autor';
 import { Livro, LivroInput, LivroUpdate } from "../domain/livro";
 import { LivroRepository } from "../infra/repositories/livro.repository";
 import { BookListDto } from "../view/dto/book-list.dto";
-import { AuthorUseCase } from "./author.usecase";
+import { AuthorService } from "./author.service";
 
-export class BookUseCase {
-  constructor(private readonly repository: LivroRepository, private readonly authorUc: AuthorUseCase   
+export class BookService {
+  constructor(private readonly repository: LivroRepository, private readonly authorSrv: AuthorService   
   ) {}
 
   async search(title: string): Promise<BookListDto[]> {
@@ -45,7 +45,7 @@ export class BookUseCase {
     }
 
     for (const authorId of input.autores) {  
-      const author = await this.authorUc.findAuthorById(authorId);
+      const author = await this.authorSrv.findAuthorById(authorId);
       
       if (!author) {
         throw new Error(`Autor ${authorId} não encontrado`);
@@ -77,7 +77,7 @@ export class BookUseCase {
     const authors: Autor[] = [];
 
     for (const authorId of input.autores){
-      const author = await this.authorUc.findAuthorById(authorId);
+      const author = await this.authorSrv.findAuthorById(authorId);
       if (!author) {
         throw new Error(`Autor ${author} não encontrado`);
       }

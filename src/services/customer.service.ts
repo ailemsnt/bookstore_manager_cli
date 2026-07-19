@@ -2,7 +2,7 @@ import { Cliente, ClienteDetalhe, ClienteInput, ClienteUpdate } from "../domain/
 import { ClienteRepository } from "../infra/repositories/cliente.repository";
 import { CustomerListDto } from "../view/dto/customer-list.dto";
 
-export class CustomerUseCase {
+export class CustomerService {
   constructor(private readonly repository: ClienteRepository) {}
 
   async search(name: string): Promise<CustomerListDto[]> {

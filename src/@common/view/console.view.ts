@@ -28,7 +28,7 @@ export abstract class ConsoleView {
   private resetState(): void {
     this.isInView = true
     this.aborted = false
-  }
+  } 
 
   private async promptUntilValid(prompt: string, schema: InteractiveFormKey) {
     const parseResponse = (
@@ -159,6 +159,7 @@ export abstract class ConsoleView {
           cause: `Schema key ${key} not found in projection`
         })
       }
+      
       Object.assign(projectionCopy, { [key]: response })
     }
 
@@ -256,7 +257,7 @@ export abstract class ConsoleView {
     const answer = question.trim().toUpperCase();
 
     if (answer !== 'S' && answer !== 'SIM') {      
-        this.display(exitMessage);            
+      this.display(exitMessage);            
       return false;
     }
 

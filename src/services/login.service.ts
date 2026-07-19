@@ -1,7 +1,7 @@
 import { Usuario } from "../domain/usuario";
 import { UsuarioRepository } from "../infra/repositories/usuario.repository";
 
-export class LoginUseCase {
+export class LoginService {
   constructor(private readonly repository: UsuarioRepository) {}
   
   async search(login: string, senha: string): Promise<Usuario> {
