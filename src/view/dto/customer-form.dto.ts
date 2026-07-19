@@ -10,7 +10,7 @@ export class CustomerFormDto {
     public bairro: string,
     public telefone: string,
     public email: string,
-    public ativo: string,
+    public municipio_id: number
   ) {}
 
   static schema(): ConsoleFormSchema {
@@ -26,6 +26,7 @@ export class CustomerFormDto {
       numero: { type: 'string', required: true, maxLength: 10 },
       cep: { type: 'string', required: false, minLength: 8, maxLength: 8 },
       bairro: { type: 'string', required: true, minLength: 5, maxLength: 60 },
+      municipio_id: { type: 'number', required: true, minLength:1, maxLength: 10},
       telefone: {
         type: 'string',
         required: true,
@@ -33,13 +34,13 @@ export class CustomerFormDto {
         maxLength: 15,
       },
       email: { type: 'string', required: true, minLength: 5, maxLength: 100 },
-      ativo: { type: 'string', required: true, minLength: 1, maxLength: 1 },
     };
   }
 }
 
 export class CustomerUpdateDto {
   constructor(
+    public id: number,
     public nome: string,
     public endereco: string,
     public numero: string,
@@ -48,11 +49,12 @@ export class CustomerUpdateDto {
     public municipio_id: number,
     public telefone: string,
     public email: string,
-    public ativo: string,
+    public ativo: number
   ) {}
 
   static schema(): ConsoleFormSchema {
     return {
+      id: { type: 'number', required: true, minLength: 1 },
       nome: { type: 'string', required: false, minLength: 3, maxLength: 255 },
       endereco: {
         type: 'string',
@@ -71,7 +73,7 @@ export class CustomerUpdateDto {
         maxLength: 15,
       },
       email: { type: 'string', required: false, minLength: 5, maxLength: 100 },
-      ativo: { type: 'string', required: false, minLength: 1, maxLength: 1 },
+      ativo: { type: 'number', required: false, minLength: 1, maxLength: 1}
     };
   }
 }

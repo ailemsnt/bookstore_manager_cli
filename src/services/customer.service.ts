@@ -1,9 +1,8 @@
 import {
   Cliente,
-  ClienteInput,
-  ClienteUpdate,
 } from '../domain/customer';
 import { ClienteRepository } from '../infra/repositories/cliente.repository';
+import { CustomerFormDto, CustomerUpdateDto } from '../view/dto/customer-form.dto';
 import { CustomerListDto } from '../view/dto/customer-list.dto';
 
 export class CustomerService {
@@ -42,7 +41,7 @@ export class CustomerService {
     return customers;
   }
 
-  async createCustomer(customer: ClienteInput): Promise<Cliente> {
+  async createCustomer(customer: CustomerFormDto): Promise<Cliente> {
     const newCustomer = await this.repository.createCustomer(customer);
     if (!newCustomer) {
       throw new Error('Erro ao cadastrar o cliente');
@@ -50,7 +49,19 @@ export class CustomerService {
     return newCustomer;
   }
 
-  async updateCustomer(customer: ClienteUpdate): Promise<Cliente> {
+  async isCustomerActiveOrDeleted(id: number): Promise<CustomerListDto | null>{
+    const customer = await this.repository.isCustomerActiveOrDeleted(id);
+    if (!customer) {
+      throw new Error('Cliente não encontrado.');
+    }
+
+    if (!customer.ativo) {
+      throw new Error('Cliente está inativo e não pode realizar empréstimos.');
+    }
+    return customer;
+  }
+
+  async updateCustomer(customer: CustomerUpdateDto): Promise<Cliente> {
     const updatedCustomer = await this.repository.updateCustomer(customer);
     if (!updatedCustomer) {
       throw new Error('Erro ao atualizar cliente');

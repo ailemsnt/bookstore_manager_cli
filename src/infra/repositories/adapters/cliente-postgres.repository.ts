@@ -1,8 +1,9 @@
-import { ClienteInput, ClienteUpdate } from './../../../domain/customer';
+import { ClienteUpdate } from './../../../domain/customer';
 import { Pool } from 'pg';
 import { Cliente } from '../../../domain/customer';
 import { ClienteRepository } from '../cliente.repository';
 import { CustomerListDto } from '../../../view/dto/customer-list.dto';
+import { CustomerFormDto, CustomerUpdateDto } from '../../../view/dto/customer-form.dto';
 
 const sqlSelect = `SELECT c.id, c.nome, c.cpf, c.endereco,
             c.numero, c.bairro, c.cep, c.telefone,
@@ -158,12 +159,12 @@ export class ClientePostgresRepository implements ClienteRepository {
     return customers;
   }
 
-  async createCustomer(customer: ClienteInput): Promise<Cliente> {
+  async createCustomer(customer: CustomerFormDto): Promise<Cliente> {
     const {
       rows: [row],
     } = await this.pool.query<Cliente>(
-      `INSERT INTO cliente (nome, cpf, endereco, cep, numero, bairro, municipio_id, telefone, email, ativo) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)  RETURNING *`,
+      `INSERT INTO cliente (nome, cpf, endereco, cep, numero, bairro, municipio_id, telefone, email) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)  RETURNING *`,
       [
         customer.nome,
         customer.cpf,
@@ -174,14 +175,51 @@ export class ClientePostgresRepository implements ClienteRepository {
         customer.municipio_id,
         customer.telefone,
         customer.email,
-        customer.ativo,
       ],
     );
 
     return row;
   }
 
-  async updateCustomer(customer: ClienteUpdate): Promise<Cliente> {
+  async isCustomerActiveOrDeleted(id: number): Promise<CustomerListDto | null> {
+    const result = await this.pool.query(
+      `SELECT ativo
+      FROM cliente
+      WHERE id = $1
+        AND deleted_at IS NULL`,
+      [id],
+    );
+
+    if (result.rowCount === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      nome: row.nome,
+      cpf: row.cpf,
+      endereco: row.endereco,
+      numero: row.numero,
+      bairro: row.bairro,
+      cep: row.cep,
+      telefone: row.telefone,
+      email: row.email,
+      ativo: row.ativo,
+      data_cadastro: row.data_cadastro,
+      municipio: {
+        id: row.municipio_id,
+        nome: row.municipio_nome,
+        uf: {
+          id: row.uf_id,
+          uf_sigla: row.uf_sigla,
+        },
+      },
+    };
+
+  }
+
+  async updateCustomer(customer: CustomerUpdateDto): Promise<Cliente> {
     const {
       rows: [row],
     } = await this.pool.query<Cliente>(
@@ -195,7 +233,7 @@ export class ClientePostgresRepository implements ClienteRepository {
             municipio_id = COALESCE($6, municipio_id),
             telefone = COALESCE(NULLIF($7, ''), telefone),
             email = COALESCE(NULLIF($8, ''), email),
-            ativo = COALESCE(NULLIF($9, ''), ativo)
+            ativo = COALESCE($9, ativo)
 
         WHERE id = $10 
         AND deleted_at IS NULL
@@ -217,16 +255,6 @@ export class ClientePostgresRepository implements ClienteRepository {
 
     return row;
   }
-
-  // async updateCustomer(customer: Cliente): Promise<Cliente> {
-  //   const { rows: [row], } = await this.pool.query<Cliente>(
-  //     `UPDATE cliente SET nome = $1,endereco = $2, cep = $3, numero = $4, bairro = $5, municipio_id = $6, telefone = $7, email = $8, ativo = $9
-  //       WHERE id = $10 AND deleted_at is null RETURNING *`,
-  //     [customer.nome, customer.endereco, customer.cep, customer.numero, customer.bairro, customer.municipio_id, customer.telefone, customer.email, customer.ativo, customer.id],
-  //   );
-
-  //   return row;
-  // }
 
   async deleteCustomer(id: number): Promise<boolean> {
     const result = await this.pool.query(

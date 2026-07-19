@@ -727,7 +727,7 @@ Durante a modelagem foram utilizados:
 
 O sistema foi modelado utilizando entidades independentes e relacionamentos entre elas.
 
-![Modelo Entidade-Relacionamento](sql/dml/img.png)
+![Modelo Entidade-Relacionamento](sql/dml/erd.png)
 
 Além das entidades principais, o sistema possui módulos auxiliares para gerenciamento administrativo.
 

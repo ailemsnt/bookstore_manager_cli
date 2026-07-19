@@ -36,3 +36,7 @@ export function getStatusBorrowBook(
 
   return overdueDays > 0 ? `**Em atraso há ${String(overdueDays)} dia(s)**` : 'Em dia';
 }
+
+export function cleanCpf(cpf: string): number {
+  return Number(cpf.replace(/\D/g, ''));
+}
