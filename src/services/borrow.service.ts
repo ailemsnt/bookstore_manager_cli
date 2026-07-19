@@ -56,13 +56,13 @@ export class BorrowService {
   }
 
   async canReturnBorrow(id: number): Promise<boolean> {
-    const returnBorrow = await this.repository.canReturnBorrow(id);
-    if (!returnBorrow) {
+    const canReturnBorrow = await this.repository.canReturnBorrow(id);
+    if (!canReturnBorrow) {
       throw new Error(
         'Não é possível realizar a devolução dos livros. Verifique o status do empréstimo.',
       );
     }
-    return returnBorrow;
+    return canReturnBorrow;
   }
 
   async createBorrow(
@@ -76,8 +76,18 @@ export class BorrowService {
       userId,
     );
     if (!newBorrow) {
-      throw new Error('Erro ao cadastrar o cliente');
+      throw new Error('Não foi possível cadastrar o empréstimo.');
     }
     return newBorrow;
   }
+
+  async returnBorrow(id: number): Promise<boolean>{
+    const returnBorrow = await this.repository.returnBorrow(id);
+    if (!returnBorrow) {
+      throw new Error(
+        'Não foi possível realizar a devolução dos livros.',
+      );
+    }
+    return returnBorrow;
+  } 
 }

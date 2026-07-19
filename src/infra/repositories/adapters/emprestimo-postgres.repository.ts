@@ -393,17 +393,16 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
   async canBorrowBook(id: number): Promise<boolean> {
     const { rows } = await this.pool.query(
       `SELECT EXISTS (
-      SELECT 1
-      FROM livro l
-      WHERE l.id = $1
-        AND l.baixado = 0
-        AND (l.deleted_at IS NULL)
-        AND NOT EXISTS (
-            SELECT 1
-            FROM emprestimo_livro el
-            WHERE el.livro_id = l.id
-              AND (el.data_devolucao IS NOT NULL))
-            ) AS can_borrow`,
+        SELECT 1
+        FROM livro l
+        LEFT JOIN emprestimo_livro el
+            ON el.livro_id = l.id
+          AND el.data_devolucao IS NULL
+        WHERE l.id = $1
+          AND l.baixado = 0
+          AND l.deleted_at IS NULL
+          AND el.livro_id IS NULL
+      ) AS can_borrow `,
       [id],
     );
 
@@ -474,10 +473,10 @@ export class EmprestimoPostgresRepository implements EmprestimoRepository {
   }
 
   async returnBorrow(id: number): Promise<boolean> {
-    const { rows } = await this.pool.query(
+    const result = await this.pool.query(
       `UPDATE emprestimo_livro set data_devolucao = NOW() WHERE emprestimo_id = $1`,
       [id],
     );
-    return rows.length === 0;
+    return (result.rowCount ?? 0) > 0;
   }
 }

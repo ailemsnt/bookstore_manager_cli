@@ -6,9 +6,9 @@ import { CustomerService } from '../services/customer.service';
 import { BorrowFilterDto } from './dto/borrow-filter.dto';
 import { BorrowFormDto } from './dto/borrow-form.dto';
 import { ConsoleView } from '../@common/view/console.view';
+import { BorrowDto } from './dto/borrow-list.dto';
 
 export class BorrowView extends ConsoleView {
-  private readonly userId = Session.getUserId();
   private readonly filter = new BorrowFilterDto();
 
   constructor(
@@ -325,6 +325,11 @@ export class BorrowView extends ConsoleView {
       BorrowFormDto,
     );
 
+    const customerExists = await this.customerSrv.findCustomerById(borrowDto.cliente_id);
+    if (!customerExists) {
+      return;
+    }
+
     const booksId: number[] = [];
 
     while (true) {
@@ -333,7 +338,7 @@ export class BorrowView extends ConsoleView {
       if (Number.isNaN(bookIdValidate)) {
         this.display('ID do livro informado inválido.');
         continue;
-      }
+      }      
 
       const bookExists = await this.bookSrv.findBookById(bookIdValidate);
       if (!bookExists) {
@@ -397,7 +402,7 @@ export class BorrowView extends ConsoleView {
     const borrowCreated = await this.borrowSrv.createBorrow(
       { cliente_id: borrowDto.cliente_id },
       booksId,
-      Number(this.userId),
+      Number(Session.getUserId()),
     );
 
     if (!borrowCreated) {
@@ -468,7 +473,7 @@ export class BorrowView extends ConsoleView {
     this.display(`\nEmpréstimo cancelado com sucesso!`);
   }
 
-  private async deleteBorrow(): Promise<void> {
+  private async returnBorrow(): Promise<void> {
     this.display('Registrando devolução...');
 
     this.display('\nPesquisando por Empréstimo...');
@@ -523,7 +528,7 @@ export class BorrowView extends ConsoleView {
       return;
     }
 
-    const borrowReturned = await this.borrowSrv.cancelBorrow(returnById.id);
+    const borrowReturned = await this.borrowSrv.returnBorrow(returnById.id);
 
     if (!borrowReturned) {
       return;
@@ -566,7 +571,6 @@ export class BorrowView extends ConsoleView {
 
         case '3':
           await this.createBorrow();
-
           break;
 
         case '4':
@@ -575,7 +579,7 @@ export class BorrowView extends ConsoleView {
           break;
 
         case '5':
-          await this.deleteBorrow();
+          await this.returnBorrow();
 
           break;
 

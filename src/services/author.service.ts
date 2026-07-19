@@ -52,7 +52,13 @@ export class AuthorService {
     return canDelete;
   }
 
-  async deleteAuthor(id: number): Promise<void> {
-    return this.repository.deleteAuthor(id);
+  async deleteAuthor(id: number): Promise<boolean> {
+    const authorDeleted = await this.repository.deleteAuthor(id);
+    if (!authorDeleted) {
+      throw new Error(
+        'Erro ao excluir o autor.',
+      );
+    }
+    return authorDeleted;
   }
 }

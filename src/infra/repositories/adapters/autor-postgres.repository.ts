@@ -61,13 +61,11 @@ export class AutorPostgresRepository implements AutorRepository {
     return row;
   }
 
-  async deleteAuthor(id: number): Promise<void> {
-    await this.pool.query('UPDATE autor SET deleted_at = NOW() WHERE id = $1', [
+  async deleteAuthor(id: number): Promise<boolean> {
+    const result = await this.pool.query('UPDATE autor SET deleted_at = NOW() WHERE id = $1', [
       id,
     ]);
-    // if (result.rowCount === 0) {
-    //   throw new Error(`Autor com id ${id} não encontrado`);
-    // }
+    return (result.rowCount ?? 0) > 0;
   }
 
   async canDeleteAuthor(id: number): Promise<boolean> {

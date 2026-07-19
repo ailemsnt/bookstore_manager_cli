@@ -20,4 +20,6 @@ export interface EmprestimoRepository {
     livrosId: number[],
     userId: number,
   ): Promise<EmprestimoRetorno | null>;
+
+  returnBorrow(id: number): Promise<boolean>; 
 }
