@@ -1,8 +1,8 @@
 import {
   Cliente,
-  ClienteInput,
   ClienteUpdate,
 } from '../../domain/customer';
+import { CustomerFormDto } from '../../view/dto/customer-form.dto';
 import { CustomerListDto } from '../../view/dto/customer-list.dto';
 
 export interface ClienteRepository {
@@ -14,11 +14,13 @@ export interface ClienteRepository {
 
   findAllCustomers(): Promise<CustomerListDto[]>;
 
-  createCustomer(customer: ClienteInput): Promise<Cliente>;
+  createCustomer(customer: CustomerFormDto): Promise<Cliente>;
 
   updateCustomer(book: ClienteUpdate): Promise<Cliente>;
 
   deleteCustomer(id: number): Promise<boolean>;
 
   canDeleteCustomer(id: number): Promise<boolean>;
+
+  isCustomerActiveOrDeleted(id: number): Promise<CustomerListDto | null>;
 }

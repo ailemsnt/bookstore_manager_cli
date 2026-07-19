@@ -7,6 +7,7 @@ import { ConsoleView } from '../@common/view/console.view';
 import { CustomerService } from '../services/customer.service';
 import { MunicipalityService } from '../services/municipality.service';
 import { CustomerFormDto, CustomerUpdateDto } from './dto/customer-form.dto';
+import { cleanCpf } from './utils/view-utils';
 
 export class CustomerView extends ConsoleView {
   constructor(
@@ -20,55 +21,28 @@ export class CustomerView extends ConsoleView {
     await this.update();
   }
 
-  private async selectMunicipality(): Promise<number> {
-    while (true) {
-      const municipalityNamePartial = await this.prompt(
-        'Informe o nome do município: (ao menos 3 letras) ',
-      );
-
-      const countries = await this.municipalitySrv.findMunicipalityByName(
-        municipalityNamePartial,
-      );
-
-      if (countries.length === 0) {
-        this.display('Município não encontrado.');
-        continue;
-      }
-
-      this.display('Municípios disponíveis:');
-      this.display('ID     | Nome - UF');
-
-      countries.forEach((m) => {
-        this.display(`#${String(m.id)} | ${m.nome} - ${m.uf_sigla}`);
-      });
-      this.display('');
-
-      while (true) {
-        const municipalityId = await this.prompt(
-          'Informe o ID do município exibido na lista acima: ',
-        );
-
-        const municipalityIdValidate = Number(municipalityId);
-        if (Number.isNaN(municipalityIdValidate)) {
-          this.display('ID do município informado inválido.');
-          continue;
-        }
-
-        const municipalityExists =
-          await this.municipalitySrv.findMunicipalityById(
-            municipalityIdValidate,
-          );
-        if (!municipalityExists) {
-          continue;
-        }
-
-        this.display(
-          `Município selecionado: ${municipalityExists.nome} - ${municipalityExists.uf_sigla}`,
-        );
-
-        return municipalityIdValidate;
-      }
+  private async selectMunicipality(idMunicipality: number): Promise<number | null> {   
+    const municipalityIdValidate = Number(idMunicipality);
+    if (Number.isNaN(municipalityIdValidate)) {
+      this.display('ID do município informado inválido.');
+      return null;
     }
+
+    const municipalityExists =
+      await this.municipalitySrv.findMunicipalityById(
+        municipalityIdValidate,
+      );
+    
+    if (!municipalityExists) {
+      this.display('Município não encontrado.');      
+      return null;
+    }
+
+    this.display(
+      `Município selecionado: ${municipalityExists.nome} - ${municipalityExists.uf_sigla}`,
+    );
+
+    return municipalityIdValidate;    
   }
 
   private async findAllCustomers(): Promise<void> {
@@ -112,8 +86,18 @@ export class CustomerView extends ConsoleView {
       CustomerFormDto.schema(),
       CustomerFormDto,
     );
+    
+    const customerExists = await this.customerSrv.findCustomerByCpf(customerDto.cpf);
+    if (customerExists) {
+      this.display(`Cliente já cadastrado!`);
+      return;
+    }
+    
+    const municipalityIdExists = await this.selectMunicipality(customerDto.municipio_id);    
 
-    const municipalityIdCustomer = await this.selectMunicipality();
+    if (!municipalityIdExists) {
+      return;
+    }
 
     const customerOrError = await this.customerSrv
       .findCustomerByCpf(customerDto.cpf)
@@ -125,11 +109,6 @@ export class CustomerView extends ConsoleView {
       return;
     }
 
-    if (customerOrError) {
-      this.display(`Cliente já cadastrado!`);
-      return;
-    }
-
     const customerCreated = await this.customerSrv.createCustomer({
       nome: customerDto.nome,
       cpf: customerDto.cpf,
@@ -137,10 +116,9 @@ export class CustomerView extends ConsoleView {
       cep: customerDto.cep,
       numero: customerDto.numero,
       bairro: customerDto.bairro,
-      municipio_id: municipalityIdCustomer,
+      municipio_id: customerDto.municipio_id,
       telefone: customerDto.telefone,
       email: customerDto.email,
-      ativo: formatInChar(customerDto.ativo),
     });
 
     this.display(
@@ -162,7 +140,11 @@ export class CustomerView extends ConsoleView {
       CustomerUpdateDto,
     );
 
-    const municipalityIdCustomerUpdate = await this.selectMunicipality();
+    const municipalityIdExists = await this.selectMunicipality(customerUpdateDto.municipio_id);    
+
+    if (!municipalityIdExists) {
+      return;
+    }
 
     const customerUpdateOrError = await this.customerSrv
       .search(customerUpdateDto.nome)
@@ -181,11 +163,10 @@ export class CustomerView extends ConsoleView {
       cep: customerUpdateDto.cep,
       numero: customerUpdateDto.numero,
       bairro: customerUpdateDto.bairro,
-      municipio_id: Number(municipalityIdCustomerUpdate),
+      municipio_id: customerUpdateDto.municipio_id,
       telefone: customerUpdateDto.telefone,
       email: customerUpdateDto.email,
-      ativo: formatInChar(customerUpdateDto.ativo),
-      cpf: '',
+      ativo: formatInChar(customerUpdateDto.ativo)
     });
 
     this.display(
